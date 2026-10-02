@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router'
 import { CardGridSkeleton } from '@/components/feedback/CardGridSkeleton'
 import { ErrorState } from '@/components/feedback/ErrorState'
-import { Plate } from '@/components/ui/Plate'
+import { FoodEmoji } from '@/components/ui/FoodEmoji'
 import { StarRating } from '@/components/ui/StarRating'
 import { StatTile } from '@/features/admin/components/StatTile'
 import { computeStats, listReviews } from '@/features/admin/stats'
@@ -75,7 +75,7 @@ export function AdminDashboardPage() {
             <ul className="divide-y divide-line rounded-2xl bg-surface ring-1 ring-line">
               {unrated.map((recipe) => (
                 <li key={recipe.id} className="flex items-center gap-3 px-4 py-3">
-                  <Plate emoji={recipe.emoji || cuisineEmoji.get(recipe.cuisineId) || '🍽️'} size="sm" />
+                  <FoodEmoji emoji={recipe.emoji || cuisineEmoji.get(recipe.cuisineId) || '🍽️'} size="sm" />
                   <span className="min-w-0 flex-1 truncate font-semibold">{recipe.title}</span>
                   <Link
                     to={`/admin/reviews?recipe=${recipe.id}`}

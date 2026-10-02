@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Link, useParams } from 'react-router'
 import { CardGridSkeleton } from '@/components/feedback/CardGridSkeleton'
 import { ErrorState } from '@/components/feedback/ErrorState'
-import { Plate } from '@/components/ui/Plate'
+import { FoodEmoji } from '@/components/ui/FoodEmoji'
 import { cuisineQueries } from '@/features/cuisines/queries'
 import { cuisineTint, formatCoordinates } from '@/features/cuisines/utils'
 import { DishCard } from '@/features/dishes/components/DishCard'
@@ -52,7 +52,7 @@ function CuisineView({ cuisineId }: { cuisineId: string }) {
           )}
           <p className="max-w-prose text-lg text-ink-muted">{cuisine.data?.description}</p>
         </div>
-        <Plate emoji={cuisine.data?.emoji ?? '🍽️'} size="lg" className="justify-self-center sm:size-48 sm:text-8xl" />
+        <FoodEmoji emoji={cuisine.data?.emoji ?? '🍽️'} size="lg" className="justify-self-center" />
       </header>
 
       {recipes.data && dishes.data && (

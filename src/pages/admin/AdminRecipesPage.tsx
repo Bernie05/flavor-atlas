@@ -5,12 +5,12 @@ import { CardGridSkeleton } from '@/components/feedback/CardGridSkeleton'
 import { EmptyState } from '@/components/feedback/EmptyState'
 import { ErrorState } from '@/components/feedback/ErrorState'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
-import { Plate } from '@/components/ui/Plate'
 import { StarRating } from '@/components/ui/StarRating'
 import { FlashMessage } from '@/features/admin/components/FlashMessage'
 import { cuisineQueries } from '@/features/cuisines/queries'
 import { dishQueries } from '@/features/dishes/queries'
 import { summarizeRatings } from '@/features/ratings/summary'
+import { RecipeCover } from '@/features/recipes/components/RecipeCover'
 import { useDeleteRecipe } from '@/features/recipes/mutations'
 import { recipeQueries } from '@/features/recipes/queries'
 import type { RecipeWithRatings } from '@/features/recipes/schema'
@@ -155,7 +155,12 @@ export function AdminRecipesPage() {
                     <tr key={recipe.id}>
                       <th scope="row" className="px-4 py-2 text-left font-normal">
                         <span className="flex items-center gap-3">
-                          <Plate emoji={recipe.emoji || cuisine?.emoji || '🍽️'} size="sm" />
+                          <RecipeCover
+                    recipe={recipe}
+                    emoji={recipe.emoji || cuisine?.emoji}
+                    emojiSize="sm"
+                    className="size-11 shrink-0 rounded-xl"
+                  />
                           <span>
                             <span className="block font-semibold">{recipe.title}</span>
                             <span className="block text-sm text-ink-subtle">{dishLine(recipe)}</span>
@@ -185,7 +190,12 @@ export function AdminRecipesPage() {
               return (
                 <li key={recipe.id} className="space-y-2 px-4 py-3">
                   <div className="flex items-center gap-3">
-                    <Plate emoji={recipe.emoji || cuisine?.emoji || '🍽️'} size="sm" />
+                    <RecipeCover
+                    recipe={recipe}
+                    emoji={recipe.emoji || cuisine?.emoji}
+                    emojiSize="sm"
+                    className="size-11 shrink-0 rounded-xl"
+                  />
                     <div className="min-w-0">
                       <p className="truncate font-semibold">{recipe.title}</p>
                       <p className="truncate text-sm text-ink-subtle">{dishLine(recipe)}</p>

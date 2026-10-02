@@ -1,5 +1,5 @@
 import { Link } from 'react-router'
-import { Plate } from '@/components/ui/Plate'
+import { FoodEmoji } from '@/components/ui/FoodEmoji'
 import type { Cuisine } from '../schema'
 import { cuisineTint, formatCoordinates } from '../utils'
 
@@ -18,7 +18,7 @@ export function CuisineCard({ cuisine, recipeCount }: CuisineCardProps) {
       className="group flex flex-col gap-4 rounded-2xl bg-tint-soft p-4 ring-1 ring-transparent transition hover:ring-tint sm:p-5"
     >
       <span className="flex items-start justify-between gap-2">
-        <Plate emoji={cuisine.emoji} size="sm" />
+        <FoodEmoji emoji={cuisine.emoji} size="sm" className="bg-surface/70" />
         <span className="label-mono whitespace-nowrap text-tint-ink tabular-nums">
           {recipeCount} {recipeCount === 1 ? 'recipe' : 'recipes'}
         </span>

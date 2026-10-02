@@ -1,7 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useFieldArray, useForm, useWatch } from 'react-hook-form'
 import { Link } from 'react-router'
-import { Plate } from '@/components/ui/Plate'
 import { Field, FieldMessage } from '@/components/ui/form'
 import { describedBy, inputClass } from '@/components/ui/formStyles'
 import { AiAssist } from '@/features/ai/components/AiAssist'
@@ -21,7 +20,8 @@ import {
   recipeFormSchema,
   type RecipeFormValues,
 } from '../form'
-import { DIFFICULTIES } from '../schema'
+import { DIFFICULTIES, recipeInputSchema } from '../schema'
+import { RecipeCover } from './RecipeCover'
 import { DIFFICULTY_LABELS, formatQuantity } from '../utils'
 
 interface RecipeFormProps {
@@ -77,7 +77,9 @@ export function RecipeForm({
   const steps = useFieldArray({ control, name: 'steps' })
 
   // Live preview: the plate and colors follow the chosen cuisine and emoji.
-  const [cuisineId, emoji] = useWatch({ control, name: ['cuisineId', 'emoji'] })
+  const [cuisineId, emoji, title, imageUrl] = useWatch({ control, name: ['cuisineId', 'emoji', 'title', 'imageUrl'] })
+  // Only preview a link once it is a valid photo link, not on every keystroke while it is typed.
+  const previewImageUrl = recipeInputSchema.shape.imageUrl.safeParse(imageUrl.trim()).data ?? ''
   const cuisine = cuisines.find((c) => c.id === cuisineId)
   const dishId = useWatch({ control, name: 'dishId' })
   // Dishes and regions belong to a cuisine: only offer the chosen cuisine's.
@@ -142,9 +144,14 @@ export function RecipeForm({
             </Field>
           </div>
         </div>
-        <div className="flex flex-col items-center justify-center gap-2">
-          <Plate emoji={emoji || cuisine?.emoji || '🍽️'} size="lg" />
-          <p className="label-mono text-tint-ink">{cuisine ? cuisine.name : 'Preview'}</p>
+        {/* The card picture as the site will show it: the photo, or the emoji on the cuisine's dots. */}
+        <div className="grid content-center gap-2">
+          <RecipeCover
+            recipe={{ title: title || 'Recipe', imageUrl: previewImageUrl }}
+            emoji={emoji || cuisine?.emoji}
+            className="aspect-[4/3] w-full rounded-2xl ring-1 ring-tint/30"
+          />
+          <p className="label-mono text-center text-tint-ink">{cuisine ? cuisine.name : 'Preview'}</p>
         </div>
       </fieldset>
 
@@ -327,7 +334,7 @@ export function RecipeForm({
           label="Photo link (optional)"
           htmlFor="imageUrl"
           error={errors.imageUrl?.message}
-          hint="Leave empty to show the dish on a plate."
+          hint="Fills the card and the recipe page. Leave empty to show the emoji."
         >
           <input
             id="imageUrl"

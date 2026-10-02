@@ -2,9 +2,9 @@
 
 /*
  * Flavor Atlas design tokens.
- * Concept: an atlas of plates, set like a food magazine. Each cuisine is a
- * colored region on the map, every recipe is a plate set on its region's
- * color, and big serif headlines with italic accents do the editorial work.
+ * Concept: an atlas of dishes, set like a food magazine. Each cuisine is a
+ * colored region on the map, every recipe is a photo (or its emoji) set on
+ * its region's color, and big serif headlines with italic accents do the editorial work.
  *
  * Every color is a CSS variable with a light and a dark value. Tailwind
  * utilities (bg-surface, text-ink, bg-tint-soft, ...) point at these variables,
@@ -231,36 +231,53 @@ body {
     background-size: 14px 14px;
   }
 
-  /* A plate: white disc with a rim ring and a soft shadow, food in the middle. */
-  .plate {
-    display: grid;
+  /* A recipe without a photo: its emoji, tilting a little on hover. */
+  .food-emoji {
+    display: inline-grid;
     flex-shrink: 0;
     place-items: center;
-    aspect-ratio: 1;
-    border-radius: 9999px;
-    background: radial-gradient(
-      circle,
-      var(--plate) 0 56%,
-      var(--plate-rim) 57% 59%,
-      var(--plate) 60% 100%
-    );
-    box-shadow:
-      0 0 0 1px var(--plate-rim),
-      0 14px 28px -14px var(--plate-shadow);
-  }
-
-  .plate-food {
     line-height: 1;
     transition: transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
   }
 
-  .group:hover .plate-food,
-  .group:focus-visible .plate-food {
+  .group:hover .food-emoji,
+  .group:focus-visible .food-emoji {
     transform: rotate(-10deg) scale(1.08);
   }
 
+  /*
+   * Text set over a food photo. Redefines the theme tokens inside it, so the
+   * usual components (stars, labels, links) turn light without special cases.
+   * Same in both themes, because the scrim under it is always dark.
+   */
+  .on-photo {
+    --ink: #ffffff;
+    --ink-muted: rgb(255 255 255 / 0.88);
+    --ink-subtle: rgb(255 255 255 / 0.8);
+    --canvas: #17201c;
+    --line: rgb(255 255 255 / 0.35);
+    --tint: #ffffff;
+    --tint-ink: #ffffff;
+    --star: #f6c04a;
+    --star-empty: rgb(255 255 255 / 0.45);
+    color: var(--ink);
+    /* Keeps thin text legible where the photo is bright under the scrim. */
+    text-shadow: 0 1px 3px rgb(0 0 0 / 0.45);
+  }
+
+  /* Darkens a photo toward the bottom, where its text sits. */
+  .photo-scrim {
+    background: linear-gradient(
+      to top,
+      rgb(0 0 0 / 0.9) 0%,
+      rgb(0 0 0 / 0.78) 50%,
+      rgb(0 0 0 / 0.4) 75%,
+      rgb(0 0 0 / 0.08) 100%
+    );
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    .plate-food {
+    .food-emoji {
       transition: none;
     }
   }

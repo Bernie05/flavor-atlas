@@ -5,7 +5,7 @@ description: Design system and UI conventions for Flavor Atlas. Use whenever cre
 
 # Flavor Atlas UI
 
-Concept: **an atlas of plates, set like a food magazine.** Each cuisine is a colored region on a map, every recipe is a plate set on its region's color, and big serif headlines with italic accents do the editorial work (patterns adapted from NYT Cooking and editorial food sites). Keep new UI inside this idea instead of adding unrelated decoration.
+Concept: **an atlas of dishes, set like a food magazine.** Each cuisine is a colored region on a map, every recipe is a food photo (or its emoji) set on its region's color, and big serif headlines with italic accents do the editorial work (patterns adapted from NYT Cooking and editorial food sites). Keep new UI inside this idea instead of adding unrelated decoration.
 
 ## Two sides
 
@@ -46,8 +46,8 @@ Wrap anything that belongs to a cuisine with `style={cuisineTint(cuisineId)}` fr
 
 ## Signature elements
 
-- **Photos** go through `RecipeCover`: 4:3 on cards, a round crop with a plate-colored ring on the recipe hero, with the credit as a small caption under it. If a photo fails to load, the plate takes its place (and the credit hides).
-- **Plate** (`components/ui/Plate.tsx`): the picture for any recipe without a photo. Use `recipe.emoji || cuisine.emoji`. Sizes `sm`, `md`, `lg`.
+- **Photos fill their area, never a circle.** Cards: `RecipeCover`, 4:3, edge to edge. Recipe hero and the featured card: the photo is the background, with `.photo-scrim` and `.on-photo` (a scoped theme that turns the tokens light, so stars, labels and links need no special cases). The credit is a small pill over the photo (`PhotoCredit`). `usePhoto` drops a photo that fails to load, and the emoji layout takes its place.
+- **FoodEmoji** (`components/ui/FoodEmoji.tsx`): the picture for a recipe without a photo, set straight on `atlas-dots` (no plate). Use `recipe.emoji || cuisine.emoji`. `sm` is a tinted tile for list rows; `md`/`lg` float with a soft shadow.
 - **Atlas dots** (`.atlas-dots`): dotted map background in the current tint. Use for covers and tinted headers only, not on every surface.
 - **Coordinates**: cuisines show `origin · formatCoordinates(cuisine)` in `.label-mono`.
 - **Region tag** (`features/dishes/components/RegionTag.tsx`): "📍 Name · coords" in `.label-mono` for regional versions. A regional version shows its tag plus the one-line `variantNote` (italic serif on the recipe hero, plain text on cards with `showVariantNote`). Classic versions show neither.
@@ -65,13 +65,13 @@ Breadcrumb (Recipes / Cuisine / Dish) → hero (tinted, dotted), region tag + no
 - Max width `max-w-6xl`, side gutter `px-4`, sections separated with `space-y-*` / `gap-*`, not margins on children.
 - Phone first: check 390px and 320px wide. Grids go 1 column (recipes) or 2 columns (cuisine tiles) on phones.
 - Radius by role: `rounded-3xl` tinted headers, `rounded-2xl` cards, `rounded-full` pills, inputs and buttons.
-- Recipe cards are editorial: the picture block (`rounded-2xl`, plate on `atlas-dots`) carries the card, text sits below on the page, hover underlines the title. Panels and lists use `bg-surface ring-1 ring-line`. No shadows except plates.
+- Recipe cards are editorial: the picture block (`rounded-2xl`, photo or emoji on `atlas-dots`) carries the card, text sits below on the page, hover underlines the title. Panels and lists use `bg-surface ring-1 ring-line`. No shadows except the floating emoji.
 - Collection rows (`RecipeRow`) swipe sideways on phones (`snap-x`, ~78% card width) and become a grid on `sm+`.
 - Primary button: `bg-ink text-canvas hover:bg-accent rounded-full`. Text links: `text-accent hover:text-accent-hover`.
 - Forms: wrap controls in `Field` (`components/ui/form.tsx`) with `inputClass` and `describedBy()` from `formStyles.ts`. Validate with the Zod schema through `zodResolver`. Field errors are plain text linked by `aria-describedby`; the form has exactly one `role="alert"` summary ("Fix 3 fields to save."). Never use `window.confirm()`; use `ConfirmDialog`.
 - Destructive actions: `text-danger` for the trigger, `bg-danger text-on-danger` for the confirm button inside `ConfirmDialog`.
 - Every list fetch has three states: `CardGridSkeleton`, `ErrorState` (with retry), `EmptyState`.
-- Motion: small and purposeful (the plate's food tilts on hover). Always pair with `motion-reduce:` overrides.
+- Motion: small and purposeful (the emoji tilts on hover, a photo zooms 3%). Always pair with `motion-reduce:` overrides.
 
 ## Before finishing UI work
 

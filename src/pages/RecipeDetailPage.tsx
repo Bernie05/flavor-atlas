@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useRef, useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { ErrorState } from '@/components/feedback/ErrorState'
-import { Plate } from '@/components/ui/Plate'
+import { FoodEmoji } from '@/components/ui/FoodEmoji'
 import { StarRating } from '@/components/ui/StarRating'
 import { cuisineQueries } from '@/features/cuisines/queries'
 import { cuisineTint } from '@/features/cuisines/utils'
@@ -12,10 +12,11 @@ import { otherVersions } from '@/features/dishes/utils'
 import { RatingsSection } from '@/features/ratings/components/RatingsSection'
 import { summarizeRatings } from '@/features/ratings/summary'
 import { IngredientChecklist } from '@/features/recipes/components/IngredientChecklist'
-import { RecipeCover } from '@/features/recipes/components/RecipeCover'
+import { PhotoCredit } from '@/features/recipes/components/PhotoCredit'
 import { RecipeRow } from '@/features/recipes/components/RecipeRow'
 import { recipeQueries } from '@/features/recipes/queries'
 import type { RecipeWithRatings } from '@/features/recipes/schema'
+import { usePhoto } from '@/features/recipes/usePhoto'
 import { DIFFICULTY_LABELS, formatDuration, highlightIngredients, totalMinutes } from '@/features/recipes/utils'
 import { NotFoundError } from '@/services/data'
 import { NotFoundPage } from './NotFoundPage'
@@ -47,6 +48,7 @@ function RecipeView({ recipe }: { recipe: RecipeWithRatings }) {
   // The dish's other versions; usually cached from the list pages.
   const siblings = otherVersions(recipe, useQuery(recipeQueries.list({ dishId: recipe.dishId })).data ?? [])
   const rating = summarizeRatings(recipe.ratings)
+  const photo = usePhoto(recipe.imageUrl)
   // Phones show one panel at a time (like NYT Cooking); wider screens show both.
   const [panel, setPanel] = useState<Panel>('ingredients')
   const toggleRef = useRef<HTMLDivElement>(null)
@@ -79,8 +81,28 @@ function RecipeView({ recipe }: { recipe: RecipeWithRatings }) {
     <article className="space-y-12" style={cuisineTint(recipe.cuisineId)}>
       <title>{`${recipe.title} · Flavor Atlas`}</title>
 
-      <header className="atlas-dots -mx-4 -mt-6 grid items-center gap-8 px-4 py-10 sm:mx-0 sm:mt-0 sm:rounded-3xl sm:px-10 sm:py-12 lg:grid-cols-[1fr_auto]">
-        <div className="min-w-0 space-y-5">
+      {/* With a photo, the photo is the hero's background; without one, the emoji sits on the cuisine's dots. */}
+      <header
+        className={`-mx-4 -mt-6 sm:mx-0 sm:mt-0 sm:rounded-3xl ${
+          photo.visible
+            ? 'on-photo relative isolate overflow-hidden px-4 pt-60 pb-8 sm:px-10 sm:pt-72 sm:pb-12 lg:pt-56'
+            : 'atlas-dots grid items-center gap-8 px-4 py-10 sm:px-10 sm:py-12 lg:grid-cols-[1fr_auto]'
+        }`}
+      >
+        {photo.visible && (
+          <>
+            {/* The h1 names the dish, so the photo itself is decorative here. */}
+            <img
+              src={photo.src}
+              alt=""
+              onError={photo.onError}
+              className="absolute inset-0 -z-10 size-full bg-surface-sunken object-cover"
+            />
+            <div aria-hidden className="photo-scrim absolute inset-0 -z-10" />
+            <PhotoCredit recipe={recipe} />
+          </>
+        )}
+        <div className="min-w-0 max-w-3xl space-y-5">
           <nav aria-label="Breadcrumb" className="label-mono text-tint-ink">
             <Link to="/recipes" className="inline-flex min-h-10 items-center hover:underline">
               Recipes
@@ -120,33 +142,9 @@ function RecipeView({ recipe }: { recipe: RecipeWithRatings }) {
             ))}
           </dl>
         </div>
-        {/* A photo is served on a plate: a round crop with a plate-colored rim. */}
-        <RecipeCover
-          recipe={recipe}
-          className="size-56 justify-self-center rounded-full ring-8 ring-[var(--plate)] sm:size-64"
-          fallback={
-            <Plate
-              emoji={recipe.emoji || cuisine?.emoji || '🍽️'}
-              size="lg"
-              className="justify-self-center sm:size-60 sm:text-9xl"
-            />
-          }
-          caption={
-            recipe.imageCredit &&
-            (recipe.imageSourceUrl ? (
-              <a
-                href={recipe.imageSourceUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-block py-2 underline underline-offset-2"
-              >
-                {recipe.imageCredit}
-              </a>
-            ) : (
-              recipe.imageCredit
-            ))
-          }
-        />
+        {!photo.visible && (
+          <FoodEmoji emoji={recipe.emoji || cuisine?.emoji || '🍽️'} size="lg" className="order-first justify-self-center lg:order-none" />
+        )}
       </header>
 
       {/* Phone-only toggle. Sticks under the site header while you cook. */}
