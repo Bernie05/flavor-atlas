@@ -1,5 +1,7 @@
 import { lazy, Suspense } from 'react'
+import { Link } from 'react-router'
 import { StarRating } from '@/components/ui/StarRating'
+import { useSession } from '@/features/auth/queries'
 import type { Rating } from '../schema'
 import { summarizeRatings } from '../summary'
 import { formatRelativeDate, sortNewestFirst } from '../utils'
@@ -16,6 +18,7 @@ interface RatingsSectionProps {
 export function RatingsSection({ recipeId, ratings }: RatingsSectionProps) {
   const summary = summarizeRatings(ratings)
   const reviews = sortNewestFirst(ratings)
+  const session = useSession().data
 
   return (
     <section aria-labelledby="ratings-heading" className="space-y-6">
@@ -41,11 +44,22 @@ export function RatingsSection({ recipeId, ratings }: RatingsSectionProps) {
       <div className="grid gap-8 md:grid-cols-[minmax(0,22rem)_1fr]">
         <div className="min-w-0">
           <h3 className="sr-only">Rate this recipe</h3>
-          <Suspense
-            fallback={<div aria-hidden className="h-64 animate-pulse rounded-2xl bg-surface-sunken motion-reduce:animate-none" />}
-          >
-            <RatingForm recipeId={recipeId} />
-          </Suspense>
+          {session?.admin ? (
+            <Suspense
+              fallback={<div aria-hidden className="h-64 animate-pulse rounded-2xl bg-surface-sunken motion-reduce:animate-none" />}
+            >
+              <RatingForm recipeId={recipeId} />
+            </Suspense>
+          ) : (
+            <p className="rounded-2xl bg-surface p-5 text-sm text-ink-muted ring-1 ring-line">
+              Rating is open to the admin for now.{' '}
+              {session?.mode === 'password' && (
+                <Link to="/login" className="font-semibold text-accent hover:text-accent-hover">
+                  Log in to rate
+                </Link>
+              )}
+            </p>
+          )}
         </div>
 
         <div className="min-w-0">

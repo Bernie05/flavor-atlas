@@ -5,6 +5,7 @@ import { CardGridSkeleton } from '@/components/feedback/CardGridSkeleton'
 import { EmptyState } from '@/components/feedback/EmptyState'
 import { ErrorState } from '@/components/feedback/ErrorState'
 import { Plate } from '@/components/ui/Plate'
+import { useIsAdmin } from '@/features/auth/queries'
 import { cuisineQueries } from '@/features/cuisines/queries'
 import { cuisineTint, formatCoordinates } from '@/features/cuisines/utils'
 import { RecipeCard } from '@/features/recipes/components/RecipeCard'
@@ -28,6 +29,7 @@ export function CuisinePage() {
 function CuisineView({ cuisineId }: { cuisineId: string }) {
   const cuisine = useQuery(cuisineQueries.detail(cuisineId))
   const recipes = useQuery(recipeQueries.list({ cuisineId }))
+  const isAdmin = useIsAdmin()
 
   // Search and sort live in React state, so typing feels instant, and are
   // mirrored to the URL (?q=...&sort=...) so a filtered view survives a refresh
@@ -113,12 +115,14 @@ function CuisineView({ cuisineId }: { cuisineId: string }) {
 
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-2xl">Recipes</h2>
-        <Link
-          to={`/recipes/new?cuisine=${cuisineId}`}
-          className="inline-flex min-h-10 items-center rounded-full border border-line-strong px-4 text-sm font-semibold whitespace-nowrap hover:bg-surface-sunken"
-        >
-          + Add {cuisine.data?.name ?? ''} recipe
-        </Link>
+        {isAdmin && (
+          <Link
+            to={`/recipes/new?cuisine=${cuisineId}`}
+            className="inline-flex min-h-10 items-center rounded-full border border-line-strong px-4 text-sm font-semibold whitespace-nowrap hover:bg-surface-sunken"
+          >
+            + Add {cuisine.data?.name ?? ''} recipe
+          </Link>
+        )}
       </div>
       {recipes.isPending ? (
         <CardGridSkeleton />
@@ -127,9 +131,9 @@ function CuisineView({ cuisineId }: { cuisineId: string }) {
       ) : visibleRecipes.length === 0 ? (
         <EmptyState
           title={query ? `No recipes match "${query}"` : 'No recipes here yet'}
-          description={query ? 'Try a different name or ingredient.' : 'Be the first to add one.'}
+          description={query ? 'Try a different name or ingredient.' : isAdmin ? 'Be the first to add one.' : undefined}
           action={
-            !query && (
+            !query && isAdmin && (
               <Link
                 to={`/recipes/new?cuisine=${cuisineId}`}
                 className="inline-flex min-h-10 items-center rounded-full bg-ink px-4 font-semibold text-canvas hover:bg-accent"

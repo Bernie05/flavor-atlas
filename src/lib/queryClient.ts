@@ -1,7 +1,7 @@
-import { QueryClient } from '@tanstack/react-query'
-import { NotFoundError } from '@/services/data'
+import { MutationCache, QueryClient } from '@tanstack/react-query'
+import { NotFoundError, UnauthorizedError } from '@/services/data'
 
-export const queryClient = new QueryClient({
+export const queryClient: QueryClient = new QueryClient({
   defaultOptions: {
     queries: {
       // Recipes rarely change while you're reading them, so avoid
@@ -12,4 +12,13 @@ export const queryClient = new QueryClient({
       retry: (failureCount, error) => !(error instanceof NotFoundError) && failureCount < 1,
     },
   },
+  mutationCache: new MutationCache({
+    // Any change refused with 401 means the session ended (expired, or logged
+    // out in another tab): refresh it so the UI hides admin controls everywhere.
+    onError: (error) => {
+      if (error instanceof UnauthorizedError) {
+        void queryClient.invalidateQueries({ queryKey: ['auth', 'session'] })
+      }
+    },
+  }),
 })

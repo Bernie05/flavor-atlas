@@ -5,6 +5,7 @@ import { ErrorState } from '@/components/feedback/ErrorState'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { Plate } from '@/components/ui/Plate'
 import { StarRating } from '@/components/ui/StarRating'
+import { useIsAdmin } from '@/features/auth/queries'
 import { cuisineQueries } from '@/features/cuisines/queries'
 import { cuisineTint } from '@/features/cuisines/utils'
 import { RatingsSection } from '@/features/ratings/components/RatingsSection'
@@ -24,6 +25,7 @@ export function RecipeDetailPage() {
   const navigate = useNavigate()
   const deleteRecipe = useDeleteRecipe()
   const [confirmingDelete, setConfirmingDelete] = useState(false)
+  const isAdmin = useIsAdmin()
 
   // A deleted recipe's query is removed; don't flash "not found" while leaving.
   if (deleteRecipe.isSuccess) return null
@@ -107,21 +109,23 @@ export function RecipeDetailPage() {
         )}
       </header>
 
-      <div className="flex flex-wrap justify-end gap-2">
-        <Link
-          to={`/recipes/${recipe.id}/edit`}
-          className="inline-flex min-h-10 items-center rounded-full border border-line-strong px-4 text-sm font-semibold hover:bg-surface-sunken"
-        >
-          Edit recipe
-        </Link>
-        <button
-          type="button"
-          onClick={() => setConfirmingDelete(true)}
-          className="min-h-10 rounded-full px-4 text-sm font-semibold text-danger hover:bg-surface-sunken"
-        >
-          Delete
-        </button>
-      </div>
+      {isAdmin && (
+        <div className="flex flex-wrap justify-end gap-2">
+          <Link
+            to={`/recipes/${recipe.id}/edit`}
+            className="inline-flex min-h-10 items-center rounded-full border border-line-strong px-4 text-sm font-semibold hover:bg-surface-sunken"
+          >
+            Edit recipe
+          </Link>
+          <button
+            type="button"
+            onClick={() => setConfirmingDelete(true)}
+            className="min-h-10 rounded-full px-4 text-sm font-semibold text-danger hover:bg-surface-sunken"
+          >
+            Delete
+          </button>
+        </div>
+      )}
 
       {/* 6-column grid on phones: 3 facts on the first row, 2 wider ones on the second. */}
       <dl className="grid grid-cols-6 gap-px overflow-hidden rounded-2xl bg-line ring-1 ring-line sm:grid-cols-5">

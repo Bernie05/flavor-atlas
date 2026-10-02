@@ -1,7 +1,11 @@
 import { Link, NavLink, Outlet, ScrollRestoration } from 'react-router'
+import { useLogout, useSession } from '@/features/auth/queries'
 import { AtlasMark } from './AtlasMark'
 
 export function RootLayout() {
+  const session = useSession().data
+  const logout = useLogout()
+
   return (
     <div className="flex min-h-dvh flex-col">
       <header className="sticky top-[env(safe-area-inset-top,0px)] z-10 border-b border-line bg-canvas/85 backdrop-blur-md">
@@ -22,13 +26,36 @@ export function RootLayout() {
             >
               Explore
             </NavLink>
-            <NavLink
-              to="/recipes/new"
-              aria-label="New recipe"
-              className="inline-flex min-h-10 items-center rounded-full bg-ink px-3.5 text-sm font-semibold whitespace-nowrap text-canvas hover:bg-accent"
-            >
-              + New<span className="hidden sm:inline"> recipe</span>
-            </NavLink>
+            {session?.admin ? (
+              <>
+                <NavLink
+                  to="/recipes/new"
+                  aria-label="New recipe"
+                  className="inline-flex min-h-10 items-center rounded-full bg-ink px-3.5 text-sm font-semibold whitespace-nowrap text-canvas hover:bg-accent"
+                >
+                  + New<span className="hidden sm:inline"> recipe</span>
+                </NavLink>
+                {session.mode === 'password' && (
+                  <button
+                    type="button"
+                    onClick={() => logout.mutate()}
+                    disabled={logout.isPending}
+                    className="inline-flex min-h-10 items-center rounded-full px-3 text-sm font-medium whitespace-nowrap text-ink-muted hover:text-ink"
+                  >
+                    Log out
+                  </button>
+                )}
+              </>
+            ) : (
+              session?.mode === 'password' && (
+                <NavLink
+                  to="/login"
+                  className="inline-flex min-h-10 items-center rounded-full px-3 text-sm font-medium whitespace-nowrap text-ink-muted hover:text-ink"
+                >
+                  Log in
+                </NavLink>
+              )
+            )}
           </div>
         </nav>
       </header>

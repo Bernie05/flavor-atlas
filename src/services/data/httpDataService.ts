@@ -4,7 +4,7 @@ import { ratingSchema } from '@/features/ratings/schema'
 import { recipeSchema, recipeWithRatingsSchema } from '@/features/recipes/schema'
 import { config } from '@/lib/config'
 import type { DataService } from './DataService'
-import { ApiError, NotFoundError } from './errors'
+import { ApiError, NotFoundError, UnauthorizedError } from './errors'
 
 type Method = 'GET' | 'POST' | 'PATCH' | 'DELETE'
 
@@ -16,6 +16,7 @@ async function request(method: Method, path: string, body?: unknown): Promise<Re
     body: body === undefined ? undefined : JSON.stringify(body),
   })
 
+  if (response.status === 401) throw new UnauthorizedError()
   if (response.status === 404) {
     throw new NotFoundError("We couldn't find what you were looking for.")
   }

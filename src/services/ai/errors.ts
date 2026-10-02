@@ -1,6 +1,7 @@
 export type AiErrorCode =
   | 'unavailable' // AI can't run here at all: hide the feature
   | 'not_configured'
+  | 'unauthorized'
   | 'invalid_request'
   | 'refused'
   | 'rate_limited'

@@ -23,21 +23,31 @@ The full design system lives in [`.claude/skills/flavor-atlas-ui/SKILL.md`](.cla
 
 ```bash
 npm install
-cp .env.example .env   # optional: defaults to http://localhost:3001
-npm run dev:all        # starts json-server (3001) and Vite (5173) together
+cp .env.example .env   # then fill in the admin login (below)
+npm run dev            # the app and its API (json-server runs inside it)
 ```
 
 Open http://localhost:5173.
+
+### Admin login
+
+Browsing is open to everyone. Creating, editing, deleting and rating recipes, and the AI helpers, need the admin password. Set it up once:
+
+```bash
+npm run auth:hash      # asks for a password, prints two lines
+# paste both lines into .env (git-ignored), then restart npm run dev
+```
+
+`.env` stores only a scrypt **hash** of the password and a random `SESSION_SECRET`, never the password itself. Without them, login is unavailable and every change is refused (secure by default). Then open http://localhost:5173/login.
 
 After pulling changes to `db.seed.json`, run `npm run db:reset` so your local `db.json` matches the new data shape.
 
 | Script | What it does |
 |---|---|
-| `npm run dev:all` | API + web app together |
-| `npm run api` | json-server only, on port 3001 |
-| `npm run dev` | Vite dev server only |
+| `npm run dev` | The app and its API on port 5173 |
 | `npm run dev:mock` | Web app with in-memory data, no API needed |
-| `npm run db:reset` | Restore `db.json` from the committed seed |
+| `npm run db:reset` | Restore `db.json` from the committed seed (restart `npm run dev` afterwards) |
+| `npm run auth:hash` | Create the admin password hash and session secret for `.env` |
 | `npm test` | Unit tests (Vitest) |
 | `npm run typecheck` / `lint` / `build` | Quality checks |
 | `npm run build:demo` | Self-contained single-file build in `dist-demo/` |
@@ -95,15 +105,35 @@ ANTHROPIC_API_KEY=sk-ant-...
 
 Without a key the app works normally and the AI buttons explain how to set it up. `/api/ai` exists only in the dev server for now; a production deployment needs the same handler as a serverless function.
 
+### Admin access
+
+```
+Browser ──► Vite dev server (one process; json-server runs inside it)
+             ├─ /api/auth/login|logout|session   password → signed session cookie
+             ├─ /api/data/*   reads: anyone · writes: admin only (else 401)
+             └─ /api/ai       admin only
+```
+
+- **The server enforces access.** The UI hides admin controls as a convenience, but every write goes through the `/api/data` gateway, which checks the session first.
+- **json-server has no port of its own.** It runs inside the dev server behind the gateway (`server/data/jsonServerApp.ts`). Its own CLI listens on every network interface with open CORS, which would let anyone on the network skip the gateway.
+- **Session:** an HMAC-signed token with a 7-day expiry, in an `HttpOnly; SameSite=Strict` cookie that page JavaScript can't read.
+- **Login:** scrypt hash compared in constant time, limited to 5 attempts per minute per IP.
+- **Phone preview:** there's no server, so editing is shown only to the artifact's owner (claude.ai's `isOwner()`). That's a display choice, not a security boundary: the preview's data lives in each viewer's tab and resets on reload, so nobody can change anything but their own temporary copy.
+
+See [docs/plans/admin-auth.md](docs/plans/admin-auth.md) for the design.
+
 ### Environment variables
 
 | Variable | Values | Default |
 |---|---|---|
-| `VITE_API_URL` | json-server base URL | `http://localhost:3001` |
+| `VITE_API_URL` | Data API base URL | `/api/data` (gateway to json-server) |
 | `VITE_DATA_SOURCE` | `http` or `mock` | `http` |
 | `VITE_ROUTER_MODE` | `browser` or `memory` | `browser` |
 | `VITE_AI_SOURCE` | `server` or `artifact` | `server` |
 | `ANTHROPIC_API_KEY` | Claude API key, **server only** | none |
+| `ADMIN_PASSWORD_HASH` | From `npm run auth:hash`, **server only** | none (login disabled) |
+| `SESSION_SECRET` | From `npm run auth:hash`, **server only** | none (login disabled) |
+| `VITE_AUTH_SOURCE` | `server` or `artifact` | `server` |
 
 `.env.demo` sets the mock data source and memory router for `npm run dev:mock` and `npm run build:demo`.
 
@@ -140,5 +170,6 @@ This repo ships Claude Code configuration in `.claude/`:
 - [x] **Phase 3:** create, edit and delete recipes, with validation and a delete confirmation
 - [x] **Phase 4:** ratings and reviews with optimistic updates
 - [x] **Phase 5:** AI-assisted descriptions, ingredients and steps (Claude)
+- [x] **Admin login:** server-enforced, password hash + signed session cookie. See [docs/plans/admin-auth.md](docs/plans/admin-auth.md)
 - [ ] **Phase 6:** dish variants and regional versions (e.g. Sinigang na Baboy, na Hipon, regional styles). See [docs/plans/dish-variants.md](docs/plans/dish-variants.md)
 - [ ] **Phase 7:** tests, bundle size, polish

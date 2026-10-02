@@ -14,6 +14,6 @@ Check, with evidence:
 3. **Phone layout** at 390px and 320px, both themes: horizontal overflow, clipped or overlapping text, tap targets under 40px.
 4. **Convention drift**: literal colors or Tailwind palette colors in components, display text with `font-bold`, missing loading/error/empty states.
 
-Use Playwright (installed globally: `import { chromium } from '<npm root -g>/playwright/index.mjs'`) against `npm run dev:all`, or `npm run dev:mock` if the API isn't needed.
+Use Playwright (installed globally: `import { chromium } from '<npm root -g>/playwright/index.mjs'`) against `npm run dev`, or `npm run dev:mock` if the API isn't needed.
 
 Report a prioritized list (High / Medium / Low). Each finding: the problem, evidence (ratio, measurement or `file:line`), and an exact fix. Say which checks passed. Under 600 words.

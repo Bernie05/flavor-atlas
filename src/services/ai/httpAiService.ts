@@ -5,6 +5,7 @@ import { parseSuggestion } from './parse'
 
 const SERVER_CODES: readonly AiErrorCode[] = [
   'not_configured',
+  'unauthorized',
   'invalid_request',
   'refused',
   'rate_limited',
