@@ -12,7 +12,7 @@ import type { RecipeInput, RecipeWithRatings } from './schema'
  * promise from onSuccess keeps the mutation pending until it finishes, so the
  * page we navigate to already has fresh data.
  */
-const refreshRecipes = (queryClient: QueryClient) =>
+export const refreshRecipes = (queryClient: QueryClient) =>
   queryClient.invalidateQueries({ queryKey: recipeQueries.all(), refetchType: 'all' })
 
 export function useCreateRecipe() {

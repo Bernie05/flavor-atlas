@@ -1,6 +1,6 @@
 # 🗺️ Flavor Atlas
 
-A recipe book organized by cuisine: browse Filipino, Chinese, Korean and Japanese dishes, add and edit your own, search and sort them, tick off ingredients as you prep, rate recipes, and (soon) write recipes with AI assistance.
+A recipe book organized by cuisine: browse Filipino, Chinese, Korean and Japanese dishes, add and edit your own, search and sort them, tick off ingredients as you prep, rate and review recipes, and (soon) write recipes with AI assistance.
 
 ## Design
 
@@ -114,6 +114,6 @@ This repo ships Claude Code configuration in `.claude/`:
 - [x] **Phase 2:** browse cuisines and recipes, search and sort, recipe detail, dark mode
 - [x] **Redesign:** atlas-of-plates design system, ingredient checklist, Claude Code skill and reviewer agent
 - [x] **Phase 3:** create, edit and delete recipes, with validation and a delete confirmation
-- [ ] **Phase 4:** ratings
+- [x] **Phase 4:** ratings and reviews with optimistic updates
 - [ ] **Phase 5:** AI-assisted descriptions, steps and ingredients
 - [ ] **Phase 6:** phone preview, tests, polish

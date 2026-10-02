@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { cuisineSchema } from '@/features/cuisines/schema'
+import { ratingSchema } from '@/features/ratings/schema'
 import { recipeSchema, recipeWithRatingsSchema } from '@/features/recipes/schema'
 import { config } from '@/lib/config'
 import type { DataService } from './DataService'
@@ -71,5 +72,12 @@ export const httpDataService: DataService = {
   async deleteRecipe(id) {
     // _dependent cascades the delete to ratings with this recipeId.
     await request('DELETE', `${recipePath(id)}?_dependent=ratings`)
+  },
+
+  createRating(input) {
+    return requestJson('POST', '/ratings', ratingSchema, {
+      ...input,
+      createdAt: new Date().toISOString(),
+    })
   },
 }

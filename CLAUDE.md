@@ -35,6 +35,8 @@ npm run build:demo   # single-file build in dist-demo/ (mock data + memory route
 
 - React Router's `setSearchParams` functional updater does not queue like `setState`. Keep fast-changing UI state (search, sort) in React state and rebuild the URL from it. See `CuisinePage.tsx`.
 - Page background and font are set outside `@layer` in `src/index.css` on purpose, so a host page's body reset can't override them.
+- json-server treats numeric-looking query values as numbers: `/ratings?recipeId=8` matches nothing because ids are strings ("8"). Use `_embed` (as the app does) or non-numeric values when filtering.
+- React Hook Form's `valueAsNumber` / `setValueAs` don't apply to radio buttons; they return strings. Use `useController` for numeric radio groups (see `StarInput.tsx`).
 - The phone preview (artifact) blocks `alert()`, `confirm()` and `prompt()`. Build confirmations as in-page dialogs.
 - API keys never go in frontend code: anything in the bundle is public. AI calls will go through a server function.
 

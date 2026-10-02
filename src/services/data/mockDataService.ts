@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import seed from '../../../db.seed.json'
 import { cuisineSchema } from '@/features/cuisines/schema'
-import { ratingSchema } from '@/features/ratings/schema'
+import { ratingSchema, type Rating } from '@/features/ratings/schema'
 import { recipeSchema, type Recipe } from '@/features/recipes/schema'
 import type { DataService } from './DataService'
 import { NotFoundError } from './errors'
@@ -83,5 +83,13 @@ export const mockDataService: DataService = {
     findRecipe(id) // throws NotFoundError, like the real API's 404
     db.recipes = db.recipes.filter((recipe) => recipe.id !== id)
     db.ratings = db.ratings.filter((rating) => rating.recipeId !== id)
+  },
+
+  async createRating(input) {
+    await delay()
+    findRecipe(input.recipeId) // can't rate a recipe that doesn't exist
+    const rating: Rating = { ...input, id: crypto.randomUUID(), createdAt: new Date().toISOString() }
+    getDb().ratings.push(rating)
+    return structuredClone(rating)
   },
 }

@@ -7,6 +7,7 @@ import { Plate } from '@/components/ui/Plate'
 import { StarRating } from '@/components/ui/StarRating'
 import { cuisineQueries } from '@/features/cuisines/queries'
 import { cuisineTint } from '@/features/cuisines/utils'
+import { RatingsSection } from '@/features/ratings/components/RatingsSection'
 import { summarizeRatings } from '@/features/ratings/summary'
 import { IngredientChecklist } from '@/features/recipes/components/IngredientChecklist'
 import { useDeleteRecipe } from '@/features/recipes/mutations'
@@ -154,6 +155,9 @@ export function RecipeDetailPage() {
           </ol>
         </section>
       </div>
+
+      <hr className="border-line" />
+      <RatingsSection recipeId={recipe.id} ratings={recipe.ratings} />
     </article>
   )
 }

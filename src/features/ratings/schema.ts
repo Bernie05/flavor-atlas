@@ -5,8 +5,12 @@ import { z } from 'zod'
 
 export const ratingInputSchema = z.object({
   recipeId: z.string(),
-  score: z.number().int().min(1).max(5),
-  comment: z.string().trim().max(300),
+  score: z
+    .number({ error: 'Choose a star rating' })
+    .int()
+    .min(1, 'Choose a star rating')
+    .max(5, 'Ratings go up to 5 stars'),
+  comment: z.string().trim().max(300, 'Keep your review under 300 characters'),
 })
 
 export const ratingSchema = ratingInputSchema.extend({
@@ -14,5 +18,9 @@ export const ratingSchema = ratingInputSchema.extend({
   createdAt: z.iso.datetime(),
 })
 
+/** The rating form doesn't ask for recipeId: the page already knows it. */
+export const ratingFormSchema = ratingInputSchema.omit({ recipeId: true })
+
 export type RatingInput = z.infer<typeof ratingInputSchema>
+export type RatingFormValues = z.infer<typeof ratingFormSchema>
 export type Rating = z.infer<typeof ratingSchema>

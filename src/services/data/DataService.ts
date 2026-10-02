@@ -1,4 +1,5 @@
 import type { Cuisine } from '@/features/cuisines/schema'
+import type { Rating, RatingInput } from '@/features/ratings/schema'
 import type { Recipe, RecipeInput, RecipeWithRatings } from '@/features/recipes/schema'
 
 export interface RecipeFilters {
@@ -19,4 +20,5 @@ export interface DataService {
   updateRecipe(id: string, input: RecipeInput): Promise<Recipe>
   /** Deletes the recipe and all of its ratings. */
   deleteRecipe(id: string): Promise<void>
+  createRating(input: RatingInput): Promise<Rating>
 }
