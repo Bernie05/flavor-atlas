@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { cuisineSchema } from '@/features/cuisines/schema'
+import { dishSchema, regionSchema } from '@/features/dishes/schema'
 import { ratingSchema } from '@/features/ratings/schema'
 import { recipeSchema, recipeWithRatingsSchema } from '@/features/recipes/schema'
 import { config } from '@/lib/config'
@@ -47,9 +48,26 @@ export const httpDataService: DataService = {
     return requestJson('GET', `/cuisines/${encodeURIComponent(id)}`, cuisineSchema)
   },
 
+  listDishes() {
+    return requestJson('GET', '/dishes', z.array(dishSchema))
+  },
+
+  getDish(id) {
+    return requestJson('GET', `/dishes/${encodeURIComponent(id)}`, dishSchema)
+  },
+
+  createDish(input) {
+    return requestJson('POST', '/dishes', dishSchema, input)
+  },
+
+  listRegions() {
+    return requestJson('GET', '/regions', z.array(regionSchema))
+  },
+
   listRecipes(filters = {}) {
     const params = new URLSearchParams({ _embed: 'ratings' })
     if (filters.cuisineId) params.set('cuisineId', filters.cuisineId)
+    if (filters.dishId) params.set('dishId', filters.dishId)
     return requestJson('GET', `/recipes?${params}`, z.array(recipeWithRatingsSchema))
   },
 

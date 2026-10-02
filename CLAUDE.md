@@ -29,6 +29,7 @@ npm run auth:hash     # admin password hash + session secret for .env
 - **New data operations go on `DataService` and in both implementations**, so the mock demo keeps working.
 - **Server state goes through TanStack Query** using the factories in `features/*/queries.ts` (`useQuery(recipeQueries.detail(id))`). After a mutation, invalidate by factory key (`recipeQueries.all()`), never with hand-typed keys. No `useEffect` fetching.
 - **Pure logic lives in `utils.ts` with a test next to it.** Components stay thin.
+- **Every recipe belongs to a dish** of the same cuisine; a regional version also has a same-cuisine region and a `variantNote`. `seed.test.ts` enforces this for `db.seed.json`: keep it passing when adding seed data. Creating a recipe under a new dish goes through `useSubmitRecipe` (creates the dish first).
 - **UI work follows the `flavor-atlas-ui` skill** (`.claude/skills/flavor-atlas-ui/SKILL.md`): theme tokens only, both themes, phone first. For bigger UI changes, run the `ui-reviewer` agent before committing.
 - **AI output is untrusted input.** Ask for a schema shape (structured outputs on the server, explicit JSON in the prompt for the artifact), then validate with `aiSuggestionSchemas` before it reaches the form. Suggestions are previewed; the cook accepts them explicitly.
 - **One prompt builder** (`src/features/ai/prompts.ts`) for every AI path. Change prompts there, not in a service.

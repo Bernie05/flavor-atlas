@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { toFormValues } from '@/features/recipes/form'
+import { NEW_DISH, toFormValues } from '@/features/recipes/form'
 import { toAiDraft } from './draft'
 import { buildPrompt } from './prompts'
 import { aiRequestSchema, aiSuggestionSchemas, type AiDraft } from './schema'
@@ -7,6 +7,9 @@ import { aiRequestSchema, aiSuggestionSchemas, type AiDraft } from './schema'
 const draft: AiDraft = {
   title: 'Sinigang na Hipon',
   cuisineName: 'Filipino',
+  dishName: 'Sinigang',
+  variant: 'na Hipon',
+  regionName: '',
   servings: 4,
   description: '',
   ingredients: [
@@ -22,6 +25,8 @@ describe('buildPrompt', () => {
     expect(prompt).toContain('<draft>\nTitle: Sinigang na Hipon')
     expect(prompt).toContain('- ½ packet tamarind soup base')
     expect(prompt).toContain('{"description": "..."}')
+    expect(prompt).toContain('Dish: Sinigang (version: na Hipon)')
+    expect(prompt).not.toContain('Regional version')
   })
 
   it('asks to write steps from scratch or rewrite existing ones', () => {
@@ -35,10 +40,27 @@ describe('toAiDraft', () => {
     const values = toFormValues(undefined, { cuisineId: 'filipino' })
     values.title = '  Halo-Halo '
     values.servings = Number.NaN
-    const result = toAiDraft(values, [
-      { id: 'filipino', name: 'Filipino', emoji: '🥭', description: '', origin: 'Manila', latitude: 14.6, longitude: 120.98 },
-    ])
+    const result = toAiDraft(values, {
+      cuisines: [
+        { id: 'filipino', name: 'Filipino', emoji: '🥭', description: '', origin: 'Manila', latitude: 14.6, longitude: 120.98 },
+      ],
+    })
     expect(result).toMatchObject({ title: 'Halo-Halo', cuisineName: 'Filipino', servings: 4, ingredients: [], steps: [] })
+  })
+
+  it('names the dish, a new dish and the region', () => {
+    const values = toFormValues(undefined, { cuisineId: 'filipino', dishId: 'adobo' })
+    values.variant = ' Dilaw '
+    values.regionId = 'batangas'
+    const lookups = {
+      cuisines: [],
+      dishes: [{ id: 'adobo', cuisineId: 'filipino', name: 'Adobo', description: '' }],
+      regions: [{ id: 'batangas', cuisineId: 'filipino', name: 'Batangas', latitude: 13.8, longitude: 121.1 }],
+    }
+    expect(toAiDraft(values, lookups)).toMatchObject({ dishName: 'Adobo', variant: 'Dilaw', regionName: 'Batangas' })
+    values.dishId = NEW_DISH
+    values.newDishName = ' Kinilaw '
+    expect(toAiDraft(values, lookups).dishName).toBe('Kinilaw')
   })
 })
 

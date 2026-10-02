@@ -97,6 +97,13 @@ export function HomePage() {
             moreHref="/recipes?sort=top-rated"
           />
           <RecipeRow
+            id="regional-heading"
+            title="From across the map"
+            description="Versions with a home town, from Batangas to Sapporo."
+            recipes={sortRecipes(all.filter((recipe) => recipe.regionId), 'newest').slice(0, ROW_SIZE)}
+            cuisinesById={cuisinesById}
+          />
+          <RecipeRow
             id="recent-heading"
             title="Recently added"
             description="New to the atlas."

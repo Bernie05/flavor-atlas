@@ -9,6 +9,7 @@ import { Plate } from '@/components/ui/Plate'
 import { StarRating } from '@/components/ui/StarRating'
 import { FlashMessage } from '@/features/admin/components/FlashMessage'
 import { cuisineQueries } from '@/features/cuisines/queries'
+import { dishQueries } from '@/features/dishes/queries'
 import { summarizeRatings } from '@/features/ratings/summary'
 import { useDeleteRecipe } from '@/features/recipes/mutations'
 import { recipeQueries } from '@/features/recipes/queries'
@@ -22,6 +23,13 @@ const actionClass =
 export function AdminRecipesPage() {
   const recipes = useQuery(recipeQueries.list())
   const cuisines = useQuery(cuisineQueries.list())
+  // Optional: rows just skip the dish line until it loads.
+  const dishById = new Map(useQuery(dishQueries.list()).data?.map((d) => [d.id, d]))
+  const dishLine = (recipe: RecipeWithRatings) => {
+    const dishName = dishById.get(recipe.dishId)?.name
+    // "Japchae" titled "Japchae" doesn't need the dish repeated under it.
+    return [dishName !== recipe.title && dishName, recipe.variant].filter(Boolean).join(' · ')
+  }
   const deleteRecipe = useDeleteRecipe()
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
@@ -148,7 +156,10 @@ export function AdminRecipesPage() {
                       <th scope="row" className="px-4 py-2 text-left font-normal">
                         <span className="flex items-center gap-3">
                           <Plate emoji={recipe.emoji || cuisine?.emoji || '🍽️'} size="sm" />
-                          <span className="font-semibold">{recipe.title}</span>
+                          <span>
+                            <span className="block font-semibold">{recipe.title}</span>
+                            <span className="block text-sm text-ink-subtle">{dishLine(recipe)}</span>
+                          </span>
                         </span>
                       </th>
                       <td className="px-4 py-2 text-ink-muted">{cuisine?.name}</td>
@@ -177,6 +188,7 @@ export function AdminRecipesPage() {
                     <Plate emoji={recipe.emoji || cuisine?.emoji || '🍽️'} size="sm" />
                     <div className="min-w-0">
                       <p className="truncate font-semibold">{recipe.title}</p>
+                      <p className="truncate text-sm text-ink-subtle">{dishLine(recipe)}</p>
                       <p className="label-mono text-ink-subtle">
                         {cuisine?.name} · {formatDuration(totalMinutes(recipe))}
                       </p>

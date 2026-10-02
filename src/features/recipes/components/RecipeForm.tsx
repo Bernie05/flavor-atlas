@@ -7,6 +7,7 @@ import { describedBy, inputClass } from '@/components/ui/formStyles'
 import { AiAssist } from '@/features/ai/components/AiAssist'
 import { toAiDraft } from '@/features/ai/draft'
 import type { Cuisine } from '@/features/cuisines/schema'
+import type { Dish, Region } from '@/features/dishes/schema'
 import { cuisineTint } from '@/features/cuisines/utils'
 import { describeError } from '@/services/data'
 import {
@@ -14,21 +15,27 @@ import {
   emptyStep,
   countFieldErrors,
   fromFormValues,
+  NEW_DISH,
+  reuseExistingDish,
+  type RecipeSubmission,
   recipeFormSchema,
   type RecipeFormValues,
 } from '../form'
-import { DIFFICULTIES, type RecipeInput } from '../schema'
+import { DIFFICULTIES } from '../schema'
 import { DIFFICULTY_LABELS, formatQuantity } from '../utils'
 
 interface RecipeFormProps {
   defaultValues: RecipeFormValues
   cuisines: Cuisine[]
+  dishes: Dish[]
+  regions: Region[]
   submitLabel: string
   pendingLabel: string
   isSubmitting: boolean
   submitError: unknown
   cancelTo: string
-  onSubmit: (input: RecipeInput) => void
+  /** Receives the recipe, plus a new dish name when the cook chose "New dish". */
+  onSubmit: (submission: RecipeSubmission) => void
 }
 
 const smallButton =
@@ -36,12 +43,14 @@ const smallButton =
 
 /**
  * Create and edit share this form. It knows nothing about the API: it
- * validates with Zod, converts to RecipeInput, and hands it to onSubmit.
+ * validates with Zod, converts to a RecipeSubmission, and hands it to onSubmit.
  * The page decides whether that means create or update.
  */
 export function RecipeForm({
   defaultValues,
   cuisines,
+  dishes,
+  regions,
   submitLabel,
   pendingLabel,
   isSubmitting,
@@ -55,6 +64,7 @@ export function RecipeForm({
     handleSubmit,
     getValues,
     setValue,
+    setFocus,
     formState: { errors },
   } = useForm<RecipeFormValues>({
     resolver: zodResolver(recipeFormSchema),
@@ -69,16 +79,20 @@ export function RecipeForm({
   // Live preview: the plate and colors follow the chosen cuisine and emoji.
   const [cuisineId, emoji] = useWatch({ control, name: ['cuisineId', 'emoji'] })
   const cuisine = cuisines.find((c) => c.id === cuisineId)
+  const dishId = useWatch({ control, name: 'dishId' })
+  // Dishes and regions belong to a cuisine: only offer the chosen cuisine's.
+  const cuisineDishes = dishes.filter((d) => d.cuisineId === cuisineId).toSorted((a, b) => a.name.localeCompare(b.name))
+  const cuisineRegions = regions.filter((r) => r.cuisineId === cuisineId)
 
   const numberField = { valueAsNumber: true } as const
   // The AI reads the form at click time, so it sees what the cook just typed.
-  const getDraft = () => toAiDraft(getValues(), cuisines)
+  const getDraft = () => toAiDraft(getValues(), { cuisines, dishes, regions })
   const errorCount = countFieldErrors(errors)
 
   return (
     <form
       noValidate
-      onSubmit={handleSubmit((values) => onSubmit(fromFormValues(values)))}
+      onSubmit={handleSubmit((values) => onSubmit(reuseExistingDish(fromFormValues(values), dishes)))}
       style={cuisineTint(cuisineId)}
       className="space-y-10"
     >
@@ -99,7 +113,13 @@ export function RecipeForm({
             <Field label="Cuisine" htmlFor="cuisineId" error={errors.cuisineId?.message}>
               <select
                 id="cuisineId"
-                {...register('cuisineId')}
+                {...register('cuisineId', {
+                  // A dish or region from the previous cuisine no longer fits.
+                  onChange: () => {
+                    setValue('dishId', '')
+                    setValue('regionId', '')
+                  },
+                })}
                 {...describedBy('cuisineId', errors.cuisineId?.message)}
                 className={`${inputClass} border-tint`}
               >
@@ -126,6 +146,105 @@ export function RecipeForm({
           <Plate emoji={emoji || cuisine?.emoji || '🍽️'} size="lg" />
           <p className="label-mono text-tint-ink">{cuisine ? cuisine.name : 'Preview'}</p>
         </div>
+      </fieldset>
+
+      {/* Dish and version */}
+      <fieldset aria-describedby="dish-version-help" className="grid gap-4">
+        <legend className="mb-3 font-display text-2xl">Dish &amp; version</legend>
+        <p id="dish-version-help" className="text-sm text-ink-subtle">
+          Group this recipe with other versions of the same dish, like Adobong Dilaw under Adobo.
+        </p>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field
+            label="Dish"
+            htmlFor="dishId"
+            error={errors.dishId?.message}
+            hint={cuisine ? undefined : 'Choose a cuisine first.'}
+          >
+            <select
+              id="dishId"
+              disabled={!cuisine}
+              {...register('dishId', {
+                // The new-dish field appears after this render; move focus to it once it exists.
+                onChange: (event: { target: { value: string } }) => {
+                  if (event.target.value === NEW_DISH) requestAnimationFrame(() => setFocus('newDishName'))
+                },
+              })}
+              {...describedBy('dishId', errors.dishId?.message, !cuisine)}
+              className={inputClass}
+            >
+              <option value="">Choose…</option>
+              {cuisineDishes.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.name}
+                </option>
+              ))}
+              <option value={NEW_DISH}>+ New dish…</option>
+            </select>
+          </Field>
+          {dishId === NEW_DISH && (
+            <Field label="New dish name" htmlFor="newDishName" error={errors.newDishName?.message}>
+              <input
+                id="newDishName"
+                {...register('newDishName')}
+                {...describedBy('newDishName', errors.newDishName?.message)}
+                placeholder="Pancit"
+                className={inputClass}
+              />
+            </Field>
+          )}
+          <Field label="Version (optional)" htmlFor="variant" error={errors.variant?.message} hint="e.g. “na Hipon” or “Batangas style”">
+            <input
+              id="variant"
+              {...register('variant')}
+              {...describedBy('variant', errors.variant?.message, true)}
+              className={inputClass}
+            />
+          </Field>
+          <Field label="Main ingredient (optional)" htmlFor="mainIngredient" error={errors.mainIngredient?.message}>
+            <input
+              id="mainIngredient"
+              {...register('mainIngredient')}
+              {...describedBy('mainIngredient', errors.mainIngredient?.message)}
+              placeholder="pork, shrimp, tofu"
+              className={inputClass}
+            />
+          </Field>
+          <Field
+            label="Region"
+            htmlFor="regionId"
+            error={errors.regionId?.message}
+            hint={cuisine ? undefined : 'Choose a cuisine first.'}
+          >
+            <select
+              id="regionId"
+              disabled={!cuisine}
+              {...register('regionId')}
+              {...describedBy('regionId', errors.regionId?.message, !cuisine)}
+              className={inputClass}
+            >
+              <option value="">Classic, cooked everywhere</option>
+              {cuisineRegions.map((r) => (
+                <option key={r.id} value={r.id}>
+                  {r.name}
+                </option>
+              ))}
+            </select>
+          </Field>
+        </div>
+        <Field
+          label="What makes this version different (optional)"
+          htmlFor="variantNote"
+          error={errors.variantNote?.message}
+          hint="One line, shown on the recipe and dish pages. e.g. “Fresh turmeric instead of soy sauce turns it golden.”"
+        >
+          <input
+            id="variantNote"
+            {...register('variantNote')}
+            {...describedBy('variantNote', errors.variantNote?.message, true)}
+            className={inputClass}
+          />
+        </Field>
       </fieldset>
 
       {/* Details */}

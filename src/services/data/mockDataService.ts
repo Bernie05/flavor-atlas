@@ -1,13 +1,16 @@
 import { z } from 'zod'
 import seed from '../../../db.seed.json'
 import { cuisineSchema } from '@/features/cuisines/schema'
+import { dishSchema, regionSchema, type Dish } from '@/features/dishes/schema'
 import { ratingSchema, type Rating } from '@/features/ratings/schema'
 import { recipeSchema, type Recipe } from '@/features/recipes/schema'
 import type { DataService } from './DataService'
 import { NotFoundError } from './errors'
 
-const dbSchema = z.object({
+export const dbSchema = z.object({
   cuisines: z.array(cuisineSchema),
+  dishes: z.array(dishSchema),
+  regions: z.array(regionSchema),
   recipes: z.array(recipeSchema),
   ratings: z.array(ratingSchema),
 })
@@ -51,10 +54,36 @@ export const mockDataService: DataService = {
     return structuredClone(cuisine)
   },
 
+  async listDishes() {
+    await delay()
+    return structuredClone(getDb().dishes)
+  },
+
+  async getDish(id) {
+    await delay()
+    const dish = getDb().dishes.find((d) => d.id === id)
+    if (!dish) throw new NotFoundError("We couldn't find that dish.")
+    return structuredClone(dish)
+  },
+
+  async createDish(input) {
+    await delay()
+    const dish: Dish = { ...input, id: crypto.randomUUID() }
+    getDb().dishes.push(dish)
+    return structuredClone(dish)
+  },
+
+  async listRegions() {
+    await delay()
+    return structuredClone(getDb().regions)
+  },
+
   async listRecipes(filters = {}) {
     await delay()
     const recipes = getDb().recipes.filter(
-      (recipe) => !filters.cuisineId || recipe.cuisineId === filters.cuisineId,
+      (recipe) =>
+        (!filters.cuisineId || recipe.cuisineId === filters.cuisineId) &&
+        (!filters.dishId || recipe.dishId === filters.dishId),
     )
     return structuredClone(recipes.map(withRatings))
   },

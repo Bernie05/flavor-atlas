@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { countFieldErrors, fromFormValues, recipeFormSchema, toFormValues } from './form'
+import { countFieldErrors, fromFormValues, NEW_DISH, recipeFormSchema, reuseExistingDish, toFormValues } from './form'
 import type { RecipeWithRatings } from './schema'
 
 const adobo: RecipeWithRatings = {
@@ -7,6 +7,11 @@ const adobo: RecipeWithRatings = {
   title: 'Chicken Adobo',
   emoji: '🥘',
   cuisineId: 'filipino',
+  dishId: 'adobo',
+  variant: '',
+  mainIngredient: 'chicken',
+  regionId: '',
+  variantNote: '',
   description: 'Braised chicken.',
   imageUrl: '',
   prepMinutes: 10,
@@ -38,8 +43,16 @@ describe('toFormValues', () => {
 
 describe('fromFormValues', () => {
   it('round-trips a recipe back to API input', () => {
-    const input = fromFormValues(toFormValues(adobo))
+    const { input, newDishName } = fromFormValues(toFormValues(adobo))
     expect({ ...input, id: adobo.id, createdAt: adobo.createdAt, ratings: adobo.ratings }).toEqual(adobo)
+    expect(newDishName).toBeNull()
+  })
+
+  it('hands over a new dish name instead of a dish id when "New dish" is chosen', () => {
+    const values = { ...toFormValues(adobo), dishId: NEW_DISH, newDishName: 'Pancit' }
+    const { input, newDishName } = fromFormValues(values)
+    expect(input.dishId).toBe('')
+    expect(newDishName).toBe('Pancit')
   })
 })
 
@@ -51,6 +64,14 @@ describe('recipeFormSchema', () => {
     expect(messages).toContain('Title must be at least 2 characters')
     expect(messages).toContain('Choose a cuisine')
     expect(messages).toContain('Describe this step')
+    expect(messages).toContain('Choose a dish')
+  })
+
+  it('requires a name only when creating a new dish', () => {
+    const base = toFormValues(adobo)
+    const missing = recipeFormSchema.safeParse({ ...base, dishId: NEW_DISH, newDishName: '' })
+    expect(missing.error?.issues.map((i) => i.message)).toEqual(['Name the new dish'])
+    expect(recipeFormSchema.safeParse({ ...base, dishId: NEW_DISH, newDishName: 'Pancit' }).success).toBe(true)
   })
 
   it('reports an empty number field as missing, not as NaN', () => {
@@ -71,5 +92,26 @@ describe('countFieldErrors', () => {
 
   it('returns 0 when there are no errors', () => {
     expect(countFieldErrors({})).toBe(0)
+  })
+})
+
+describe('reuseExistingDish', () => {
+  const dishes = [
+    { id: 'adobo', cuisineId: 'filipino', name: 'Adobo', description: '' },
+    { id: 'ramen', cuisineId: 'japanese', name: 'Ramen', description: '' },
+  ]
+  const submission = (cuisineId: string, newDishName: string | null) => ({
+    input: { ...fromFormValues(toFormValues(undefined, { cuisineId })).input, dishId: '' },
+    newDishName,
+  })
+
+  it('files a "new" dish that already exists under it, ignoring case', () => {
+    const result = reuseExistingDish(submission('filipino', 'adobo'), dishes)
+    expect(result.newDishName).toBeNull()
+    expect(result.input.dishId).toBe('adobo')
+  })
+
+  it('only matches dishes in the same cuisine', () => {
+    expect(reuseExistingDish(submission('filipino', 'Ramen'), dishes).newDishName).toBe('Ramen')
   })
 })

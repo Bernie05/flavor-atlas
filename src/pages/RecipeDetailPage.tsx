@@ -6,9 +6,13 @@ import { Plate } from '@/components/ui/Plate'
 import { StarRating } from '@/components/ui/StarRating'
 import { cuisineQueries } from '@/features/cuisines/queries'
 import { cuisineTint } from '@/features/cuisines/utils'
+import { RegionTag } from '@/features/dishes/components/RegionTag'
+import { dishQueries, regionQueries } from '@/features/dishes/queries'
+import { otherVersions } from '@/features/dishes/utils'
 import { RatingsSection } from '@/features/ratings/components/RatingsSection'
 import { summarizeRatings } from '@/features/ratings/summary'
 import { IngredientChecklist } from '@/features/recipes/components/IngredientChecklist'
+import { RecipeRow } from '@/features/recipes/components/RecipeRow'
 import { recipeQueries } from '@/features/recipes/queries'
 import type { RecipeWithRatings } from '@/features/recipes/schema'
 import { DIFFICULTY_LABELS, formatDuration, highlightIngredients, totalMinutes } from '@/features/recipes/utils'
@@ -35,7 +39,12 @@ type Panel = 'ingredients' | 'steps'
 
 function RecipeView({ recipe }: { recipe: RecipeWithRatings }) {
   // Usually already cached from the previous page, so this costs no extra request.
-  const cuisine = useQuery(cuisineQueries.list()).data?.find((c) => c.id === recipe.cuisineId)
+  const cuisines = useQuery(cuisineQueries.list()).data
+  const cuisine = cuisines?.find((c) => c.id === recipe.cuisineId)
+  const dish = useQuery(dishQueries.detail(recipe.dishId)).data
+  const region = useQuery(regionQueries.list()).data?.find((r) => r.id === recipe.regionId)
+  // The dish's other versions; usually cached from the list pages.
+  const siblings = otherVersions(recipe, useQuery(recipeQueries.list({ dishId: recipe.dishId })).data ?? [])
   const rating = summarizeRatings(recipe.ratings)
   // Phones show one panel at a time (like NYT Cooking); wider screens show both.
   const [panel, setPanel] = useState<Panel>('ingredients')
@@ -83,8 +92,22 @@ function RecipeView({ recipe }: { recipe: RecipeWithRatings }) {
                 </Link>
               </>
             )}
+            {dish && (
+              <>
+                <span aria-hidden> / </span>
+                <Link to={`/dishes/${dish.id}`} className="inline-flex min-h-10 items-center hover:underline">
+                  {dish.name}
+                </Link>
+              </>
+            )}
           </nav>
           <h1 className="text-6xl sm:text-7xl">{recipe.title}</h1>
+          {(region || recipe.variantNote) && (
+            <p className="space-y-1">
+              {region && <RegionTag region={region} className="block text-tint-ink" />}
+              {recipe.variantNote && <span className="block font-display text-2xl italic">{recipe.variantNote}</span>}
+            </p>
+          )}
           {recipe.description && <p className="max-w-prose text-lg text-ink-muted">{recipe.description}</p>}
           <StarRating value={rating.average} count={rating.count} size="lg" />
           <dl className="grid grid-cols-2 gap-x-6 min-[360px]:grid-cols-3 gap-y-3 border-t border-tint/25 pt-5 sm:flex sm:flex-wrap sm:gap-x-8">
@@ -182,6 +205,17 @@ function RecipeView({ recipe }: { recipe: RecipeWithRatings }) {
           </ol>
         </section>
       </div>
+
+      {dish && siblings.length > 0 && (
+        <RecipeRow
+          id="versions-heading"
+          title={`Other ways to cook ${dish.name}`}
+          description="Same dish, another kitchen."
+          recipes={siblings}
+          cuisinesById={new Map(cuisines?.map((c) => [c.id, c]))}
+          moreHref={`/dishes/${dish.id}`}
+        />
+      )}
 
       <hr className="border-line" />
       <RatingsSection ratings={recipe.ratings} />

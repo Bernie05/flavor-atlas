@@ -1,6 +1,6 @@
 # Dish variants and regional versions
 
-Status: **planned for Phase 6** (after AI features). Proposed by the project owner.
+Status: **done (Phase 6)**. Proposed by the project owner; seed versions researched and approved.
 
 ## Problem
 
@@ -40,4 +40,15 @@ Cuisine (filipino) → Dish (sinigang) → Recipe (Sinigang na Hipon)
 
 ## Seed data
 
-Regional versions come from the project owner, not invented: only add regional variants they confirm. Ingredient variants (e.g. Sinigang na Hipon) are well known and safe to add.
+The owner asked for the versions to be researched online and approved the list below. The dish facts (which version comes from where, and what sets it apart) come from these sources; the recipes themselves (quantities and steps) are written as sensible home versions and can be corrected in the admin. New versions have no reviews: none were invented.
+
+| Dish | Versions (region) | Sources |
+|---|---|---|
+| Adobo | Adobong Dilaw (Batangas), Adobo sa Gata (Bicol), Adobong Puti (Pampanga, ⚠️ blog sources only) | [Wikipedia: Philippine adobo](https://en.wikipedia.org/wiki/Adobo_sa_gata), [Batangas History: Adobo sa Dilaw](https://www.batangashistory.date/2025/12/the-golden-batangueno-heritage-of-adobo.html), [Crown Asia: Different adobo recipes](https://www.crownasia.com.ph/lifestyle-blog/discover-the-different-adobo-recipes-of-the-philippines/) |
+| Sinigang | na Hipon, na Bangus, sa Miso, sa Bayabas (no region: sources disagree on which province owns which) | [Wikipedia: Sinigang](https://en.wikipedia.org/wiki/Sinigang) |
+| Pancit | Malabon, Habhab (Lucban, Quezon), Batil Patong (Tuguegarao, Cagayan) | [Wikipedia: Pancit Malabon](https://en.wikipedia.org/wiki/Pancit_Malabon), [Rappler: Different regions have different pancit](https://www.rappler.com/life-and-style/food-drinks/different-kinds-filipino-pancit/), [Knorr: 8 pancit varieties](https://www.knorr.com/ph/tips-and-tricks/8-pancit-varieties-philippines.html) |
+| Ramen | Sapporo miso, Hakata tonkotsu, Tokyo shoyu, Kitakata | [The Real Japan: Regional ramen](https://www.therealjapan.com/types-of-japanese-ramen/), [Japanese Food Guide: Ramen by region](https://www.japanese-food-guide.com/articles/regional-ramen-guide) |
+| Bibimbap | Jeonju, Jinju, Dolsot (a serving style, no region) | [Wikipedia: Bibimbap](https://en.wikipedia.org/wiki/Bibimbap) |
+| Fried rice | Yangzhou, Hokkien / Fujian | [Wikipedia: Yangzhou fried rice](https://en.wikipedia.org/wiki/Yangzhou_fried_rice), [Wikipedia: Hokkien fried rice](https://en.wikipedia.org/wiki/Hokkien_fried_rice) |
+
+Region coordinates are the main city of each place, to two decimals.

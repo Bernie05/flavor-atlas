@@ -12,6 +12,10 @@ export type AiTask = (typeof AI_TASKS)[number]
 export const aiDraftSchema = z.object({
   title: z.string().trim().min(2, 'Give the recipe a name first').max(80),
   cuisineName: z.string().max(40),
+  /** Optional context: the dish family, this version and where it comes from. */
+  dishName: z.string().max(60).default(''),
+  variant: z.string().max(60).default(''),
+  regionName: z.string().max(60).default(''),
   servings: z.number().int().min(1).max(100),
   description: z.string().max(500),
   ingredients: z.array(ingredientSchema).max(50),

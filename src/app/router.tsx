@@ -5,6 +5,7 @@ import { RequireAdmin } from '@/features/auth/components/RequireAdmin'
 import { config } from '@/lib/config'
 import { AllRecipesPage } from '@/pages/AllRecipesPage'
 import { CuisinePage } from '@/pages/CuisinePage'
+import { DishPage } from '@/pages/DishPage'
 import { HomePage } from '@/pages/HomePage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
 import { RecipeDetailPage } from '@/pages/RecipeDetailPage'
@@ -21,6 +22,7 @@ const routes: RouteObject[] = [
       { path: 'recipes', element: <AllRecipesPage /> },
       { path: 'recipes/:recipeId', element: <RecipeDetailPage /> },
       { path: 'cuisines/:cuisineId', element: <CuisinePage /> },
+      { path: 'dishes/:dishId', element: <DishPage /> },
       { path: 'login', element: <Navigate to="/admin/login" replace /> },
       { path: '*', element: <NotFoundPage /> },
     ],

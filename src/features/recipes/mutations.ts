@@ -1,7 +1,10 @@
 import { useMutation, useQueryClient, type QueryClient } from '@tanstack/react-query'
+import { useRef } from 'react'
+import { useCreateDish } from '@/features/dishes/queries'
 import { dataService } from '@/services/data'
+import type { RecipeSubmission } from './form'
 import { recipeQueries } from './queries'
-import type { RecipeInput, RecipeWithRatings } from './schema'
+import type { Recipe, RecipeInput, RecipeWithRatings } from './schema'
 
 /**
  * Refresh every cached recipe query after a change.
@@ -45,4 +48,39 @@ export function useDeleteRecipe() {
       return refreshRecipes(queryClient)
     },
   })
+}
+
+interface SaveMutation {
+  mutateAsync: (input: RecipeInput) => Promise<Recipe>
+  isPending: boolean
+  error: Error | null
+}
+
+/**
+ * Turns a form submission into a saved recipe. When the cook typed a new dish
+ * name, the dish is created first and the recipe is saved under its id.
+ * The created dish is remembered, so retrying after a failed save does not
+ * create the same dish twice.
+ */
+export function useSubmitRecipe(save: SaveMutation) {
+  const createDish = useCreateDish()
+  const created = useRef(new Map<string, string>())
+
+  const submit = async ({ input, newDishName }: RecipeSubmission, onSaved: (recipe: Recipe) => void) => {
+    try {
+      let dishId = input.dishId
+      if (newDishName) {
+        const key = `${input.cuisineId}/${newDishName.toLowerCase()}`
+        dishId =
+          created.current.get(key) ??
+          (await createDish.mutateAsync({ cuisineId: input.cuisineId, name: newDishName, description: '' })).id
+        created.current.set(key, dishId)
+      }
+      onSaved(await save.mutateAsync({ ...input, dishId }))
+    } catch {
+      // Shown through `error` below; the form stays filled in for another try.
+    }
+  }
+
+  return { submit, isPending: createDish.isPending || save.isPending, error: createDish.error ?? save.error }
 }

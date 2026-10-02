@@ -2,7 +2,7 @@
 
 A recipe book organized by cuisine, in two parts:
 
-- **The site** (read-only): browse Filipino, Chinese, Korean and Japanese dishes, search and filter, scale servings, tick off ingredients as you prep, and read reviews.
+- **The site** (read-only): browse Filipino, Chinese, Korean and Japanese dishes, search and filter, scale servings, tick off ingredients as you prep, and read reviews. Each dish has a page with its everyday and regional versions (Adobong Dilaw from Batangas, Hakata ramen, Jeonju bibimbap…).
 - **The admin** (`/admin`, password protected): a dashboard, a recipe table to add, edit and delete recipes (with AI help writing descriptions, ingredients and steps), and review management.
 
 ## Design
@@ -57,6 +57,10 @@ After pulling changes to `db.seed.json`, run `npm run db:reset` so your local `d
 | `npm run typecheck` / `lint` / `build` | Quality checks |
 | `npm run build:demo` | Self-contained single-file build in `dist-demo/` |
 
+### Dishes, versions and regions
+
+A **dish** (Adobo, Ramen) groups its **versions** (recipes). Each recipe has a `dishId`, an optional `variant` name and `mainIngredient`, and a `regionId` (`''` means a classic, cooked everywhere). Regional versions carry a one-line `variantNote` saying what makes them different. Regions belong to a cuisine and have coordinates, like cuisines do. `src/services/data/seed.test.ts` checks the seed's integrity (every recipe's dish and region belong to its cuisine, and so on). The research behind the regional versions is in [docs/plans/dish-variants.md](docs/plans/dish-variants.md).
+
 ### Why `db.seed.json` and `db.json`?
 
 json-server writes every create, update and delete directly into its JSON file. The seed data is committed as `db.seed.json` and copied to a git-ignored `db.json` on first run, so experimenting locally never changes tracked files.
@@ -67,6 +71,9 @@ json-server writes every create, update and delete directly into its JSON file. 
 |---|---|---|
 | GET | `/cuisines` | All cuisines |
 | GET | `/recipes?cuisineId=korean` | Recipes in a cuisine |
+| GET | `/recipes?dishId=adobo` | Every version of a dish |
+| GET / POST | `/dishes` | Dishes (grouped by `cuisineId`) |
+| GET | `/regions` | Regions with coordinates |
 | GET | `/recipes/:id?_embed=ratings` | One recipe with its ratings |
 | POST / PUT / DELETE | `/recipes/:id` | Create, update, delete |
 | POST | `/ratings` | Rate a recipe |
@@ -149,7 +156,7 @@ See [docs/plans/admin-auth.md](docs/plans/admin-auth.md) for the design.
 src/
   app/          App providers and router
   components/   Shared layout and UI components
-  features/     Code grouped by feature: recipes, cuisines, ratings
+  features/     Code grouped by feature: recipes, cuisines, dishes, ratings, ai, admin
   lib/          Config and the query client
   pages/        Route-level pages (pages/admin/ for the admin area)
   services/     Data and AI access behind the DataService and AiService interfaces
@@ -178,5 +185,5 @@ This repo ships Claude Code configuration in `.claude/`:
 - [x] **Phase 5:** AI-assisted descriptions, ingredients and steps (Claude)
 - [x] **Admin login:** server-enforced, password hash + signed session cookie. See [docs/plans/admin-auth.md](docs/plans/admin-auth.md)
 - [x] **Admin area + editorial redesign:** read-only public site, `/admin` dashboard, recipe table and review management
-- [ ] **Phase 6:** dish variants and regional versions (e.g. Sinigang na Baboy, na Hipon, regional styles). See [docs/plans/dish-variants.md](docs/plans/dish-variants.md)
+- [x] **Phase 6:** dishes with their versions and regional styles (e.g. Sinigang na Baboy, na Hipon, Lucban's Pancit Habhab). See [docs/plans/dish-variants.md](docs/plans/dish-variants.md)
 - [ ] **Phase 7:** tests, bundle size, polish

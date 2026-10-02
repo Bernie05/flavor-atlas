@@ -1,7 +1,7 @@
 // Shared form styling. Control borders use line-strong to reach the 3:1
 // contrast WCAG requires for input boundaries (see the flavor-atlas-ui skill).
 export const inputClass =
-  'w-full min-w-0 rounded-xl border border-line-strong bg-surface px-3 py-2.5 placeholder:text-ink-subtle aria-invalid:border-danger'
+  'w-full min-w-0 rounded-xl border border-line-strong bg-surface px-3 py-2.5 placeholder:text-ink-subtle aria-invalid:border-danger disabled:cursor-not-allowed disabled:border-line disabled:bg-surface-sunken disabled:text-ink-subtle'
 
 /**
  * Props that connect a control to its Field message and error state.

@@ -3,9 +3,10 @@ import { Link, useNavigate, useParams } from 'react-router'
 import { ErrorState } from '@/components/feedback/ErrorState'
 import { FormSkeleton } from '@/components/feedback/FormSkeleton'
 import { cuisineQueries } from '@/features/cuisines/queries'
+import { dishQueries, regionQueries } from '@/features/dishes/queries'
 import { toFormValues } from '@/features/recipes/form'
 import { RecipeForm } from '@/features/recipes/components/RecipeForm'
-import { useUpdateRecipe } from '@/features/recipes/mutations'
+import { useSubmitRecipe, useUpdateRecipe } from '@/features/recipes/mutations'
 import { recipeQueries } from '@/features/recipes/queries'
 import { NotFoundError } from '@/services/data'
 import { NotFoundPage } from '@/pages/NotFoundPage'
@@ -16,11 +17,13 @@ export function AdminEditRecipePage() {
   const recipe = useQuery(recipeQueries.detail(recipeId))
   const cuisines = useQuery(cuisineQueries.list())
   const updateRecipe = useUpdateRecipe(recipeId)
+  const dishes = useQuery(dishQueries.list())
+  const regions = useQuery(regionQueries.list())
+  const save = useSubmitRecipe(updateRecipe)
 
   if (recipe.error instanceof NotFoundError) {
     return <NotFoundPage message="This recipe may have been deleted." />
   }
-
 
   return (
     <div className="space-y-6">
@@ -34,14 +37,16 @@ export function AdminEditRecipePage() {
         </h1>
       </header>
 
-      {recipe.isPending || cuisines.isPending ? (
+      {recipe.isPending || cuisines.isPending || dishes.isPending || regions.isPending ? (
         <FormSkeleton />
-      ) : recipe.isError || cuisines.isError ? (
+      ) : recipe.isError || cuisines.isError || dishes.isError || regions.isError ? (
         <ErrorState
-          error={recipe.error ?? cuisines.error}
+          error={recipe.error ?? cuisines.error ?? dishes.error ?? regions.error}
           onRetry={() => {
             void recipe.refetch()
             void cuisines.refetch()
+            void dishes.refetch()
+            void regions.refetch()
           }}
         />
       ) : (
@@ -50,16 +55,17 @@ export function AdminEditRecipePage() {
           key={recipe.data.id}
           defaultValues={toFormValues(recipe.data)}
           cuisines={cuisines.data}
+          dishes={dishes.data}
+          regions={regions.data}
           submitLabel="Save changes"
           pendingLabel="Saving…"
-          isSubmitting={updateRecipe.isPending}
-          submitError={updateRecipe.error}
+          isSubmitting={save.isPending}
+          submitError={save.error}
           cancelTo="/admin/recipes"
-          onSubmit={(input) =>
-            updateRecipe.mutate(input, {
-              onSuccess: (saved) =>
-                navigate('/admin/recipes', { replace: true, state: { flash: `Saved “${saved.title}”.` } }),
-            })
+          onSubmit={(submission) =>
+            save.submit(submission, (saved) =>
+              navigate('/admin/recipes', { replace: true, state: { flash: `Saved “${saved.title}”.` } }),
+            )
           }
         />
       )}

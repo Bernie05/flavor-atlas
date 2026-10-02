@@ -43,6 +43,11 @@
       "title": "Chicken Adobo",
       "emoji": "🥘",
       "cuisineId": "filipino",
+      "dishId": "adobo",
+      "variant": "",
+      "mainIngredient": "chicken",
+      "regionId": "",
+      "variantNote": "",
       "description": "Chicken braised in vinegar, soy sauce, garlic and bay leaves until tender and glossy. The unofficial national dish of the Philippines.",
       "imageUrl": "",
       "prepMinutes": 10,
@@ -100,6 +105,11 @@
       "title": "Sinigang na Baboy",
       "emoji": "🍲",
       "cuisineId": "filipino",
+      "dishId": "sinigang",
+      "variant": "na Baboy",
+      "mainIngredient": "pork",
+      "regionId": "",
+      "variantNote": "",
       "description": "A sour tamarind soup with tender pork belly and vegetables. Comfort food for rainy days.",
       "imageUrl": "",
       "prepMinutes": 15,
@@ -167,6 +177,11 @@
       "title": "Mapo Tofu",
       "emoji": "🍛",
       "cuisineId": "chinese",
+      "dishId": "mapo-tofu",
+      "variant": "",
+      "mainIngredient": "tofu",
+      "regionId": "",
+      "variantNote": "",
       "description": "Silky tofu in a fiery, numbing Sichuan sauce with ground pork and fermented broad bean paste.",
       "imageUrl": "",
       "prepMinutes": 10,
@@ -229,6 +244,11 @@
       "title": "Egg Fried Rice",
       "emoji": "🍳",
       "cuisineId": "chinese",
+      "dishId": "fried-rice",
+      "variant": "Egg",
+      "mainIngredient": "egg",
+      "regionId": "",
+      "variantNote": "",
       "description": "Fluffy day-old rice tossed in a hot wok with egg, scallions and soy sauce. Ready in 15 minutes.",
       "imageUrl": "",
       "prepMinutes": 5,
@@ -280,6 +300,11 @@
       "title": "Kimchi Fried Rice",
       "emoji": "🍚",
       "cuisineId": "korean",
+      "dishId": "kimchi-fried-rice",
+      "variant": "",
+      "mainIngredient": "kimchi",
+      "regionId": "",
+      "variantNote": "",
       "description": "Tangy, spicy fried rice made with well-fermented kimchi and topped with a runny fried egg.",
       "imageUrl": "",
       "prepMinutes": 5,
@@ -336,6 +361,11 @@
       "title": "Bibimbap",
       "emoji": "🥗",
       "cuisineId": "korean",
+      "dishId": "bibimbap",
+      "variant": "",
+      "mainIngredient": "beef",
+      "regionId": "",
+      "variantNote": "",
       "description": "A colorful rice bowl with seasoned vegetables, beef, a fried egg and spicy gochujang sauce, mixed together just before eating.",
       "imageUrl": "",
       "prepMinutes": 30,
@@ -403,6 +433,11 @@
       "title": "Chicken Teriyaki",
       "emoji": "🍗",
       "cuisineId": "japanese",
+      "dishId": "teriyaki",
+      "variant": "Chicken",
+      "mainIngredient": "chicken",
+      "regionId": "",
+      "variantNote": "",
       "description": "Crispy-skinned chicken thighs glazed in a sweet and savory homemade teriyaki sauce.",
       "imageUrl": "",
       "prepMinutes": 5,
@@ -450,6 +485,11 @@
       "title": "Miso Soup",
       "emoji": "🥣",
       "cuisineId": "japanese",
+      "dishId": "miso-soup",
+      "variant": "",
+      "mainIngredient": "tofu",
+      "regionId": "",
+      "variantNote": "",
       "description": "A light, savory soup of dashi and miso with tofu, wakame and scallions. Ready in 10 minutes.",
       "imageUrl": "",
       "prepMinutes": 5,
@@ -491,6 +531,1439 @@
         "Serve topped with scallions."
       ],
       "createdAt": "2026-09-27T08:00:00.000Z"
+    },
+    {
+      "id": "9",
+      "imageUrl": "",
+      "createdAt": "2026-10-01T00:18:00.000Z",
+      "title": "Adobong Dilaw",
+      "emoji": "🍛",
+      "cuisineId": "filipino",
+      "dishId": "adobo",
+      "variant": "Batangas style",
+      "mainIngredient": "pork",
+      "regionId": "batangas",
+      "variantNote": "Fresh turmeric instead of soy sauce turns it golden.",
+      "description": "Batangas adobo, golden with fresh turmeric and sharp with cane vinegar. Earthy, tangy and lighter than the soy version.",
+      "prepMinutes": 15,
+      "cookMinutes": 50,
+      "servings": 4,
+      "difficulty": "medium",
+      "ingredients": [
+        {
+          "name": "pork belly, cubed",
+          "quantity": 1,
+          "unit": "kg"
+        },
+        {
+          "name": "fresh turmeric, grated",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "name": "cane vinegar",
+          "quantity": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "garlic, crushed",
+          "quantity": 1,
+          "unit": "head"
+        },
+        {
+          "name": "bay leaves",
+          "quantity": 3,
+          "unit": ""
+        },
+        {
+          "name": "whole black peppercorns",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "name": "salt",
+          "quantity": 1.5,
+          "unit": "tsp"
+        },
+        {
+          "name": "water",
+          "quantity": 1,
+          "unit": "cup"
+        }
+      ],
+      "steps": [
+        "Combine the pork, turmeric, vinegar, garlic, bay leaves, peppercorns and salt in a pot and leave for 30 minutes.",
+        "Add the water and bring to a boil. Let it boil for 2 minutes without stirring to mellow the vinegar.",
+        "Lower the heat, cover and simmer for 40 minutes until the pork is tender.",
+        "Uncover and cook until the sauce reduces and the pork starts to fry in its own fat.",
+        "Taste for salt and serve with rice."
+      ]
+    },
+    {
+      "id": "10",
+      "imageUrl": "",
+      "createdAt": "2026-10-01T00:20:00.000Z",
+      "title": "Adobo sa Gata",
+      "emoji": "🥥",
+      "cuisineId": "filipino",
+      "dishId": "adobo",
+      "variant": "Bicol style",
+      "mainIngredient": "pork",
+      "regionId": "bicol",
+      "variantNote": "Finished with coconut milk and chilies.",
+      "description": "Adobo the Bicolano way: the vinegar braise is finished in coconut milk with chilies, so it comes out creamy, tangy and hot.",
+      "prepMinutes": 15,
+      "cookMinutes": 55,
+      "servings": 4,
+      "difficulty": "medium",
+      "ingredients": [
+        {
+          "name": "pork shoulder, cubed",
+          "quantity": 1,
+          "unit": "kg"
+        },
+        {
+          "name": "cane vinegar",
+          "quantity": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "soy sauce",
+          "quantity": 0.25,
+          "unit": "cup"
+        },
+        {
+          "name": "coconut milk",
+          "quantity": 1.5,
+          "unit": "cup"
+        },
+        {
+          "name": "garlic, crushed",
+          "quantity": 1,
+          "unit": "head"
+        },
+        {
+          "name": "bay leaves",
+          "quantity": 3,
+          "unit": ""
+        },
+        {
+          "name": "bird's eye chilies",
+          "quantity": 4,
+          "unit": ""
+        },
+        {
+          "name": "whole black peppercorns",
+          "quantity": 1,
+          "unit": "tsp"
+        }
+      ],
+      "steps": [
+        "Put the pork, vinegar, soy sauce, garlic, bay leaves and peppercorns in a pot and bring to a boil.",
+        "Cover and simmer for 35 minutes until the pork is tender.",
+        "Uncover and reduce until most of the liquid is gone.",
+        "Pour in the coconut milk, add the chilies and simmer gently for 10 to 15 minutes until thick and the oil starts to separate.",
+        "Serve with rice."
+      ]
+    },
+    {
+      "id": "11",
+      "imageUrl": "",
+      "createdAt": "2026-10-01T00:22:00.000Z",
+      "title": "Adobong Puti",
+      "emoji": "🍖",
+      "cuisineId": "filipino",
+      "dishId": "adobo",
+      "variant": "Pampanga style",
+      "mainIngredient": "pork",
+      "regionId": "pampanga",
+      "variantNote": "No soy sauce: just vinegar, garlic and salt.",
+      "description": "White adobo, made without soy sauce. Vinegar, garlic and salt let the pork taste of itself, and it finishes crisp in its own fat.",
+      "prepMinutes": 10,
+      "cookMinutes": 50,
+      "servings": 4,
+      "difficulty": "easy",
+      "ingredients": [
+        {
+          "name": "pork belly, cubed",
+          "quantity": 1,
+          "unit": "kg"
+        },
+        {
+          "name": "cane vinegar",
+          "quantity": 0.75,
+          "unit": "cup"
+        },
+        {
+          "name": "garlic, crushed",
+          "quantity": 1,
+          "unit": "head"
+        },
+        {
+          "name": "bay leaves",
+          "quantity": 3,
+          "unit": ""
+        },
+        {
+          "name": "whole black peppercorns",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "name": "salt",
+          "quantity": 2,
+          "unit": "tsp"
+        },
+        {
+          "name": "water",
+          "quantity": 0.5,
+          "unit": "cup"
+        }
+      ],
+      "steps": [
+        "Put the pork, vinegar, half the garlic, bay leaves, peppercorns, salt and water in a pot.",
+        "Bring to a boil without stirring, then cover and simmer for 40 minutes.",
+        "Uncover and let the liquid cook off until the pork renders its fat.",
+        "Add the rest of the garlic and fry everything until the edges of the pork turn golden.",
+        "Serve with rice and a dipping vinegar."
+      ]
+    },
+    {
+      "id": "12",
+      "imageUrl": "",
+      "createdAt": "2026-10-01T00:24:00.000Z",
+      "title": "Sinigang na Hipon",
+      "emoji": "🦐",
+      "cuisineId": "filipino",
+      "dishId": "sinigang",
+      "variant": "na Hipon",
+      "mainIngredient": "shrimp",
+      "regionId": "",
+      "variantNote": "",
+      "description": "A lighter sinigang with head-on shrimp in tamarind broth. Quick enough for a weeknight.",
+      "prepMinutes": 15,
+      "cookMinutes": 25,
+      "servings": 4,
+      "difficulty": "easy",
+      "ingredients": [
+        {
+          "name": "shrimp, head-on",
+          "quantity": 500,
+          "unit": "g"
+        },
+        {
+          "name": "tamarind soup base",
+          "quantity": 1,
+          "unit": "packet"
+        },
+        {
+          "name": "tomatoes, quartered",
+          "quantity": 2,
+          "unit": ""
+        },
+        {
+          "name": "onion, quartered",
+          "quantity": 1,
+          "unit": ""
+        },
+        {
+          "name": "radish, sliced",
+          "quantity": 1,
+          "unit": ""
+        },
+        {
+          "name": "okra",
+          "quantity": 6,
+          "unit": ""
+        },
+        {
+          "name": "string beans",
+          "quantity": 1,
+          "unit": "bunch"
+        },
+        {
+          "name": "kangkong (water spinach)",
+          "quantity": 1,
+          "unit": "bunch"
+        },
+        {
+          "name": "fish sauce",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "name": "water",
+          "quantity": 1.5,
+          "unit": "l"
+        }
+      ],
+      "steps": [
+        "Boil the water with the tomatoes and onion for 5 minutes.",
+        "Add the radish and cook for 5 minutes, then the okra and string beans for 3 minutes.",
+        "Stir in the tamarind soup base and season with fish sauce.",
+        "Add the shrimp and cook for 2 to 3 minutes until pink.",
+        "Add the kangkong, turn off the heat and serve."
+      ]
+    },
+    {
+      "id": "13",
+      "imageUrl": "",
+      "createdAt": "2026-10-01T00:26:00.000Z",
+      "title": "Sinigang na Bangus",
+      "emoji": "🐟",
+      "cuisineId": "filipino",
+      "dishId": "sinigang",
+      "variant": "na Bangus",
+      "mainIngredient": "milkfish",
+      "regionId": "",
+      "variantNote": "",
+      "description": "Sour tamarind soup with milkfish, eggplant and mustard greens. Clean-tasting and comforting.",
+      "prepMinutes": 15,
+      "cookMinutes": 25,
+      "servings": 4,
+      "difficulty": "easy",
+      "ingredients": [
+        {
+          "name": "milkfish (bangus), cut into steaks",
+          "quantity": 1,
+          "unit": "whole"
+        },
+        {
+          "name": "tamarind soup base",
+          "quantity": 1,
+          "unit": "packet"
+        },
+        {
+          "name": "tomatoes, quartered",
+          "quantity": 2,
+          "unit": ""
+        },
+        {
+          "name": "onion, quartered",
+          "quantity": 1,
+          "unit": ""
+        },
+        {
+          "name": "eggplant, sliced",
+          "quantity": 1,
+          "unit": ""
+        },
+        {
+          "name": "mustard greens",
+          "quantity": 1,
+          "unit": "bunch"
+        },
+        {
+          "name": "long green chilies",
+          "quantity": 2,
+          "unit": ""
+        },
+        {
+          "name": "fish sauce",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "name": "water",
+          "quantity": 1.5,
+          "unit": "l"
+        }
+      ],
+      "steps": [
+        "Boil the water with the tomatoes and onion for 5 minutes.",
+        "Add the eggplant and chilies and cook for 3 minutes.",
+        "Stir in the tamarind soup base and season with fish sauce.",
+        "Slide in the milkfish and simmer gently for 8 minutes without stirring, so it stays whole.",
+        "Add the mustard greens, cook for 1 minute and serve."
+      ]
+    },
+    {
+      "id": "14",
+      "imageUrl": "",
+      "createdAt": "2026-10-01T00:28:00.000Z",
+      "title": "Sinigang sa Miso",
+      "emoji": "🐠",
+      "cuisineId": "filipino",
+      "dishId": "sinigang",
+      "variant": "sa Miso",
+      "mainIngredient": "fish",
+      "regionId": "",
+      "variantNote": "",
+      "description": "Sinigang with miso stirred into the broth, which makes it rounder and more savory. Best with oily fish.",
+      "prepMinutes": 15,
+      "cookMinutes": 25,
+      "servings": 4,
+      "difficulty": "easy",
+      "ingredients": [
+        {
+          "name": "salmon belly or fish head",
+          "quantity": 600,
+          "unit": "g"
+        },
+        {
+          "name": "miso paste",
+          "quantity": 3,
+          "unit": "tbsp"
+        },
+        {
+          "name": "tamarind soup base",
+          "quantity": 1,
+          "unit": "packet"
+        },
+        {
+          "name": "tomatoes, quartered",
+          "quantity": 2,
+          "unit": ""
+        },
+        {
+          "name": "onion, quartered",
+          "quantity": 1,
+          "unit": ""
+        },
+        {
+          "name": "radish, sliced",
+          "quantity": 1,
+          "unit": ""
+        },
+        {
+          "name": "mustard greens",
+          "quantity": 1,
+          "unit": "bunch"
+        },
+        {
+          "name": "long green chilies",
+          "quantity": 2,
+          "unit": ""
+        },
+        {
+          "name": "fish sauce",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "name": "water",
+          "quantity": 1.5,
+          "unit": "l"
+        }
+      ],
+      "steps": [
+        "Sauté the onion and tomatoes until soft, then add the miso and cook for 1 minute.",
+        "Pour in the water, bring to a boil and add the radish.",
+        "Stir in the tamarind soup base, add the fish and simmer for 8 minutes.",
+        "Add the chilies and mustard greens and season with fish sauce.",
+        "Serve hot."
+      ]
+    },
+    {
+      "id": "15",
+      "imageUrl": "",
+      "createdAt": "2026-10-01T00:30:00.000Z",
+      "title": "Sinigang sa Bayabas",
+      "emoji": "🍐",
+      "cuisineId": "filipino",
+      "dishId": "sinigang",
+      "variant": "sa Bayabas",
+      "mainIngredient": "milkfish",
+      "regionId": "",
+      "variantNote": "",
+      "description": "Sinigang soured with ripe guava instead of tamarind. Sweeter, fragrant and traditionally made with milkfish.",
+      "prepMinutes": 20,
+      "cookMinutes": 35,
+      "servings": 4,
+      "difficulty": "medium",
+      "ingredients": [
+        {
+          "name": "ripe guavas, halved",
+          "quantity": 8,
+          "unit": ""
+        },
+        {
+          "name": "milkfish (bangus), cut into steaks",
+          "quantity": 1,
+          "unit": "whole"
+        },
+        {
+          "name": "tomatoes, quartered",
+          "quantity": 2,
+          "unit": ""
+        },
+        {
+          "name": "onion, quartered",
+          "quantity": 1,
+          "unit": ""
+        },
+        {
+          "name": "string beans",
+          "quantity": 1,
+          "unit": "bunch"
+        },
+        {
+          "name": "kangkong (water spinach)",
+          "quantity": 1,
+          "unit": "bunch"
+        },
+        {
+          "name": "fish sauce",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "name": "water",
+          "quantity": 1.5,
+          "unit": "l"
+        }
+      ],
+      "steps": [
+        "Boil the guavas in the water for 15 minutes until very soft.",
+        "Mash the guavas, strain them through a sieve and return the liquid to the pot.",
+        "Add the tomatoes and onion and simmer for 5 minutes.",
+        "Add the milkfish and string beans and simmer for 8 minutes.",
+        "Season with fish sauce, add the kangkong and serve."
+      ]
+    },
+    {
+      "id": "16",
+      "imageUrl": "",
+      "createdAt": "2026-10-01T00:32:00.000Z",
+      "title": "Pancit Malabon",
+      "emoji": "🍝",
+      "cuisineId": "filipino",
+      "dishId": "pancit",
+      "variant": "Malabon",
+      "mainIngredient": "seafood",
+      "regionId": "malabon",
+      "variantNote": "Thick rice noodles under an orange shrimp sauce, piled with seafood.",
+      "description": "Thick rice noodles coated in a shrimp and annatto sauce, then loaded with seafood, smoked fish, eggs and crushed chicharon.",
+      "prepMinutes": 30,
+      "cookMinutes": 30,
+      "servings": 6,
+      "difficulty": "medium",
+      "ingredients": [
+        {
+          "name": "thick rice noodles",
+          "quantity": 500,
+          "unit": "g"
+        },
+        {
+          "name": "shrimp, peeled, heads kept",
+          "quantity": 300,
+          "unit": "g"
+        },
+        {
+          "name": "squid rings",
+          "quantity": 200,
+          "unit": "g"
+        },
+        {
+          "name": "smoked fish (tinapa), flaked",
+          "quantity": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "annatto powder",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "name": "fish sauce",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "name": "pork chicharon, crushed",
+          "quantity": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "hard-boiled eggs, sliced",
+          "quantity": 3,
+          "unit": ""
+        },
+        {
+          "name": "scallions, sliced",
+          "quantity": 3,
+          "unit": ""
+        },
+        {
+          "name": "calamansi, halved",
+          "quantity": 6,
+          "unit": ""
+        }
+      ],
+      "steps": [
+        "Pound the shrimp heads with 2 cups of water and strain to make a shrimp broth.",
+        "Simmer the broth with the annatto powder and fish sauce until slightly thickened.",
+        "Soak and boil the noodles until tender, then drain.",
+        "Cook the shrimp and squid separately in a little oil.",
+        "Toss the noodles with the sauce, top with the seafood, smoked fish, chicharon, eggs and scallions, and serve with calamansi."
+      ]
+    },
+    {
+      "id": "17",
+      "imageUrl": "",
+      "createdAt": "2026-10-01T00:34:00.000Z",
+      "title": "Pancit Habhab",
+      "emoji": "🍃",
+      "cuisineId": "filipino",
+      "dishId": "pancit",
+      "variant": "Lucban",
+      "mainIngredient": "pork",
+      "regionId": "lucban",
+      "variantNote": "Miki noodles eaten straight off a banana leaf, with a splash of vinegar.",
+      "description": "Lucban street noodles served on a square of banana leaf and eaten without utensils, with vinegar poured on top.",
+      "prepMinutes": 20,
+      "cookMinutes": 20,
+      "servings": 4,
+      "difficulty": "easy",
+      "ingredients": [
+        {
+          "name": "dried miki noodles (pancit habhab)",
+          "quantity": 500,
+          "unit": "g"
+        },
+        {
+          "name": "pork belly, sliced",
+          "quantity": 250,
+          "unit": "g"
+        },
+        {
+          "name": "pork liver, sliced",
+          "quantity": 100,
+          "unit": "g"
+        },
+        {
+          "name": "chayote, julienned",
+          "quantity": 1,
+          "unit": ""
+        },
+        {
+          "name": "carrot, julienned",
+          "quantity": 1,
+          "unit": ""
+        },
+        {
+          "name": "bok choy",
+          "quantity": 1,
+          "unit": "bunch"
+        },
+        {
+          "name": "garlic, minced",
+          "quantity": 4,
+          "unit": "cloves"
+        },
+        {
+          "name": "onion, sliced",
+          "quantity": 1,
+          "unit": ""
+        },
+        {
+          "name": "soy sauce",
+          "quantity": 3,
+          "unit": "tbsp"
+        },
+        {
+          "name": "pork or chicken broth",
+          "quantity": 3,
+          "unit": "cups"
+        },
+        {
+          "name": "cane vinegar",
+          "quantity": 0.25,
+          "unit": "cup"
+        },
+        {
+          "name": "banana leaf squares",
+          "quantity": 4,
+          "unit": ""
+        }
+      ],
+      "steps": [
+        "Sauté the garlic, onion and pork for 5 minutes, then add the liver and cook for 2 minutes.",
+        "Add the soy sauce and broth and bring to a boil.",
+        "Add the noodles and cook, stirring, until they absorb the liquid.",
+        "Add the chayote, carrot and bok choy for the last 2 minutes.",
+        "Serve each portion on a banana leaf with vinegar on top, and eat it straight off the leaf."
+      ]
+    },
+    {
+      "id": "18",
+      "imageUrl": "",
+      "createdAt": "2026-10-01T00:36:00.000Z",
+      "title": "Pancit Batil Patong",
+      "emoji": "🥩",
+      "cuisineId": "filipino",
+      "dishId": "pancit",
+      "variant": "Tuguegarao",
+      "mainIngredient": "beef",
+      "regionId": "tuguegarao",
+      "variantNote": "Noodles topped with ground beef and an egg, with egg-drop soup on the side.",
+      "description": "Tuguegarao noodles crowned with ground beef, vegetables and an egg on top (patong), served with a beaten-egg soup (batil).",
+      "prepMinutes": 20,
+      "cookMinutes": 25,
+      "servings": 4,
+      "difficulty": "medium",
+      "ingredients": [
+        {
+          "name": "fresh miki noodles",
+          "quantity": 500,
+          "unit": "g"
+        },
+        {
+          "name": "ground beef",
+          "quantity": 300,
+          "unit": "g"
+        },
+        {
+          "name": "pork liver, chopped",
+          "quantity": 100,
+          "unit": "g"
+        },
+        {
+          "name": "mung bean sprouts",
+          "quantity": 2,
+          "unit": "cups"
+        },
+        {
+          "name": "cabbage, shredded",
+          "quantity": 2,
+          "unit": "cups"
+        },
+        {
+          "name": "eggs",
+          "quantity": 6,
+          "unit": ""
+        },
+        {
+          "name": "soy sauce",
+          "quantity": 3,
+          "unit": "tbsp"
+        },
+        {
+          "name": "beef broth",
+          "quantity": 4,
+          "unit": "cups"
+        },
+        {
+          "name": "onion, chopped",
+          "quantity": 1,
+          "unit": ""
+        },
+        {
+          "name": "scallions, sliced",
+          "quantity": 3,
+          "unit": ""
+        }
+      ],
+      "steps": [
+        "Brown the ground beef and liver with half the onion and season with soy sauce.",
+        "Stir-fry the noodles with a splash of broth and soy sauce, then add the bean sprouts and cabbage.",
+        "Fry one egg per serving and place it on top of the noodles and beef.",
+        "Bring the rest of the broth to a boil and stir in the remaining beaten eggs to make an egg-drop soup.",
+        "Serve the noodles with the soup on the side, chopped onion and scallions."
+      ]
+    },
+    {
+      "id": "19",
+      "imageUrl": "",
+      "createdAt": "2026-10-01T00:38:00.000Z",
+      "title": "Sapporo Miso Ramen",
+      "emoji": "🌽",
+      "cuisineId": "japanese",
+      "dishId": "ramen",
+      "variant": "Sapporo",
+      "mainIngredient": "pork",
+      "regionId": "sapporo",
+      "variantNote": "Rich miso broth topped with sweet corn and a pat of butter.",
+      "description": "The ramen of Hokkaido: a hearty miso broth with stir-fried pork and bean sprouts, finished with corn and melting butter.",
+      "prepMinutes": 20,
+      "cookMinutes": 30,
+      "servings": 2,
+      "difficulty": "medium",
+      "ingredients": [
+        {
+          "name": "fresh ramen noodles",
+          "quantity": 2,
+          "unit": "portions"
+        },
+        {
+          "name": "ground pork",
+          "quantity": 150,
+          "unit": "g"
+        },
+        {
+          "name": "red miso",
+          "quantity": 4,
+          "unit": "tbsp"
+        },
+        {
+          "name": "chicken or pork stock",
+          "quantity": 4,
+          "unit": "cups"
+        },
+        {
+          "name": "garlic, minced",
+          "quantity": 2,
+          "unit": "cloves"
+        },
+        {
+          "name": "ginger, grated",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "name": "bean sprouts",
+          "quantity": 2,
+          "unit": "cups"
+        },
+        {
+          "name": "corn kernels",
+          "quantity": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "butter",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "name": "scallions, sliced",
+          "quantity": 2,
+          "unit": ""
+        },
+        {
+          "name": "sesame oil",
+          "quantity": 1,
+          "unit": "tbsp"
+        }
+      ],
+      "steps": [
+        "Stir-fry the garlic, ginger and pork in sesame oil until browned, then add the bean sprouts for 1 minute.",
+        "Add the stock and bring to a simmer, then whisk in the miso off the boil.",
+        "Cook the noodles according to the package and drain well.",
+        "Put the noodles in bowls and ladle the soup over them.",
+        "Top with the pork and sprouts, corn, a pat of butter and scallions."
+      ]
+    },
+    {
+      "id": "20",
+      "imageUrl": "",
+      "createdAt": "2026-10-01T00:40:00.000Z",
+      "title": "Hakata Tonkotsu Ramen",
+      "emoji": "🍜",
+      "cuisineId": "japanese",
+      "dishId": "ramen",
+      "variant": "Hakata",
+      "mainIngredient": "pork",
+      "regionId": "hakata",
+      "variantNote": "Milky pork-bone broth with thin, firm noodles.",
+      "description": "Fukuoka ramen: pork bones boiled hard for hours into a creamy white broth, with thin straight noodles cooked firm.",
+      "prepMinutes": 30,
+      "cookMinutes": 720,
+      "servings": 4,
+      "difficulty": "hard",
+      "ingredients": [
+        {
+          "name": "pork trotters and neck bones",
+          "quantity": 2,
+          "unit": "kg"
+        },
+        {
+          "name": "garlic, halved",
+          "quantity": 1,
+          "unit": "head"
+        },
+        {
+          "name": "ginger, sliced",
+          "quantity": 1,
+          "unit": "piece"
+        },
+        {
+          "name": "light soy sauce",
+          "quantity": 4,
+          "unit": "tbsp"
+        },
+        {
+          "name": "salt",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "name": "thin straight ramen noodles",
+          "quantity": 4,
+          "unit": "portions"
+        },
+        {
+          "name": "pork belly chashu",
+          "quantity": 8,
+          "unit": "slices"
+        },
+        {
+          "name": "scallions, sliced",
+          "quantity": 4,
+          "unit": ""
+        },
+        {
+          "name": "pickled red ginger",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "name": "sesame seeds",
+          "quantity": 1,
+          "unit": "tbsp"
+        }
+      ],
+      "steps": [
+        "Blanch the bones for 10 minutes, then drain and scrub them clean.",
+        "Cover with fresh water, add the garlic and ginger, and boil hard for 10 to 12 hours, topping up with water. The hard boil turns the broth milky.",
+        "Strain the broth and put the soy sauce and salt into each bowl.",
+        "Boil the noodles for about 1 minute so they stay firm.",
+        "Pour the broth over the seasoning, add the noodles and top with chashu, scallions, red ginger and sesame seeds."
+      ]
+    },
+    {
+      "id": "21",
+      "imageUrl": "",
+      "createdAt": "2026-10-01T00:42:00.000Z",
+      "title": "Tokyo Shoyu Ramen",
+      "emoji": "🍥",
+      "cuisineId": "japanese",
+      "dishId": "ramen",
+      "variant": "Tokyo",
+      "mainIngredient": "chicken",
+      "regionId": "tokyo",
+      "variantNote": "Clear chicken and dashi broth seasoned with soy sauce.",
+      "description": "The classic Tokyo bowl: a clear amber broth of chicken and dashi, soy sauce seasoning and wavy noodles.",
+      "prepMinutes": 20,
+      "cookMinutes": 120,
+      "servings": 4,
+      "difficulty": "medium",
+      "ingredients": [
+        {
+          "name": "chicken wings and carcass",
+          "quantity": 1,
+          "unit": "kg"
+        },
+        {
+          "name": "kombu",
+          "quantity": 1,
+          "unit": "piece"
+        },
+        {
+          "name": "bonito flakes",
+          "quantity": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "soy sauce",
+          "quantity": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "mirin",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "name": "wavy ramen noodles",
+          "quantity": 4,
+          "unit": "portions"
+        },
+        {
+          "name": "pork chashu",
+          "quantity": 8,
+          "unit": "slices"
+        },
+        {
+          "name": "menma (bamboo shoots)",
+          "quantity": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "nori",
+          "quantity": 4,
+          "unit": "sheets"
+        },
+        {
+          "name": "scallions, sliced",
+          "quantity": 3,
+          "unit": ""
+        }
+      ],
+      "steps": [
+        "Simmer the chicken gently in water for 2 hours, skimming often so the broth stays clear.",
+        "Steep the kombu and then the bonito flakes in the hot stock for 10 minutes, then strain.",
+        "Warm the soy sauce and mirin together and put 2 tablespoons in each bowl.",
+        "Cook the noodles and add them to the bowls with the broth.",
+        "Top with chashu, menma, nori and scallions."
+      ]
+    },
+    {
+      "id": "22",
+      "imageUrl": "",
+      "createdAt": "2026-10-01T00:44:00.000Z",
+      "title": "Kitakata Ramen",
+      "emoji": "🥢",
+      "cuisineId": "japanese",
+      "dishId": "ramen",
+      "variant": "Kitakata",
+      "mainIngredient": "pork",
+      "regionId": "kitakata",
+      "variantNote": "Soy broth of pork and dried sardines over thick, wavy, chewy noodles.",
+      "description": "From Fukushima: a soy-seasoned broth of pork bones and dried sardines, thick curly noodles and a lid of sliced pork.",
+      "prepMinutes": 20,
+      "cookMinutes": 180,
+      "servings": 4,
+      "difficulty": "medium",
+      "ingredients": [
+        {
+          "name": "pork bones",
+          "quantity": 1,
+          "unit": "kg"
+        },
+        {
+          "name": "dried sardines (niboshi)",
+          "quantity": 30,
+          "unit": "g"
+        },
+        {
+          "name": "kombu",
+          "quantity": 1,
+          "unit": "piece"
+        },
+        {
+          "name": "soy sauce",
+          "quantity": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "thick wavy ramen noodles",
+          "quantity": 4,
+          "unit": "portions"
+        },
+        {
+          "name": "pork shoulder chashu",
+          "quantity": 12,
+          "unit": "slices"
+        },
+        {
+          "name": "menma (bamboo shoots)",
+          "quantity": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "scallions, sliced",
+          "quantity": 4,
+          "unit": ""
+        }
+      ],
+      "steps": [
+        "Simmer the pork bones gently for 3 hours for a clear stock.",
+        "Soak the dried sardines and kombu in water for 1 hour, simmer for 10 minutes, strain and combine with the pork stock.",
+        "Put 2 tablespoons of soy sauce in each bowl.",
+        "Cook the thick noodles for about 4 minutes and add them to the bowls with the broth.",
+        "Cover the noodles with chashu slices and top with menma and scallions."
+      ]
+    },
+    {
+      "id": "23",
+      "imageUrl": "",
+      "createdAt": "2026-10-01T00:46:00.000Z",
+      "title": "Jeonju Bibimbap",
+      "emoji": "🌱",
+      "cuisineId": "korean",
+      "dishId": "bibimbap",
+      "variant": "Jeonju",
+      "mainIngredient": "beef",
+      "regionId": "jeonju",
+      "variantNote": "Rice cooked in beef bone broth, topped with many namul and beef tartare.",
+      "description": "The famous bibimbap of Jeonju: rice cooked in beef broth, a ring of seasoned vegetables and seasoned raw beef in the center.",
+      "prepMinutes": 60,
+      "cookMinutes": 40,
+      "servings": 4,
+      "difficulty": "hard",
+      "ingredients": [
+        {
+          "name": "short-grain rice",
+          "quantity": 2,
+          "unit": "cups"
+        },
+        {
+          "name": "beef bone broth",
+          "quantity": 2.5,
+          "unit": "cups"
+        },
+        {
+          "name": "very fresh beef sirloin, finely julienned",
+          "quantity": 200,
+          "unit": "g"
+        },
+        {
+          "name": "soybean sprouts",
+          "quantity": 200,
+          "unit": "g"
+        },
+        {
+          "name": "spinach",
+          "quantity": 200,
+          "unit": "g"
+        },
+        {
+          "name": "bracken (gosari), rehydrated",
+          "quantity": 100,
+          "unit": "g"
+        },
+        {
+          "name": "bellflower root (doraji)",
+          "quantity": 100,
+          "unit": "g"
+        },
+        {
+          "name": "zucchini, julienned",
+          "quantity": 1,
+          "unit": ""
+        },
+        {
+          "name": "shiitake mushrooms, sliced",
+          "quantity": 6,
+          "unit": ""
+        },
+        {
+          "name": "egg yolks",
+          "quantity": 4,
+          "unit": ""
+        },
+        {
+          "name": "gochujang",
+          "quantity": 4,
+          "unit": "tbsp"
+        },
+        {
+          "name": "sesame oil",
+          "quantity": 3,
+          "unit": "tbsp"
+        }
+      ],
+      "steps": [
+        "Cook the rice in the beef bone broth instead of water.",
+        "Blanch or sauté each vegetable separately and season each with sesame oil, garlic and salt.",
+        "Season the raw beef with soy sauce, sugar and sesame oil just before serving.",
+        "Arrange the vegetables in a ring over the rice, with the beef and an egg yolk in the center.",
+        "Serve with gochujang and mix everything together at the table."
+      ]
+    },
+    {
+      "id": "24",
+      "imageUrl": "",
+      "createdAt": "2026-10-01T00:48:00.000Z",
+      "title": "Jinju Bibimbap",
+      "emoji": "🥬",
+      "cuisineId": "korean",
+      "dishId": "bibimbap",
+      "variant": "Jinju",
+      "mainIngredient": "beef",
+      "regionId": "jinju",
+      "variantNote": "Topped with seasoned raw beef, with a clear bean-sprout soup on the side.",
+      "description": "Bibimbap from Jinju, topped with seasoned raw beef and served with a light soybean-sprout soup.",
+      "prepMinutes": 45,
+      "cookMinutes": 30,
+      "servings": 4,
+      "difficulty": "medium",
+      "ingredients": [
+        {
+          "name": "short-grain rice",
+          "quantity": 2,
+          "unit": "cups"
+        },
+        {
+          "name": "very fresh beef sirloin, julienned",
+          "quantity": 200,
+          "unit": "g"
+        },
+        {
+          "name": "soybean sprouts",
+          "quantity": 300,
+          "unit": "g"
+        },
+        {
+          "name": "spinach",
+          "quantity": 200,
+          "unit": "g"
+        },
+        {
+          "name": "bracken (gosari), rehydrated",
+          "quantity": 100,
+          "unit": "g"
+        },
+        {
+          "name": "roasted seaweed (gim)",
+          "quantity": 2,
+          "unit": "sheets"
+        },
+        {
+          "name": "gochujang",
+          "quantity": 3,
+          "unit": "tbsp"
+        },
+        {
+          "name": "sesame oil",
+          "quantity": 3,
+          "unit": "tbsp"
+        },
+        {
+          "name": "soy sauce",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "name": "garlic, minced",
+          "quantity": 3,
+          "unit": "cloves"
+        }
+      ],
+      "steps": [
+        "Cook the rice.",
+        "Simmer half the soybean sprouts in salted water with a little garlic for 10 minutes to make the side soup.",
+        "Blanch the remaining sprouts and the spinach, sauté the bracken, and season each with sesame oil and salt.",
+        "Season the beef with soy sauce, sesame oil and garlic.",
+        "Top the rice with the vegetables, beef and crumbled seaweed, and serve with gochujang and the soup."
+      ]
+    },
+    {
+      "id": "25",
+      "imageUrl": "",
+      "createdAt": "2026-10-01T00:50:00.000Z",
+      "title": "Dolsot Bibimbap",
+      "emoji": "🔥",
+      "cuisineId": "korean",
+      "dishId": "bibimbap",
+      "variant": "Dolsot (hot stone bowl)",
+      "mainIngredient": "beef",
+      "regionId": "",
+      "variantNote": "",
+      "description": "Bibimbap served in a sizzling stone bowl, so the rice at the bottom turns into a crisp golden crust.",
+      "prepMinutes": 30,
+      "cookMinutes": 25,
+      "servings": 2,
+      "difficulty": "medium",
+      "ingredients": [
+        {
+          "name": "cooked short-grain rice",
+          "quantity": 2,
+          "unit": "cups"
+        },
+        {
+          "name": "beef sirloin, thinly sliced",
+          "quantity": 150,
+          "unit": "g"
+        },
+        {
+          "name": "spinach",
+          "quantity": 150,
+          "unit": "g"
+        },
+        {
+          "name": "bean sprouts",
+          "quantity": 150,
+          "unit": "g"
+        },
+        {
+          "name": "carrot, julienned",
+          "quantity": 1,
+          "unit": ""
+        },
+        {
+          "name": "shiitake mushrooms, sliced",
+          "quantity": 4,
+          "unit": ""
+        },
+        {
+          "name": "eggs",
+          "quantity": 2,
+          "unit": ""
+        },
+        {
+          "name": "gochujang",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "name": "sesame oil",
+          "quantity": 2,
+          "unit": "tbsp"
+        }
+      ],
+      "steps": [
+        "Prepare and season the vegetables and beef.",
+        "Heat the stone bowls on the stove and brush the insides with sesame oil.",
+        "Pack the rice into the bowls, arrange the toppings and crack an egg on top.",
+        "Heat over medium for 5 to 7 minutes until the rice crackles and a crust forms.",
+        "Add gochujang and mix at the table, scraping up the crispy rice."
+      ]
+    },
+    {
+      "id": "26",
+      "imageUrl": "",
+      "createdAt": "2026-10-01T00:52:00.000Z",
+      "title": "Yangzhou Fried Rice",
+      "emoji": "🍤",
+      "cuisineId": "chinese",
+      "dishId": "fried-rice",
+      "variant": "Yangzhou",
+      "mainIngredient": "shrimp",
+      "regionId": "yangzhou",
+      "variantNote": "A white fried rice: no dark soy, seasoned with salt and stock.",
+      "description": "Fried rice from Yangzhou with shrimp, ham, peas and egg. Pale and clean-tasting, because it uses salt and stock instead of dark soy sauce.",
+      "prepMinutes": 15,
+      "cookMinutes": 10,
+      "servings": 3,
+      "difficulty": "medium",
+      "ingredients": [
+        {
+          "name": "cooked rice, chilled overnight",
+          "quantity": 4,
+          "unit": "cups"
+        },
+        {
+          "name": "eggs, beaten",
+          "quantity": 3,
+          "unit": ""
+        },
+        {
+          "name": "small shrimp, peeled",
+          "quantity": 150,
+          "unit": "g"
+        },
+        {
+          "name": "Chinese ham or char siu, diced",
+          "quantity": 100,
+          "unit": "g"
+        },
+        {
+          "name": "peas",
+          "quantity": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "carrot, diced",
+          "quantity": 1,
+          "unit": ""
+        },
+        {
+          "name": "scallions, sliced",
+          "quantity": 3,
+          "unit": ""
+        },
+        {
+          "name": "chicken stock",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "name": "salt",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "name": "neutral oil",
+          "quantity": 3,
+          "unit": "tbsp"
+        }
+      ],
+      "steps": [
+        "Scramble the eggs softly in a hot wok and set aside.",
+        "Stir-fry the shrimp and ham for 1 to 2 minutes and set aside.",
+        "Fry the peas and carrot, then add the rice and toss until every grain is hot and separate.",
+        "Season with salt and chicken stock, with no soy sauce.",
+        "Return the eggs, shrimp and ham, fold in the scallions and serve."
+      ]
+    },
+    {
+      "id": "27",
+      "imageUrl": "",
+      "createdAt": "2026-10-01T00:54:00.000Z",
+      "title": "Hokkien Fried Rice",
+      "emoji": "🦑",
+      "cuisineId": "chinese",
+      "dishId": "fried-rice",
+      "variant": "Fujian style",
+      "mainIngredient": "seafood",
+      "regionId": "fujian",
+      "variantNote": "Egg fried rice under a thick, savory seafood gravy.",
+      "description": "Fujian-style fried rice: simple egg fried rice with a glossy gravy of seafood, chicken and mushrooms poured over the top.",
+      "prepMinutes": 20,
+      "cookMinutes": 20,
+      "servings": 3,
+      "difficulty": "medium",
+      "ingredients": [
+        {
+          "name": "cooked rice, chilled overnight",
+          "quantity": 4,
+          "unit": "cups"
+        },
+        {
+          "name": "eggs",
+          "quantity": 2,
+          "unit": ""
+        },
+        {
+          "name": "shrimp, peeled",
+          "quantity": 150,
+          "unit": "g"
+        },
+        {
+          "name": "scallops",
+          "quantity": 100,
+          "unit": "g"
+        },
+        {
+          "name": "chicken thigh, diced",
+          "quantity": 150,
+          "unit": "g"
+        },
+        {
+          "name": "shiitake mushrooms, sliced",
+          "quantity": 4,
+          "unit": ""
+        },
+        {
+          "name": "bok choy, chopped",
+          "quantity": 2,
+          "unit": ""
+        },
+        {
+          "name": "chicken stock",
+          "quantity": 1.5,
+          "unit": "cups"
+        },
+        {
+          "name": "oyster sauce",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "name": "soy sauce",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "name": "cornstarch slurry",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "name": "neutral oil",
+          "quantity": 3,
+          "unit": "tbsp"
+        }
+      ],
+      "steps": [
+        "Make a simple egg fried rice: scramble the eggs, add the rice, season lightly and plate it.",
+        "Stir-fry the chicken, then the mushrooms, shrimp and scallops.",
+        "Add the stock, oyster sauce and soy sauce, then the bok choy, and simmer for 3 minutes.",
+        "Thicken with the cornstarch slurry until glossy.",
+        "Pour the gravy over the rice and serve."
+      ]
     }
   ],
   "ratings": [
@@ -563,6 +2036,168 @@
       "score": 3,
       "comment": "Simple and nice.",
       "createdAt": "2026-10-01T11:00:00.000Z"
+    }
+  ],
+  "dishes": [
+    {
+      "id": "adobo",
+      "cuisineId": "filipino",
+      "name": "Adobo",
+      "description": "Meat braised in vinegar, garlic and bay leaf. Nearly every region has its own way of making it."
+    },
+    {
+      "id": "sinigang",
+      "cuisineId": "filipino",
+      "name": "Sinigang",
+      "description": "A sour soup. The souring fruit and the main ingredient change from kitchen to kitchen."
+    },
+    {
+      "id": "pancit",
+      "cuisineId": "filipino",
+      "name": "Pancit",
+      "description": "Noodles served at birthdays for long life, with a different style in many provinces."
+    },
+    {
+      "id": "mapo-tofu",
+      "cuisineId": "chinese",
+      "name": "Mapo Tofu",
+      "description": "Soft tofu in a numbing, spicy Sichuan sauce."
+    },
+    {
+      "id": "fried-rice",
+      "cuisineId": "chinese",
+      "name": "Fried Rice",
+      "description": "Day-old rice tossed in a hot wok, from simple egg fried rice to festive Yangzhou."
+    },
+    {
+      "id": "kimchi-fried-rice",
+      "cuisineId": "korean",
+      "name": "Kimchi Fried Rice",
+      "description": "Fried rice made tangy with well-fermented kimchi."
+    },
+    {
+      "id": "bibimbap",
+      "cuisineId": "korean",
+      "name": "Bibimbap",
+      "description": "Rice topped with seasoned vegetables and meat, mixed together at the table."
+    },
+    {
+      "id": "teriyaki",
+      "cuisineId": "japanese",
+      "name": "Teriyaki",
+      "description": "Meat glazed in soy sauce, mirin and sugar."
+    },
+    {
+      "id": "miso-soup",
+      "cuisineId": "japanese",
+      "name": "Miso Soup",
+      "description": "Dashi with miso, the everyday soup of a Japanese meal."
+    },
+    {
+      "id": "ramen",
+      "cuisineId": "japanese",
+      "name": "Ramen",
+      "description": "Noodle soup with a regional style in many cities, from Hokkaido to Kyushu."
+    }
+  ],
+  "regions": [
+    {
+      "id": "batangas",
+      "cuisineId": "filipino",
+      "name": "Batangas",
+      "latitude": 13.76,
+      "longitude": 121.06
+    },
+    {
+      "id": "bicol",
+      "cuisineId": "filipino",
+      "name": "Bicol",
+      "latitude": 13.62,
+      "longitude": 123.19
+    },
+    {
+      "id": "pampanga",
+      "cuisineId": "filipino",
+      "name": "Pampanga",
+      "latitude": 15.03,
+      "longitude": 120.69
+    },
+    {
+      "id": "malabon",
+      "cuisineId": "filipino",
+      "name": "Malabon",
+      "latitude": 14.66,
+      "longitude": 120.96
+    },
+    {
+      "id": "lucban",
+      "cuisineId": "filipino",
+      "name": "Lucban, Quezon",
+      "latitude": 14.11,
+      "longitude": 121.56
+    },
+    {
+      "id": "tuguegarao",
+      "cuisineId": "filipino",
+      "name": "Tuguegarao, Cagayan",
+      "latitude": 17.61,
+      "longitude": 121.73
+    },
+    {
+      "id": "sapporo",
+      "cuisineId": "japanese",
+      "name": "Sapporo",
+      "latitude": 43.06,
+      "longitude": 141.35
+    },
+    {
+      "id": "hakata",
+      "cuisineId": "japanese",
+      "name": "Hakata, Fukuoka",
+      "latitude": 33.59,
+      "longitude": 130.42
+    },
+    {
+      "id": "tokyo",
+      "cuisineId": "japanese",
+      "name": "Tokyo",
+      "latitude": 35.68,
+      "longitude": 139.69
+    },
+    {
+      "id": "kitakata",
+      "cuisineId": "japanese",
+      "name": "Kitakata, Fukushima",
+      "latitude": 37.65,
+      "longitude": 139.87
+    },
+    {
+      "id": "jeonju",
+      "cuisineId": "korean",
+      "name": "Jeonju",
+      "latitude": 35.82,
+      "longitude": 127.15
+    },
+    {
+      "id": "jinju",
+      "cuisineId": "korean",
+      "name": "Jinju",
+      "latitude": 35.18,
+      "longitude": 128.11
+    },
+    {
+      "id": "yangzhou",
+      "cuisineId": "chinese",
+      "name": "Yangzhou",
+      "latitude": 32.39,
+      "longitude": 119.41
+    },
+    {
+      "id": "fujian",
+      "cuisineId": "chinese",
+      "name": "Fujian",
+      "latitude": 26.07,
+      "longitude": 119.3
     }
   ]
 }

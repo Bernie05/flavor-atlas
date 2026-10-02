@@ -5,6 +5,9 @@ import { handleAiRequest, type Generate } from './handler'
 const draft: AiDraft = {
   title: 'Chicken Adobo',
   cuisineName: 'Filipino',
+  dishName: '',
+  variant: '',
+  regionName: '',
   servings: 4,
   description: '',
   ingredients: [{ name: 'chicken thighs', quantity: 1, unit: 'kg' }],

@@ -19,6 +19,16 @@ export const recipeInputSchema = z.object({
   /** The dish shown on its plate. Empty falls back to the cuisine's emoji. */
   emoji: z.string().trim().max(8, 'Use a single emoji'),
   cuisineId: z.string().min(1, 'Choose a cuisine'),
+  /** The dish this recipe is a version of (Phase 6: dish variants). */
+  dishId: z.string().min(1, 'Choose a dish'),
+  /** What sets this version apart, e.g. "na Hipon" or "Batangas style". Empty for the classic. */
+  variant: z.string().trim().max(60, 'Keep the version name short'),
+  /** The main protein or star ingredient, e.g. "pork", "shrimp". Used to group versions. */
+  mainIngredient: z.string().trim().max(40),
+  /** Where this version comes from. Empty means classic or found everywhere. */
+  regionId: z.string(),
+  /** One line on what makes this version different, shown with its region. */
+  variantNote: z.string().trim().max(160, 'Keep the note to one line'),
   description: z.string().trim().max(500, 'Keep the description under 500 characters'),
   imageUrl: z.union([z.url('Enter a full link starting with https://'), z.literal('')]),
   prepMinutes: z.number({ error: 'Enter minutes' }).int('Use whole minutes').min(0, 'Cannot be negative'),

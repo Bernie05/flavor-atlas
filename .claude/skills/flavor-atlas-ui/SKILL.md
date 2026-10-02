@@ -49,10 +49,11 @@ Wrap anything that belongs to a cuisine with `style={cuisineTint(cuisineId)}` fr
 - **Plate** (`components/ui/Plate.tsx`): the picture for any recipe without a photo. Use `recipe.emoji || cuisine.emoji`. Sizes `sm`, `md`, `lg`.
 - **Atlas dots** (`.atlas-dots`): dotted map background in the current tint. Use for covers and tinted headers only, not on every surface.
 - **Coordinates**: cuisines show `origin · formatCoordinates(cuisine)` in `.label-mono`.
+- **Region tag** (`features/dishes/components/RegionTag.tsx`): "📍 Name · coords" in `.label-mono` for regional versions. A regional version shows its tag plus the one-line `variantNote` (italic serif on the recipe hero, plain text on cards with `showVariantNote`). Classic versions show neither.
 
 ## Recipe page pattern
 
-Hero (tinted, dotted) → facts row (mono) → ingredients + steps → reviews. On phones a sticky Ingredients / Steps toggle shows one at a time; on `md+` the ingredients sit in a sticky sidebar. Ingredient names in steps are highlighted with `highlightIngredients()`. The servings scaler rescales quantities with `scaleQuantity()`.
+Breadcrumb (Recipes / Cuisine / Dish) → hero (tinted, dotted), region tag + note when regional → facts row (mono) → ingredients + steps → "Other ways to cook {dish}" row → reviews. On phones a sticky Ingredients / Steps toggle shows one at a time; on `md+` the ingredients sit in a sticky sidebar. Ingredient names in steps are highlighted with `highlightIngredients()`. The servings scaler rescales quantities with `scaleQuantity()`.
 
 ## Admin stat tiles
 

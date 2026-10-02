@@ -23,6 +23,8 @@ function formatDraft(draft: AiDraft): string {
   return [
     `Title: ${draft.title}`,
     `Cuisine: ${draft.cuisineName || 'not chosen yet'}`,
+    draft.dishName && `Dish: ${draft.dishName}${draft.variant ? ` (version: ${draft.variant})` : ''}`,
+    draft.regionName && `Regional version from: ${draft.regionName}. Keep it true to how it is made there.`,
     `Serves: ${draft.servings}`,
     draft.description && `Description: ${draft.description}`,
     ingredients.length

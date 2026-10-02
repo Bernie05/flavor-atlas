@@ -5,8 +5,13 @@ import { ErrorState } from '@/components/feedback/ErrorState'
 import { Plate } from '@/components/ui/Plate'
 import { cuisineQueries } from '@/features/cuisines/queries'
 import { cuisineTint, formatCoordinates } from '@/features/cuisines/utils'
+import { DishCard } from '@/features/dishes/components/DishCard'
+import { dishQueries } from '@/features/dishes/queries'
+import { countVersions } from '@/features/dishes/utils'
 import { RecipeBrowser } from '@/features/recipes/components/RecipeBrowser'
 import { recipeQueries } from '@/features/recipes/queries'
+import type { Dish } from '@/features/dishes/schema'
+import type { RecipeWithRatings } from '@/features/recipes/schema'
 import { NotFoundError } from '@/services/data'
 import { NotFoundPage } from './NotFoundPage'
 
@@ -20,6 +25,7 @@ function CuisineView({ cuisineId }: { cuisineId: string }) {
   const cuisine = useQuery(cuisineQueries.detail(cuisineId))
   const cuisines = useQuery(cuisineQueries.list())
   const recipes = useQuery(recipeQueries.list({ cuisineId }))
+  const dishes = useQuery(dishQueries.list())
 
   if (cuisine.error instanceof NotFoundError) {
     return <NotFoundPage message="We don't have that cuisine in the atlas yet." />
@@ -49,6 +55,10 @@ function CuisineView({ cuisineId }: { cuisineId: string }) {
         <Plate emoji={cuisine.data?.emoji ?? '🍽️'} size="lg" className="justify-self-center sm:size-48 sm:text-8xl" />
       </header>
 
+      {recipes.data && dishes.data && (
+        <DishIndex cuisineId={cuisineId} recipes={recipes.data} dishes={dishes.data} />
+      )}
+
       {recipes.isPending || cuisines.isPending ? (
         <CardGridSkeleton />
       ) : recipes.isError || cuisines.isError ? (
@@ -57,5 +67,45 @@ function CuisineView({ cuisineId }: { cuisineId: string }) {
         <RecipeBrowser recipes={recipes.data} cuisines={cuisines.data} lockedCuisineId={cuisineId} />
       )}
     </div>
+  )
+}
+
+/** The cuisine's dishes, each with its number of versions: a table of contents. */
+function DishIndex({
+  cuisineId,
+  recipes,
+  dishes,
+}: {
+  cuisineId: string
+  recipes: RecipeWithRatings[]
+  dishes: Dish[]
+}) {
+  const counts = countVersions(recipes)
+  const ours = dishes
+    .filter((dish) => dish.cuisineId === cuisineId && counts.has(dish.id))
+    .toSorted((a, b) => a.name.localeCompare(b.name))
+  if (ours.length === 0) return null
+
+  return (
+    <section aria-labelledby="dishes-heading" className="space-y-4">
+      <h2 id="dishes-heading" className="text-4xl">
+        Dishes
+      </h2>
+      <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {ours.map((dish) => {
+          const versions = recipes.filter((r) => r.dishId === dish.id)
+          return (
+            <li key={dish.id}>
+              <DishCard
+                dish={dish}
+                emoji={versions[0]?.emoji || '🍽️'}
+                versions={versions.length}
+                regional={versions.filter((r) => r.regionId).length}
+              />
+            </li>
+          )
+        })}
+      </ul>
+    </section>
   )
 }
