@@ -104,6 +104,7 @@ This repo ships Claude Code configuration in `.claude/`:
 
 | Path | What it is |
 |---|---|
+| `CLAUDE.md` | Project memory: commands, architecture and rules Claude reads at the start of every session. |
 | `.claude/skills/flavor-atlas-ui/` | A **skill**: the design system as instructions. Claude loads it automatically whenever it works on UI, so new pages match the existing design. |
 | `.claude/agents/ui-reviewer.md` | A **subagent**: a read-only reviewer that audits contrast, accessibility and phone layout. Ask Claude to "run the ui-reviewer agent" after UI changes. |
 
