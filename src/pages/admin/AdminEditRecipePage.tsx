@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { useNavigate, useParams } from 'react-router'
+import { Link, useNavigate, useParams } from 'react-router'
 import { ErrorState } from '@/components/feedback/ErrorState'
 import { FormSkeleton } from '@/components/feedback/FormSkeleton'
 import { cuisineQueries } from '@/features/cuisines/queries'
@@ -8,9 +8,9 @@ import { RecipeForm } from '@/features/recipes/components/RecipeForm'
 import { useUpdateRecipe } from '@/features/recipes/mutations'
 import { recipeQueries } from '@/features/recipes/queries'
 import { NotFoundError } from '@/services/data'
-import { NotFoundPage } from './NotFoundPage'
+import { NotFoundPage } from '@/pages/NotFoundPage'
 
-export function EditRecipePage() {
+export function AdminEditRecipePage() {
   const { recipeId = '' } = useParams()
   const navigate = useNavigate()
   const recipe = useQuery(recipeQueries.detail(recipeId))
@@ -21,14 +21,17 @@ export function EditRecipePage() {
     return <NotFoundPage message="This recipe may have been deleted." />
   }
 
-  const detailPath = `/recipes/${recipeId}`
 
   return (
     <div className="space-y-6">
-      <title>{`Edit ${recipe.data?.title ?? 'recipe'} · Flavor Atlas`}</title>
+      <title>{`Edit ${recipe.data?.title ?? 'recipe'} · Flavor Atlas admin`}</title>
       <header>
-        <p className="label-mono text-accent-ink">Editing</p>
-        <h1 className="mt-1 text-4xl">{recipe.data?.title ?? 'Recipe'}</h1>
+        <Link to="/admin/recipes" className="label-mono inline-block py-1 text-accent-ink hover:underline">
+          Recipes
+        </Link>
+        <h1 className="mt-1 text-5xl">
+          Edit <em>{recipe.data?.title ?? 'recipe'}</em>
+        </h1>
       </header>
 
       {recipe.isPending || cuisines.isPending ? (
@@ -51,10 +54,11 @@ export function EditRecipePage() {
           pendingLabel="Saving…"
           isSubmitting={updateRecipe.isPending}
           submitError={updateRecipe.error}
-          cancelTo={detailPath}
+          cancelTo="/admin/recipes"
           onSubmit={(input) =>
             updateRecipe.mutate(input, {
-              onSuccess: () => navigate(detailPath, { replace: true }),
+              onSuccess: (saved) =>
+                navigate('/admin/recipes', { replace: true, state: { flash: `Saved “${saved.title}”.` } }),
             })
           }
         />

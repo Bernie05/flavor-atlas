@@ -1,55 +1,66 @@
 import { useQuery } from '@tanstack/react-query'
+import { Link } from 'react-router'
 import { CardGridSkeleton } from '@/components/feedback/CardGridSkeleton'
 import { ErrorState } from '@/components/feedback/ErrorState'
 import { CuisineCard } from '@/features/cuisines/components/CuisineCard'
 import { cuisineQueries } from '@/features/cuisines/queries'
 import { FeaturedRecipeCard } from '@/features/recipes/components/FeaturedRecipeCard'
-import { RecipeCard } from '@/features/recipes/components/RecipeCard'
+import { RecipeRow } from '@/features/recipes/components/RecipeRow'
 import { recipeQueries } from '@/features/recipes/queries'
-import { sortRecipes } from '@/features/recipes/utils'
+import { quickRecipes, sortRecipes } from '@/features/recipes/utils'
 
-const RECENT_COUNT = 3
+const ROW_SIZE = 3
 
 export function HomePage() {
   const cuisines = useQuery(cuisineQueries.list())
   const recipes = useQuery(recipeQueries.list())
 
+  const all = recipes.data ?? []
   const cuisinesById = new Map(cuisines.data?.map((cuisine) => [cuisine.id, cuisine]))
-  const featured = sortRecipes(recipes.data ?? [], 'top-rated')[0]
-  const recentRecipes = sortRecipes(recipes.data ?? [], 'newest')
-    .filter((recipe) => recipe.id !== featured?.id)
-    .slice(0, RECENT_COUNT)
-  const countFor = (cuisineId: string) =>
-    recipes.data?.filter((recipe) => recipe.cuisineId === cuisineId).length ?? 0
+  const [featured, ...lovedRest] = sortRecipes(all, 'top-rated')
+  const countFor = (cuisineId: string) => all.filter((recipe) => recipe.cuisineId === cuisineId).length
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-20">
       <title>Flavor Atlas</title>
 
-      <section className="grid gap-6 md:grid-cols-[1fr_1fr] md:items-center md:gap-10">
-        <div className="space-y-3">
+      <section className="grid items-center gap-8 lg:grid-cols-[1fr_1.15fr] lg:gap-12">
+        <div className="space-y-5">
           <p className="label-mono text-accent-ink">
             {recipes.data && cuisines.data
-              ? `${recipes.data.length} recipes · ${cuisines.data.length} cuisines`
+              ? `${all.length} recipes · ${cuisines.data.length} cuisines`
               : 'Recipes by cuisine'}
           </p>
-          <h1 className="text-4xl sm:text-5xl">Cook your way around the world</h1>
+          <h1 className="text-6xl sm:text-7xl">
+            Cook your way <em>around the world</em>
+          </h1>
           <p className="max-w-prose text-lg text-ink-muted">
-            Home-kitchen recipes grouped by where they come from, with every ingredient, every step
-            and ratings from people who cooked them.
+            Home-kitchen recipes grouped by where they come from, with every ingredient, every step and
+            ratings from the people who cooked them.
           </p>
+          <Link
+            to="/recipes"
+            className="inline-flex min-h-11 items-center rounded-full bg-ink px-5 font-semibold text-canvas hover:bg-accent"
+          >
+            Browse all recipes
+          </Link>
         </div>
         {featured ? (
           <FeaturedRecipeCard recipe={featured} cuisine={cuisinesById.get(featured.cuisineId)} />
         ) : (
-          recipes.isPending && <div className="h-44 animate-pulse rounded-3xl bg-surface-sunken motion-reduce:animate-none" />
+          recipes.isPending && (
+            <div className="h-80 animate-pulse rounded-3xl bg-surface-sunken motion-reduce:animate-none" />
+          )
         )}
       </section>
 
-      <section aria-labelledby="cuisines-heading" className="space-y-4">
-        <h2 id="cuisines-heading" className="text-2xl">
-          Pick a cuisine
-        </h2>
+      <section aria-labelledby="cuisines-heading" className="space-y-5">
+        <div>
+          <h2 id="cuisines-heading" className="text-4xl">
+            Pick a cuisine
+          </h2>
+          <p className="mt-1 text-ink-muted">Each one marked on the map by its capital.</p>
+        </div>
         {cuisines.isPending ? (
           <CardGridSkeleton count={4} />
         ) : cuisines.isError ? (
@@ -63,22 +74,38 @@ export function HomePage() {
         )}
       </section>
 
-      <section aria-labelledby="recent-heading" className="space-y-4">
-        <h2 id="recent-heading" className="text-2xl">
-          Recently added
-        </h2>
-        {recipes.isPending ? (
-          <CardGridSkeleton count={RECENT_COUNT} />
-        ) : recipes.isError ? (
-          <ErrorState error={recipes.error} onRetry={() => recipes.refetch()} />
-        ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {recentRecipes.map((recipe) => (
-              <RecipeCard key={recipe.id} recipe={recipe} cuisine={cuisinesById.get(recipe.cuisineId)} />
-            ))}
-          </div>
-        )}
-      </section>
+      {recipes.isPending ? (
+        <CardGridSkeleton count={ROW_SIZE} />
+      ) : recipes.isError ? (
+        <ErrorState error={recipes.error} onRetry={() => recipes.refetch()} />
+      ) : (
+        <>
+          <RecipeRow
+            id="quick-heading"
+            title="Ready in 30 minutes"
+            description="Weeknight dinners, start to table."
+            recipes={quickRecipes(all).slice(0, ROW_SIZE)}
+            cuisinesById={cuisinesById}
+            moreHref="/recipes?quick=1"
+          />
+          <RecipeRow
+            id="loved-heading"
+            title="Most loved"
+            description="The highest-rated dishes in the atlas."
+            recipes={lovedRest.slice(0, ROW_SIZE)}
+            cuisinesById={cuisinesById}
+            moreHref="/recipes?sort=top-rated"
+          />
+          <RecipeRow
+            id="recent-heading"
+            title="Recently added"
+            description="New to the atlas."
+            recipes={sortRecipes(all, 'newest').slice(0, ROW_SIZE)}
+            cuisinesById={cuisinesById}
+            moreHref="/recipes"
+          />
+        </>
+      )}
     </div>
   )
 }

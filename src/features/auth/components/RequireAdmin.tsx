@@ -36,7 +36,7 @@ export function RequireAdmin() {
       )
     }
     const next = encodeURIComponent(location.pathname + location.search)
-    return <Navigate to={`/login?next=${next}`} replace />
+    return <Navigate to={`/admin/login?next=${next}`} replace />
   }
 
   // Same wrapper whether or not the banner shows. React keeps a component's

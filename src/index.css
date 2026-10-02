@@ -2,8 +2,9 @@
 
 /*
  * Flavor Atlas design tokens.
- * Concept: an atlas of plates. Each cuisine is a colored region on the map,
- * and every recipe is a plate set on its region's color.
+ * Concept: an atlas of plates, set like a food magazine. Each cuisine is a
+ * colored region on the map, every recipe is a plate set on its region's
+ * color, and big serif headlines with italic accents do the editorial work.
  *
  * Every color is a CSS variable with a light and a dark value. Tailwind
  * utilities (bg-surface, text-ink, bg-tint-soft, ...) point at these variables,
@@ -11,9 +12,9 @@
  */
 :root {
   /* Neutrals, tinted slightly toward herb green */
-  --canvas: #f4f5f1;
+  --canvas: #fafaf7;
   --surface: #ffffff;
-  --surface-sunken: #e9ece5;
+  --surface-sunken: #eef0eb;
   --ink: #17201c;
   --ink-muted: #4c5852;
   --ink-subtle: #5f6b65;
@@ -159,7 +160,7 @@
 }
 
 @theme {
-  --font-display: 'Young Serif', ui-serif, Georgia, serif;
+  --font-display: 'Instrument Serif', ui-serif, Georgia, serif;
   --font-sans: 'Figtree', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
 }
@@ -193,8 +194,15 @@ body {
   h3 {
     font-family: var(--font-display);
     font-weight: 400;
-    line-height: 1.15;
+    line-height: 1.05;
+    letter-spacing: -0.01em;
     text-wrap: balance;
+  }
+
+  /* Italic accent words in headlines: "Cook your way <em>around the world</em>". */
+  :is(h1, h2) em {
+    font-style: italic;
+    color: var(--tint-ink);
   }
 
   :focus-visible {

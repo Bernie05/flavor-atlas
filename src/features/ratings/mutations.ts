@@ -4,6 +4,15 @@ import { refreshRecipes } from '@/features/recipes/mutations'
 import { dataService } from '@/services/data'
 import type { RatingInput } from './schema'
 
+/** Delete a review, then refresh every recipe query so averages update everywhere. */
+export function useDeleteRating() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => dataService.deleteRating(id),
+    onSuccess: () => refreshRecipes(queryClient),
+  })
+}
+
 /**
  * Add a rating with an optimistic update: the recipe page shows the new
  * rating (and its new average) immediately, before the server answers.

@@ -5,7 +5,12 @@ description: Design system and UI conventions for Flavor Atlas. Use whenever cre
 
 # Flavor Atlas UI
 
-Concept: **an atlas of plates.** Each cuisine is a colored region on a map, and every recipe is a plate set on its region's color. Keep new UI inside this idea instead of adding unrelated decoration.
+Concept: **an atlas of plates, set like a food magazine.** Each cuisine is a colored region on a map, every recipe is a plate set on its region's color, and big serif headlines with italic accents do the editorial work (patterns adapted from NYT Cooking and editorial food sites). Keep new UI inside this idea instead of adding unrelated decoration.
+
+## Two sides
+
+- **Public site** (`RootLayout`): read-only. No create, edit, delete or rating controls, ever. The only way in to admin is the quiet "Admin" link in the footer.
+- **Admin** (`/admin`, `AdminLayout`): every change happens here. Plainer and task-focused, same tokens and fonts. Tables on wide screens, row lists on phones. All admin pages are lazy routes.
 
 ## Colors: always tokens, never literals
 
@@ -35,7 +40,7 @@ Wrap anything that belongs to a cuisine with `style={cuisineTint(cuisineId)}` fr
 
 | Role | How |
 |---|---|
-| Headings, dish and cuisine names | `font-display` (Young Serif). h1–h3 get it automatically. One weight only: never add `font-bold` to display text. |
+| Headings, dish and cuisine names | `font-display` (Instrument Serif). h1–h3 get it automatically. Big sizes (`text-4xl` section, `text-6xl`+ page titles). One weight: never add `font-bold`. Wrap an accent word in `<em>` for the italic tint-colored accent ("Cook your way <em>around the world</em>"); at most one per heading. |
 | Body | Figtree (default). |
 | Labels, eyebrows, times, coordinates, quantities | `.label-mono` (IBM Plex Mono, uppercase, tracked) or `font-mono` for values. Add `tabular-nums` where digits line up. |
 
@@ -45,12 +50,21 @@ Wrap anything that belongs to a cuisine with `style={cuisineTint(cuisineId)}` fr
 - **Atlas dots** (`.atlas-dots`): dotted map background in the current tint. Use for covers and tinted headers only, not on every surface.
 - **Coordinates**: cuisines show `origin · formatCoordinates(cuisine)` in `.label-mono`.
 
+## Recipe page pattern
+
+Hero (tinted, dotted) → facts row (mono) → ingredients + steps → reviews. On phones a sticky Ingredients / Steps toggle shows one at a time; on `md+` the ingredients sit in a sticky sidebar. Ingredient names in steps are highlighted with `highlightIngredients()`. The servings scaler rescales quantities with `scaleQuantity()`.
+
+## Admin stat tiles
+
+`StatTile`: sentence-case label, value in the **sans** font, semibold, proportional figures (no `tabular-nums`, never the serif), optional hint. A number that tells the story gets a tile, not a chart.
+
 ## Layout and components
 
-- Max width `max-w-5xl`, side gutter `px-4`, sections separated with `space-y-*` / `gap-*`, not margins on children.
+- Max width `max-w-6xl`, side gutter `px-4`, sections separated with `space-y-*` / `gap-*`, not margins on children.
 - Phone first: check 390px and 320px wide. Grids go 1 column (recipes) or 2 columns (cuisine tiles) on phones.
 - Radius by role: `rounded-3xl` tinted headers, `rounded-2xl` cards, `rounded-full` pills, inputs and buttons.
-- Cards: `bg-surface ring-1 ring-line`, hover `ring-tint`. No shadows except plates.
+- Recipe cards are editorial: the picture block (`rounded-2xl`, plate on `atlas-dots`) carries the card, text sits below on the page, hover underlines the title. Panels and lists use `bg-surface ring-1 ring-line`. No shadows except plates.
+- Collection rows (`RecipeRow`) swipe sideways on phones (`snap-x`, ~78% card width) and become a grid on `sm+`.
 - Primary button: `bg-ink text-canvas hover:bg-accent rounded-full`. Text links: `text-accent hover:text-accent-hover`.
 - Forms: wrap controls in `Field` (`components/ui/form.tsx`) with `inputClass` and `describedBy()` from `formStyles.ts`. Validate with the Zod schema through `zodResolver`. Field errors are plain text linked by `aria-describedby`; the form has exactly one `role="alert"` summary ("Fix 3 fields to save."). Never use `window.confirm()`; use `ConfirmDialog`.
 - Destructive actions: `text-danger` for the trigger, `bg-danger text-on-danger` for the confirm button inside `ConfirmDialog`.

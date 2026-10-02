@@ -1,5 +1,5 @@
 import { summarizeRatings } from '@/features/ratings/summary'
-import type { Difficulty, Recipe, RecipeWithRatings } from './schema'
+import type { Difficulty, Ingredient, Recipe, RecipeWithRatings } from './schema'
 
 export const DIFFICULTY_LABELS: Record<Difficulty, string> = {
   easy: 'Easy',
@@ -77,4 +77,69 @@ export function sortRecipes(recipes: RecipeWithRatings[], sort: RecipeSort): Rec
     case 'quickest':
       return recipes.toSorted((a, b) => totalMinutes(a) - totalMinutes(b))
   }
+}
+
+/** Rescale a quantity written for `from` servings to `to` servings. */
+export const scaleQuantity = (quantity: number, from: number, to: number) => (quantity * to) / from
+
+export interface StepSegment {
+  text: string
+  /** True when this piece of the step names one of the recipe's ingredients. */
+  ingredient: boolean
+}
+
+/**
+ * Split a step into plain text and ingredient mentions, so the page can
+ * highlight them ("Add the **soy sauce** and **garlic**"). The key for each
+ * ingredient is its name before any comma ("garlic, crushed" → "garlic").
+ * Longer names match first, so "soy sauce" wins over "sauce".
+ */
+export function highlightIngredients(step: string, ingredients: Pick<Ingredient, 'name'>[]): StepSegment[] {
+  const keys = [
+    ...new Set(
+      ingredients
+        .map((i) => i.name.split(',')[0]!.trim().toLowerCase())
+        .filter((key) => key.length >= 3),
+    ),
+  ].sort((a, b) => b.length - a.length)
+  if (keys.length === 0) return [{ text: step, ingredient: false }]
+
+  const escaped = keys.map((key) => key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+  const pattern = new RegExp(`\\b(${escaped.join('|')})\\b`, 'gi')
+
+  const segments: StepSegment[] = []
+  let last = 0
+  for (const match of step.matchAll(pattern)) {
+    if (match.index > last) segments.push({ text: step.slice(last, match.index), ingredient: false })
+    segments.push({ text: match[0], ingredient: true })
+    last = match.index + match[0].length
+  }
+  if (last < step.length) segments.push({ text: step.slice(last), ingredient: false })
+  return segments
+}
+
+/** Recipes ready within `maxMinutes`, quickest first. */
+export const quickRecipes = (recipes: RecipeWithRatings[], maxMinutes = 30) =>
+  sortRecipes(
+    recipes.filter((recipe) => totalMinutes(recipe) <= maxMinutes),
+    'quickest',
+  )
+
+export interface RecipeFilterState {
+  query: string
+  cuisineId: string
+  /** Only recipes ready in 30 minutes or less. */
+  quick: boolean
+  sort: RecipeSort
+}
+
+export const DEFAULT_FILTERS: RecipeFilterState = { query: '', cuisineId: '', quick: false, sort: 'newest' }
+
+/** Everything the recipe browser does to a list, in one tested function. */
+export function applyRecipeFilters(recipes: RecipeWithRatings[], filters: RecipeFilterState): RecipeWithRatings[] {
+  const matching = filterRecipes(recipes, filters.query).filter(
+    (recipe) =>
+      (!filters.cuisineId || recipe.cuisineId === filters.cuisineId) && (!filters.quick || totalMinutes(recipe) <= 30),
+  )
+  return sortRecipes(matching, filters.sort)
 }

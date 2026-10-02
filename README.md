@@ -1,10 +1,15 @@
 # 🗺️ Flavor Atlas
 
-A recipe book organized by cuisine: browse Filipino, Chinese, Korean and Japanese dishes, add and edit your own, search and sort them, tick off ingredients as you prep, rate and review recipes, and get AI help writing descriptions, ingredient lists and steps.
+A recipe book organized by cuisine, in two parts:
+
+- **The site** (read-only): browse Filipino, Chinese, Korean and Japanese dishes, search and filter, scale servings, tick off ingredients as you prep, and read reviews.
+- **The admin** (`/admin`, password protected): a dashboard, a recipe table to add, edit and delete recipes (with AI help writing descriptions, ingredients and steps), and review management.
 
 ## Design
 
-**An atlas of plates.** Each cuisine is a colored region on the map (Filipino sun-yellow, Chinese lacquer red, Korean blue, Japanese plum) and every recipe is a plate set on its region's color. Cuisines carry the coordinates of their capital, quantities and times use a monospace face, and dish names use Young Serif. Every color is a theme token with light and dark values.
+**An atlas of plates, set like a food magazine.** Each cuisine is a colored region on the map (Filipino sun-yellow, Chinese lacquer red, Korean blue, Japanese plum) and every recipe is a plate set on its region's color. Headlines use Instrument Serif with italic accents; quantities and times use a monospace face. Every color is a theme token with light and dark values.
+
+Patterns adapted from editorial recipe sites such as NYT Cooking: a serif-and-sans pairing, collections ("Ready in 30 minutes", "Most loved"), an Ingredients / Steps toggle on phones, ingredient names highlighted inside the steps, and a servings scaler.
 
 The full design system lives in [`.claude/skills/flavor-atlas-ui/SKILL.md`](.claude/skills/flavor-atlas-ui/SKILL.md).
 
@@ -31,14 +36,14 @@ Open http://localhost:5173.
 
 ### Admin login
 
-Browsing is open to everyone. Creating, editing, deleting and rating recipes, and the AI helpers, need the admin password. Set it up once:
+Browsing is open to everyone. Everything that changes data lives under `/admin` and needs the admin password (the footer has a small "Admin" link). Set it up once:
 
 ```bash
 npm run auth:hash      # asks for a password, prints two lines
 # paste both lines into .env (git-ignored), then restart npm run dev
 ```
 
-`.env` stores only a scrypt **hash** of the password and a random `SESSION_SECRET`, never the password itself. Without them, login is unavailable and every change is refused (secure by default). Then open http://localhost:5173/login.
+`.env` stores only a scrypt **hash** of the password and a random `SESSION_SECRET`, never the password itself. Without them, login is unavailable and every change is refused (secure by default). Then open http://localhost:5173/admin.
 
 After pulling changes to `db.seed.json`, run `npm run db:reset` so your local `db.json` matches the new data shape.
 
@@ -118,7 +123,8 @@ Browser ──► Vite dev server (one process; json-server runs inside it)
 - **json-server has no port of its own.** It runs inside the dev server behind the gateway (`server/data/jsonServerApp.ts`). Its own CLI listens on every network interface with open CORS, which would let anyone on the network skip the gateway.
 - **Session:** an HMAC-signed token with a 7-day expiry, in an `HttpOnly; SameSite=Strict` cookie that page JavaScript can't read.
 - **Login:** scrypt hash compared in constant time, limited to 5 attempts per minute per IP.
-- **Phone preview:** there's no server, so editing is shown only to the artifact's owner (claude.ai's `isOwner()`). That's a display choice, not a security boundary: the preview's data lives in each viewer's tab and resets on reload, so nobody can change anything but their own temporary copy.
+- **Public vs admin:** the public site has no create, edit, delete or rating controls at all; they live in `/admin`, whose pages load lazily so visitors never download them.
+- **Phone preview:** there's no server, so the admin area is shown only to the artifact's owner (claude.ai's `isOwner()`). That's a display choice, not a security boundary: the preview's data lives in each viewer's tab and resets on reload, so nobody can change anything but their own temporary copy.
 
 See [docs/plans/admin-auth.md](docs/plans/admin-auth.md) for the design.
 
@@ -145,7 +151,7 @@ src/
   components/   Shared layout and UI components
   features/     Code grouped by feature: recipes, cuisines, ratings
   lib/          Config and the query client
-  pages/        Route-level pages
+  pages/        Route-level pages (pages/admin/ for the admin area)
   services/     Data and AI access behind the DataService and AiService interfaces
 server/         Server-only code: the /api/ai handler and its Vite plugin
 ```
@@ -171,5 +177,6 @@ This repo ships Claude Code configuration in `.claude/`:
 - [x] **Phase 4:** ratings and reviews with optimistic updates
 - [x] **Phase 5:** AI-assisted descriptions, ingredients and steps (Claude)
 - [x] **Admin login:** server-enforced, password hash + signed session cookie. See [docs/plans/admin-auth.md](docs/plans/admin-auth.md)
+- [x] **Admin area + editorial redesign:** read-only public site, `/admin` dashboard, recipe table and review management
 - [ ] **Phase 6:** dish variants and regional versions (e.g. Sinigang na Baboy, na Hipon, regional styles). See [docs/plans/dish-variants.md](docs/plans/dish-variants.md)
 - [ ] **Phase 7:** tests, bundle size, polish

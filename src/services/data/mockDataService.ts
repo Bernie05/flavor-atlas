@@ -85,6 +85,13 @@ export const mockDataService: DataService = {
     db.ratings = db.ratings.filter((rating) => rating.recipeId !== id)
   },
 
+  async deleteRating(id) {
+    await delay()
+    const db = getDb()
+    if (!db.ratings.some((rating) => rating.id === id)) throw new NotFoundError("We couldn't find that review.")
+    db.ratings = db.ratings.filter((rating) => rating.id !== id)
+  },
+
   async createRating(input) {
     await delay()
     findRecipe(input.recipeId) // can't rate a recipe that doesn't exist

@@ -1,159 +1,182 @@
 import { useQuery } from '@tanstack/react-query'
-import { useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router'
+import { useRef, useState } from 'react'
+import { Link, useParams } from 'react-router'
 import { ErrorState } from '@/components/feedback/ErrorState'
-import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { Plate } from '@/components/ui/Plate'
 import { StarRating } from '@/components/ui/StarRating'
-import { useIsAdmin } from '@/features/auth/queries'
 import { cuisineQueries } from '@/features/cuisines/queries'
 import { cuisineTint } from '@/features/cuisines/utils'
 import { RatingsSection } from '@/features/ratings/components/RatingsSection'
 import { summarizeRatings } from '@/features/ratings/summary'
 import { IngredientChecklist } from '@/features/recipes/components/IngredientChecklist'
-import { useDeleteRecipe } from '@/features/recipes/mutations'
 import { recipeQueries } from '@/features/recipes/queries'
-import { DIFFICULTY_LABELS, formatDuration, totalMinutes } from '@/features/recipes/utils'
-import { NotFoundError, describeError } from '@/services/data'
+import type { RecipeWithRatings } from '@/features/recipes/schema'
+import { DIFFICULTY_LABELS, formatDuration, highlightIngredients, totalMinutes } from '@/features/recipes/utils'
+import { NotFoundError } from '@/services/data'
 import { NotFoundPage } from './NotFoundPage'
 
 export function RecipeDetailPage() {
   const { recipeId = '' } = useParams()
   const recipeQuery = useQuery(recipeQueries.detail(recipeId))
-  // Usually already cached from the home page, so this costs no extra request.
-  const cuisines = useQuery(cuisineQueries.list())
-  const navigate = useNavigate()
-  const deleteRecipe = useDeleteRecipe()
-  const [confirmingDelete, setConfirmingDelete] = useState(false)
-  const isAdmin = useIsAdmin()
-
-  // A deleted recipe's query is removed; don't flash "not found" while leaving.
-  if (deleteRecipe.isSuccess) return null
 
   if (recipeQuery.error instanceof NotFoundError) {
-    return <NotFoundPage message="This recipe may have been deleted." />
+    return <NotFoundPage message="This recipe may have been removed." />
   }
   if (recipeQuery.isError) {
     return <ErrorState error={recipeQuery.error} onRetry={() => recipeQuery.refetch()} />
   }
-  if (recipeQuery.isPending) {
-    return <RecipeDetailSkeleton />
-  }
+  if (recipeQuery.isPending) return <RecipeDetailSkeleton />
 
-  const recipe = recipeQuery.data
-  const cuisine = cuisines.data?.find((c) => c.id === recipe.cuisineId)
+  // Keyed so the checklist, scaler and tab reset when you open another recipe.
+  return <RecipeView key={recipeQuery.data.id} recipe={recipeQuery.data} />
+}
+
+type Panel = 'ingredients' | 'steps'
+
+function RecipeView({ recipe }: { recipe: RecipeWithRatings }) {
+  // Usually already cached from the previous page, so this costs no extra request.
+  const cuisine = useQuery(cuisineQueries.list()).data?.find((c) => c.id === recipe.cuisineId)
   const rating = summarizeRatings(recipe.ratings)
+  // Phones show one panel at a time (like NYT Cooking); wider screens show both.
+  const [panel, setPanel] = useState<Panel>('ingredients')
+  const toggleRef = useRef<HTMLDivElement>(null)
+
+  // Switching panels while scrolled down would leave you mid-list: bring the
+  // new panel's top just under the sticky toggle.
+  const showPanel = (next: Panel) => {
+    setPanel(next)
+    requestAnimationFrame(() => {
+      const target = document.getElementById(`${next}-panel`)
+      const toggleBottom = toggleRef.current?.getBoundingClientRect().bottom ?? 0
+      if (target && target.getBoundingClientRect().top < toggleBottom) target.scrollIntoView({ block: 'start' })
+    })
+  }
 
   const facts = [
     { label: 'Prep', value: formatDuration(recipe.prepMinutes) },
     { label: 'Cook', value: formatDuration(recipe.cookMinutes) },
     { label: 'Total', value: formatDuration(totalMinutes(recipe)) },
     { label: 'Serves', value: String(recipe.servings) },
-    { label: 'Difficulty', value: DIFFICULTY_LABELS[recipe.difficulty] },
+    { label: 'Level', value: DIFFICULTY_LABELS[recipe.difficulty] },
   ]
 
+  const tabClass = (active: boolean) =>
+    `min-h-10 flex-1 rounded-full text-sm font-semibold transition-colors ${
+      active ? 'bg-ink text-canvas' : 'text-ink-muted'
+    }`
+
   return (
-    <article className="space-y-8" style={cuisineTint(recipe.cuisineId)}>
+    <article className="space-y-12" style={cuisineTint(recipe.cuisineId)}>
       <title>{`${recipe.title} · Flavor Atlas`}</title>
 
-      <ConfirmDialog
-        open={confirmingDelete}
-        title={`Delete ${recipe.title}?`}
-        description="The recipe and its ratings will be removed. This can't be undone."
-        confirmLabel="Delete recipe"
-        pendingLabel="Deleting…"
-        isPending={deleteRecipe.isPending}
-        error={deleteRecipe.isError ? describeError(deleteRecipe.error) : undefined}
-        onCancel={() => {
-          setConfirmingDelete(false)
-          deleteRecipe.reset()
-        }}
-        onConfirm={() =>
-          deleteRecipe.mutate(recipe.id, {
-            onSuccess: () => navigate(`/cuisines/${recipe.cuisineId}`, { replace: true }),
-          })
-        }
-      />
-
-      <header className="atlas-dots grid items-center gap-6 rounded-3xl p-5 sm:grid-cols-[1fr_auto] sm:p-8">
-        <div className="min-w-0 space-y-3">
+      <header className="atlas-dots -mx-4 -mt-6 grid items-center gap-8 px-4 py-10 sm:mx-0 sm:mt-0 sm:rounded-3xl sm:px-10 sm:py-12 lg:grid-cols-[1fr_auto]">
+        <div className="min-w-0 space-y-5">
           <nav aria-label="Breadcrumb" className="label-mono text-tint-ink">
-            <Link to="/" className="inline-block py-2 hover:underline">
-              Cuisines
+            <Link to="/recipes" className="inline-flex min-h-10 items-center hover:underline">
+              Recipes
             </Link>
             {cuisine && (
               <>
                 <span aria-hidden> / </span>
-                <Link to={`/cuisines/${cuisine.id}`} className="inline-block py-2 hover:underline">
+                <Link to={`/cuisines/${cuisine.id}`} className="inline-flex min-h-10 items-center hover:underline">
                   {cuisine.name}
                 </Link>
               </>
             )}
           </nav>
-          <h1 className="text-4xl sm:text-5xl">{recipe.title}</h1>
+          <h1 className="text-6xl sm:text-7xl">{recipe.title}</h1>
+          {recipe.description && <p className="max-w-prose text-lg text-ink-muted">{recipe.description}</p>}
           <StarRating value={rating.average} count={rating.count} size="lg" />
-          {recipe.description && <p className="max-w-prose text-ink-muted">{recipe.description}</p>}
+          <dl className="grid grid-cols-2 gap-x-6 min-[360px]:grid-cols-3 gap-y-3 border-t border-tint/25 pt-5 sm:flex sm:flex-wrap sm:gap-x-8">
+            {facts.map((fact) => (
+              <div key={fact.label}>
+                <dt className="label-mono text-tint-ink">{fact.label}</dt>
+                <dd className="mt-0.5 font-mono text-lg font-semibold whitespace-nowrap tabular-nums">{fact.value}</dd>
+              </div>
+            ))}
+          </dl>
         </div>
         {recipe.imageUrl ? (
           <img
             src={recipe.imageUrl}
             alt={recipe.title}
-            className="size-40 max-w-full justify-self-center rounded-full object-cover ring-8 ring-[var(--plate)] sm:size-48"
+            className="size-56 max-w-full justify-self-center rounded-full object-cover ring-8 ring-[var(--plate)]"
           />
         ) : (
           <Plate
             emoji={recipe.emoji || cuisine?.emoji || '🍽️'}
             size="lg"
-            className="justify-self-center sm:size-48 sm:text-8xl"
+            className="justify-self-center sm:size-60 sm:text-9xl"
           />
         )}
       </header>
 
-      {isAdmin && (
-        <div className="flex flex-wrap justify-end gap-2">
-          <Link
-            to={`/recipes/${recipe.id}/edit`}
-            className="inline-flex min-h-10 items-center rounded-full border border-line-strong px-4 text-sm font-semibold hover:bg-surface-sunken"
-          >
-            Edit recipe
-          </Link>
+      {/* Phone-only toggle. Sticks under the site header while you cook. */}
+      <div
+        ref={toggleRef}
+        className="sticky top-[calc(env(safe-area-inset-top,0px)+3.75rem)] z-10 -mx-4 bg-canvas/90 px-4 py-2 backdrop-blur-md md:hidden"
+      >
+        <div className="flex gap-1 rounded-full bg-surface p-1 ring-1 ring-line">
           <button
             type="button"
-            onClick={() => setConfirmingDelete(true)}
-            className="min-h-10 rounded-full px-4 text-sm font-semibold text-danger hover:bg-surface-sunken"
+            aria-pressed={panel === 'ingredients'}
+            aria-controls="ingredients-panel"
+            onClick={() => showPanel('ingredients')}
+            className={tabClass(panel === 'ingredients')}
           >
-            Delete
+            Ingredients
+          </button>
+          <button
+            type="button"
+            aria-pressed={panel === 'steps'}
+            aria-controls="steps-panel"
+            onClick={() => showPanel('steps')}
+            className={tabClass(panel === 'steps')}
+          >
+            Steps
           </button>
         </div>
-      )}
+      </div>
 
-      {/* 6-column grid on phones: 3 facts on the first row, 2 wider ones on the second. */}
-      <dl className="grid grid-cols-6 gap-px overflow-hidden rounded-2xl bg-line ring-1 ring-line sm:grid-cols-5">
-        {facts.map((fact, index) => (
-          <div
-            key={fact.label}
-            className={`bg-surface px-4 py-3 sm:col-span-1 ${index < 3 ? 'col-span-2' : 'col-span-3'}`}
-          >
-            <dt className="label-mono text-ink-subtle">{fact.label}</dt>
-            <dd className="mt-1 font-mono text-lg font-semibold tabular-nums">{fact.value}</dd>
-          </div>
-        ))}
-      </dl>
+      <div className="grid gap-12 md:grid-cols-[minmax(0,20rem)_1fr] lg:gap-16">
+        <div
+          id="ingredients-panel"
+          className={`max-md:scroll-mt-32 md:sticky md:top-24 md:self-start ${panel === 'ingredients' ? '' : 'max-md:hidden'}`}
+        >
+          <IngredientChecklist ingredients={recipe.ingredients} servings={recipe.servings} />
+        </div>
 
-      <div className="grid gap-10 md:grid-cols-[minmax(0,20rem)_1fr]">
-        <IngredientChecklist key={recipe.id} ingredients={recipe.ingredients} />
-
-        <section aria-labelledby="steps-heading" className="min-w-0">
-          <h2 id="steps-heading" className="text-2xl">
+        <section
+          id="steps-panel"
+          aria-labelledby="steps-heading"
+          className={`min-w-0 space-y-6 max-md:scroll-mt-32 ${panel === 'steps' ? '' : 'max-md:hidden'}`}
+        >
+          <h2 id="steps-heading" className="text-4xl">
             Steps
           </h2>
-          <ol className="mt-4 space-y-5">
+          <ol className="space-y-8">
             {recipe.steps.map((step, index) => (
-              <li key={index} className="grid grid-cols-[2.5rem_1fr] gap-3">
-                <span aria-hidden className="font-display text-3xl leading-none text-tint tabular-nums">
+              <li key={index} className="grid grid-cols-[3rem_1fr] gap-4 max-md:scroll-mt-32">
+                <span aria-hidden className="font-display text-5xl leading-none text-tint italic">
                   {index + 1}
                 </span>
-                <p className="min-w-0 pt-1">{step}</p>
+                <div className="min-w-0 space-y-1 pt-1">
+                  <p className="label-mono text-ink-subtle">
+                    Step {index + 1} of {recipe.steps.length}
+                  </p>
+                  {/* Ingredient names stand out, so you can cook from the steps alone. */}
+                  <p className="text-lg leading-relaxed">
+                    {highlightIngredients(step, recipe.ingredients).map((segment, i) =>
+                      segment.ingredient ? (
+                        <strong key={i} className="font-semibold text-tint-ink">
+                          {segment.text}
+                        </strong>
+                      ) : (
+                        segment.text
+                      ),
+                    )}
+                  </p>
+                </div>
               </li>
             ))}
           </ol>
@@ -161,17 +184,17 @@ export function RecipeDetailPage() {
       </div>
 
       <hr className="border-line" />
-      <RatingsSection recipeId={recipe.id} ratings={recipe.ratings} />
+      <RatingsSection ratings={recipe.ratings} />
     </article>
   )
 }
 
 function RecipeDetailSkeleton() {
-  const bar = 'animate-pulse rounded bg-surface-sunken motion-reduce:animate-none'
+  const bar = 'animate-pulse rounded-3xl bg-surface-sunken motion-reduce:animate-none'
   return (
-    <div aria-busy="true" aria-label="Loading recipe" className="space-y-4">
-      <div className={`h-56 w-full rounded-3xl ${bar}`} />
-      <div className={`h-20 w-full ${bar}`} />
+    <div aria-busy="true" aria-label="Loading recipe" className="space-y-6">
+      <div className={`h-80 w-full ${bar}`} />
+      <div className={`h-40 w-full ${bar}`} />
     </div>
   )
 }

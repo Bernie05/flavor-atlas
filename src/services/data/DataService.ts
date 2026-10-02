@@ -21,4 +21,5 @@ export interface DataService {
   /** Deletes the recipe and all of its ratings. */
   deleteRecipe(id: string): Promise<void>
   createRating(input: RatingInput): Promise<Rating>
+  deleteRating(id: string): Promise<void>
 }

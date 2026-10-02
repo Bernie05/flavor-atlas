@@ -1,6 +1,16 @@
 import { describe, expect, it } from 'vitest'
 import type { RecipeWithRatings } from './schema'
-import { filterRecipes, formatDuration, formatQuantity, sortRecipes } from './utils'
+import {
+  applyRecipeFilters,
+  DEFAULT_FILTERS,
+  filterRecipes,
+  formatDuration,
+  formatQuantity,
+  highlightIngredients,
+  quickRecipes,
+  scaleQuantity,
+  sortRecipes,
+} from './utils'
 
 const makeRecipe = (overrides: Partial<RecipeWithRatings>): RecipeWithRatings => ({
   id: '1',
@@ -88,5 +98,60 @@ describe('sortRecipes', () => {
     const input = [old, quick]
     sortRecipes(input, 'newest')
     expect(ids(input)).toEqual(['old', 'quick'])
+  })
+})
+
+describe('scaleQuantity', () => {
+  it('rescales for a different number of servings', () => {
+    expect(scaleQuantity(1, 4, 2)).toBe(0.5)
+    expect(formatQuantity(scaleQuantity(0.5, 4, 6))).toBe('¾')
+  })
+})
+
+describe('highlightIngredients', () => {
+  const ingredients = [{ name: 'soy sauce' }, { name: 'garlic, crushed' }, { name: 'sauce' }, { name: 'egg' }]
+
+  it('marks ingredient names in a step, longest match first, ignoring case', () => {
+    expect(highlightIngredients('Add the Soy Sauce and garlic.', ingredients)).toEqual([
+      { text: 'Add the ', ingredient: false },
+      { text: 'Soy Sauce', ingredient: true },
+      { text: ' and ', ingredient: false },
+      { text: 'garlic', ingredient: true },
+      { text: '.', ingredient: false },
+    ])
+  })
+
+  it('matches whole words only', () => {
+    expect(highlightIngredients('Stir eggplant gently.', ingredients)).toEqual([
+      { text: 'Stir eggplant gently.', ingredient: false },
+    ])
+  })
+
+  it('returns the step unchanged when nothing matches', () => {
+    expect(highlightIngredients('Serve hot.', [])).toEqual([{ text: 'Serve hot.', ingredient: false }])
+  })
+})
+
+describe('quickRecipes', () => {
+  it('keeps recipes within the time limit, quickest first', () => {
+    const fast = makeRecipe({ id: 'fast', prepMinutes: 5, cookMinutes: 5 })
+    const slow = makeRecipe({ id: 'slow', prepMinutes: 30, cookMinutes: 60 })
+    const mid = makeRecipe({ id: 'mid', prepMinutes: 10, cookMinutes: 15 })
+    expect(quickRecipes([slow, mid, fast]).map((r) => r.id)).toEqual(['fast', 'mid'])
+  })
+})
+
+describe('applyRecipeFilters', () => {
+  const adobo = makeRecipe({ id: 'adobo', title: 'Chicken Adobo', cuisineId: 'filipino', cookMinutes: 45 })
+  const kimchi = makeRecipe({ id: 'kimchi', title: 'Kimchi Rice', cuisineId: 'korean', cookMinutes: 10 })
+  const bibimbap = makeRecipe({ id: 'bibimbap', title: 'Bibimbap', cuisineId: 'korean', cookMinutes: 40 })
+  const all = [adobo, kimchi, bibimbap]
+  const ids = (list: RecipeWithRatings[]) => list.map((r) => r.id)
+
+  it('combines search, cuisine, quick and sort', () => {
+    expect(ids(applyRecipeFilters(all, { ...DEFAULT_FILTERS, cuisineId: 'korean' }))).toEqual(['kimchi', 'bibimbap'])
+    expect(ids(applyRecipeFilters(all, { ...DEFAULT_FILTERS, quick: true }))).toEqual(['kimchi'])
+    expect(ids(applyRecipeFilters(all, { ...DEFAULT_FILTERS, query: 'adobo' }))).toEqual(['adobo'])
+    expect(ids(applyRecipeFilters(all, { ...DEFAULT_FILTERS, sort: 'quickest' }))).toEqual(['kimchi', 'bibimbap', 'adobo'])
   })
 })

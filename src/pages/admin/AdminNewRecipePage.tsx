@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { useNavigate, useSearchParams } from 'react-router'
+import { Link, useNavigate, useSearchParams } from 'react-router'
 import { ErrorState } from '@/components/feedback/ErrorState'
 import { FormSkeleton } from '@/components/feedback/FormSkeleton'
 import { cuisineQueries } from '@/features/cuisines/queries'
@@ -7,7 +7,7 @@ import { toFormValues } from '@/features/recipes/form'
 import { RecipeForm } from '@/features/recipes/components/RecipeForm'
 import { useCreateRecipe } from '@/features/recipes/mutations'
 
-export function NewRecipePage() {
+export function AdminNewRecipePage() {
   const navigate = useNavigate()
   const cuisines = useQuery(cuisineQueries.list())
   const createRecipe = useCreateRecipe()
@@ -17,10 +17,14 @@ export function NewRecipePage() {
 
   return (
     <div className="space-y-6">
-      <title>New recipe · Flavor Atlas</title>
+      <title>New recipe · Flavor Atlas admin</title>
       <header>
-        <p className="label-mono text-accent-ink">Add to the atlas</p>
-        <h1 className="mt-1 text-4xl">New recipe</h1>
+        <Link to="/admin/recipes" className="label-mono inline-block py-1 text-accent-ink hover:underline">
+          Recipes
+        </Link>
+        <h1 className="mt-1 text-5xl">
+          New <em>recipe</em>
+        </h1>
       </header>
 
       {cuisines.isPending ? (
@@ -35,10 +39,11 @@ export function NewRecipePage() {
           pendingLabel="Adding…"
           isSubmitting={createRecipe.isPending}
           submitError={createRecipe.error}
-          cancelTo={cuisineId ? `/cuisines/${cuisineId}` : '/'}
+          cancelTo="/admin/recipes"
           onSubmit={(input) =>
             createRecipe.mutate(input, {
-              onSuccess: (recipe) => navigate(`/recipes/${recipe.id}`, { replace: true }),
+              onSuccess: (recipe) =>
+                navigate('/admin/recipes', { replace: true, state: { flash: `Added “${recipe.title}”.` } }),
             })
           }
         />

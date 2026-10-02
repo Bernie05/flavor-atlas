@@ -75,6 +75,10 @@ export const httpDataService: DataService = {
     await request('DELETE', `${recipePath(id)}?_dependent=ratings`)
   },
 
+  async deleteRating(id) {
+    await request('DELETE', `/ratings/${encodeURIComponent(id)}`)
+  },
+
   createRating(input) {
     return requestJson('POST', '/ratings', ratingSchema, {
       ...input,

@@ -19,7 +19,8 @@ npm run auth:hash     # admin password hash + session secret for .env
 
 - `src/features/<feature>/`: everything for one feature: `schema.ts` (Zod), `queries.ts`, `utils.ts` (+ tests), `components/`.
 - `src/services/data/`: the `DataService` interface with two implementations, `httpDataService` (json-server) and `mockDataService` (in-memory seed). `index.ts` picks one from `VITE_DATA_SOURCE`. UI code imports `dataService` only, never an implementation.
-- `src/pages/`: route-level components. `src/app/router.tsx` defines routes once for both browser and memory routers.
+- `src/pages/`: route-level components; `src/pages/admin/` for the admin area. `src/app/router.tsx` defines routes once for both browser and memory routers.
+- **Two sides:** the public site (`RootLayout`) is read-only. Every create, edit, delete and rating control lives under `/admin` (`AdminLayout` + `RequireAdmin`), whose pages are lazy routes. Never add write controls to public pages.
 - `src/lib/config.ts` is the only file that reads `import.meta.env`.
 
 ## Rules

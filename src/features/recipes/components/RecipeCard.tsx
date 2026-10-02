@@ -14,26 +14,32 @@ interface RecipeCardProps {
   showCuisineLabel?: boolean
 }
 
+/** Editorial card: the picture carries the card, text sits below it on the page. */
 export function RecipeCard({ recipe, cuisine, showCuisineLabel = true }: RecipeCardProps) {
   const rating = summarizeRatings(recipe.ratings)
 
   return (
-    <Link
-      to={`/recipes/${recipe.id}`}
-      style={cuisineTint(recipe.cuisineId)}
-      className="group flex flex-col overflow-hidden rounded-2xl bg-surface ring-1 ring-line transition hover:-translate-y-0.5 hover:ring-tint motion-reduce:hover:translate-y-0"
-    >
-      <RecipeCover recipe={recipe} emoji={recipe.emoji || cuisine?.emoji} className="aspect-[5/2] w-full sm:aspect-[16/10]" />
-      <div className="flex flex-1 flex-col gap-1.5 p-4">
-        {cuisine && showCuisineLabel && <span className="label-mono text-tint-ink">{cuisine.name}</span>}
-        <h3 className="text-xl">{recipe.title}</h3>
+    <Link to={`/recipes/${recipe.id}`} style={cuisineTint(recipe.cuisineId)} className="group flex flex-col gap-3">
+      <div className="relative overflow-hidden rounded-2xl">
+        <RecipeCover
+          recipe={recipe}
+          emoji={recipe.emoji || cuisine?.emoji}
+          className="aspect-[4/3] w-full transition-transform duration-500 group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+        />
+        {cuisine && showCuisineLabel && (
+          <span className="label-mono absolute top-3 left-3 rounded-full bg-surface/90 px-2.5 py-1 text-tint-ink backdrop-blur">
+            {cuisine.name}
+          </span>
+        )}
+      </div>
+      <div className="space-y-1.5 px-0.5">
+        <h3 className="text-[1.65rem] leading-tight decoration-1 underline-offset-4 group-hover:underline">
+          {recipe.title}
+        </h3>
         <p className="label-mono text-ink-muted tabular-nums">
-          {formatDuration(totalMinutes(recipe))} · {DIFFICULTY_LABELS[recipe.difficulty]} · Serves{' '}
-          {recipe.servings}
+          {formatDuration(totalMinutes(recipe))} · {DIFFICULTY_LABELS[recipe.difficulty]} · Serves {recipe.servings}
         </p>
-        <div className="mt-auto pt-2">
-          <StarRating value={rating.average} count={rating.count} />
-        </div>
+        <StarRating value={rating.average} count={rating.count} />
       </div>
     </Link>
   )
