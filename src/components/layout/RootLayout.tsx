@@ -1,16 +1,16 @@
-import { Link, NavLink, Outlet } from 'react-router'
+import { Link, NavLink, Outlet, ScrollRestoration } from 'react-router'
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
-  `rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
-    isActive ? 'bg-brand-100 text-brand-700' : 'text-stone-600 hover:bg-stone-100'
+  `whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
+    isActive ? 'bg-accent-soft text-accent-ink' : 'text-ink-muted hover:bg-surface-sunken'
   }`
 
 export function RootLayout() {
   return (
     <div className="flex min-h-dvh flex-col">
-      <header className="sticky top-0 z-10 border-b border-stone-200 bg-white/90 backdrop-blur">
-        <nav className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3">
-          <Link to="/" className="flex items-center gap-2 text-lg font-bold">
+      <header className="sticky top-[env(safe-area-inset-top,0px)] z-10 border-b border-line bg-surface/90 backdrop-blur">
+        <nav className="mx-auto flex max-w-5xl items-center justify-between gap-2 px-4 py-3">
+          <Link to="/" className="flex items-center gap-2 font-display text-lg font-bold whitespace-nowrap">
             <span aria-hidden>🗺️</span>
             <span>Flavor Atlas</span>
           </Link>
@@ -19,7 +19,7 @@ export function RootLayout() {
               Explore
             </NavLink>
             <NavLink to="/recipes/new" className={navLinkClass}>
-              + New recipe
+              + New<span className="hidden sm:inline"> recipe</span>
             </NavLink>
           </div>
         </nav>
@@ -29,9 +29,11 @@ export function RootLayout() {
         <Outlet />
       </main>
 
-      <footer className="border-t border-stone-200 py-4 text-center text-xs text-stone-500">
+      <footer className="border-t border-line py-4 text-center text-xs text-ink-subtle">
         Flavor Atlas · recipes from around the world
       </footer>
+
+      <ScrollRestoration />
     </div>
   )
 }

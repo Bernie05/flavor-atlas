@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { ratingSchema } from '@/features/ratings/schema'
 
 // Zod schemas are the single source of truth for a recipe's shape.
 // From them we derive TypeScript types (z.infer), validate forms,
@@ -36,3 +37,10 @@ export type Difficulty = (typeof DIFFICULTIES)[number]
 export type Ingredient = z.infer<typeof ingredientSchema>
 export type RecipeInput = z.infer<typeof recipeInputSchema>
 export type Recipe = z.infer<typeof recipeSchema>
+
+/** A recipe together with all of its ratings, as returned by `?_embed=ratings`. */
+export const recipeWithRatingsSchema = recipeSchema.extend({
+  ratings: z.array(ratingSchema),
+})
+
+export type RecipeWithRatings = z.infer<typeof recipeWithRatingsSchema>

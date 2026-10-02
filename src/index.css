@@ -1,13 +1,105 @@
 @import 'tailwindcss';
 
-@theme {
-  --color-brand-50: #fff7ed;
-  --color-brand-100: #ffedd5;
-  --color-brand-500: #ea580c;
-  --color-brand-600: #c2410c;
-  --color-brand-700: #9a3412;
+/*
+ * Design tokens. Every color is a CSS variable with a light and a dark value,
+ * and Tailwind utilities (bg-surface, text-ink, ...) point at the variables.
+ * Components never hard-code a theme: switching themes only swaps tokens.
+ *
+ * Palette: herb green accent, saffron for stars, neutrals tinted toward green.
+ */
+:root {
+  --canvas: #f5f6f2;
+  --surface: #ffffff;
+  --surface-sunken: #ebeee7;
+  --ink: #18211d;
+  --ink-muted: #4f5b55;
+  --ink-subtle: #76817b;
+  --line: #d9dfd6;
+  --accent: #0e6b55;
+  --accent-hover: #0a5644;
+  --accent-soft: #dcefe6;
+  --accent-ink: #0a5644;
+  --on-accent: #ffffff;
+  --star: #d98a00;
+  --star-empty: #d9dfd6;
+  --danger: #b42318;
+  color-scheme: light;
 }
 
-body {
-  @apply bg-stone-50 text-stone-900 antialiased;
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --canvas: #0e1311;
+    --surface: #161d1a;
+    --surface-sunken: #1d2622;
+    --ink: #e7ece8;
+    --ink-muted: #a9b4ae;
+    --ink-subtle: #7f8b85;
+    --line: #2a3430;
+    --accent: #43c2a0;
+    --accent-hover: #63d4b5;
+    --accent-soft: #163a30;
+    --accent-ink: #93e3cc;
+    --on-accent: #052219;
+    --star: #f4b42a;
+    --star-empty: #3a4540;
+    --danger: #f97066;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme='dark'] {
+  --canvas: #0e1311;
+  --surface: #161d1a;
+  --surface-sunken: #1d2622;
+  --ink: #e7ece8;
+  --ink-muted: #a9b4ae;
+  --ink-subtle: #7f8b85;
+  --line: #2a3430;
+  --accent: #43c2a0;
+  --accent-hover: #63d4b5;
+  --accent-soft: #163a30;
+  --accent-ink: #93e3cc;
+  --on-accent: #052219;
+  --star: #f4b42a;
+  --star-empty: #3a4540;
+  --danger: #f97066;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-subtle: var(--ink-subtle);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-ink: var(--accent-ink);
+  --color-on-accent: var(--on-accent);
+  --color-star: var(--star);
+  --color-star-empty: var(--star-empty);
+  --color-danger: var(--danger);
+
+  --font-display: 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Figtree', ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  body {
+    @apply bg-canvas font-sans text-ink antialiased;
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply font-display;
+    text-wrap: balance;
+  }
+
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-accent;
+  }
 }
