@@ -21,6 +21,12 @@ const getDb = () => (db ??= dbSchema.parse(structuredClone(seed)))
 /** Simulate network latency so loading states behave like the real thing. */
 const delay = (ms = 150) => new Promise((resolve) => setTimeout(resolve, ms))
 
+function findRecipe(id: string): Recipe {
+  const recipe = getDb().recipes.find((r) => r.id === id)
+  if (!recipe) throw new NotFoundError("We couldn't find that recipe.")
+  return recipe
+}
+
 const withRatings = (recipe: Recipe) => ({
   ...recipe,
   ratings: getDb().ratings.filter((rating) => rating.recipeId === recipe.id),
@@ -28,6 +34,7 @@ const withRatings = (recipe: Recipe) => ({
 
 /**
  * In-memory implementation of DataService backed by db.seed.json.
+ * Changes last until the page reloads.
  * Every result is a structuredClone, so callers can never mutate the "database"
  * by accident: the same guarantee a real network boundary gives you.
  */
@@ -54,8 +61,27 @@ export const mockDataService: DataService = {
 
   async getRecipe(id) {
     await delay()
-    const recipe = getDb().recipes.find((r) => r.id === id)
-    if (!recipe) throw new NotFoundError("We couldn't find that recipe.")
-    return structuredClone(withRatings(recipe))
+    return structuredClone(withRatings(findRecipe(id)))
+  },
+
+  async createRecipe(input) {
+    await delay()
+    const recipe: Recipe = { ...input, id: crypto.randomUUID(), createdAt: new Date().toISOString() }
+    getDb().recipes.push(recipe)
+    return structuredClone(recipe)
+  },
+
+  async updateRecipe(id, input) {
+    await delay()
+    const recipe = Object.assign(findRecipe(id), input)
+    return structuredClone(recipe)
+  },
+
+  async deleteRecipe(id) {
+    await delay()
+    const db = getDb()
+    findRecipe(id) // throws NotFoundError, like the real API's 404
+    db.recipes = db.recipes.filter((recipe) => recipe.id !== id)
+    db.ratings = db.ratings.filter((rating) => rating.recipeId !== id)
   },
 }

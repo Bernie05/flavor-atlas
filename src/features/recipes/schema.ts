@@ -9,7 +9,7 @@ export const DIFFICULTIES = ['easy', 'medium', 'hard'] as const
 
 export const ingredientSchema = z.object({
   name: z.string().trim().min(1, 'Ingredient name is required'),
-  quantity: z.number().positive().optional(),
+  quantity: z.number({ error: 'Enter a number' }).positive('Must be more than 0').optional(),
   unit: z.string().trim(),
 })
 
@@ -17,16 +17,16 @@ export const ingredientSchema = z.object({
 export const recipeInputSchema = z.object({
   title: z.string().trim().min(2, 'Title must be at least 2 characters').max(80),
   /** The dish shown on its plate. Empty falls back to the cuisine's emoji. */
-  emoji: z.string().trim().max(8),
+  emoji: z.string().trim().max(8, 'Use a single emoji'),
   cuisineId: z.string().min(1, 'Choose a cuisine'),
-  description: z.string().trim().max(500),
-  imageUrl: z.union([z.url(), z.literal('')]),
-  prepMinutes: z.number().int().min(0),
-  cookMinutes: z.number().int().min(0),
-  servings: z.number().int().min(1),
-  difficulty: z.enum(DIFFICULTIES),
+  description: z.string().trim().max(500, 'Keep the description under 500 characters'),
+  imageUrl: z.union([z.url('Enter a full link starting with https://'), z.literal('')]),
+  prepMinutes: z.number({ error: 'Enter minutes' }).int('Use whole minutes').min(0, 'Cannot be negative'),
+  cookMinutes: z.number({ error: 'Enter minutes' }).int('Use whole minutes').min(0, 'Cannot be negative'),
+  servings: z.number({ error: 'Enter servings' }).int('Use a whole number').min(1, 'Serves at least 1'),
+  difficulty: z.enum(DIFFICULTIES, { error: 'Choose a difficulty' }),
   ingredients: z.array(ingredientSchema).min(1, 'Add at least one ingredient'),
-  steps: z.array(z.string().trim().min(1)).min(1, 'Add at least one step'),
+  steps: z.array(z.string().trim().min(1, 'Describe this step')).min(1, 'Add at least one step'),
 })
 
 /** A recipe as stored by the API: the input plus server-assigned fields. */

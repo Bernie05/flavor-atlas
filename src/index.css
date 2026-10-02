@@ -56,6 +56,7 @@
   --star: #a86a00;
   --star-empty: #d3d9d0;
   --danger: #b42318;
+  --on-danger: #ffffff;
 
   color-scheme: light;
 }
@@ -93,6 +94,7 @@
     --star: #f4b42a;
     --star-empty: #3a4540;
     --danger: #f97066;
+    --on-danger: #2b0b08;
     color-scheme: dark;
   }
 }
@@ -129,6 +131,7 @@
   --star: #f4b42a;
   --star-empty: #3a4540;
   --danger: #f97066;
+  --on-danger: #2b0b08;
   color-scheme: dark;
 }
 
@@ -152,6 +155,7 @@
   --color-star: var(--star);
   --color-star-empty: var(--star-empty);
   --color-danger: var(--danger);
+  --color-on-danger: var(--on-danger);
 }
 
 @theme {
@@ -169,6 +173,11 @@ html,
 body {
   background: var(--canvas);
   color: var(--ink);
+}
+
+/* Keep focused or scrolled-to elements clear of the sticky header and form action bar. */
+html {
+  scroll-padding-block: 5rem 8rem;
 }
 
 body {

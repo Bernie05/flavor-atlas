@@ -4,7 +4,6 @@ import { config } from '@/lib/config'
 import { CuisinePage } from '@/pages/CuisinePage'
 import { HomePage } from '@/pages/HomePage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
-import { PlaceholderPage } from '@/pages/PlaceholderPage'
 import { RecipeDetailPage } from '@/pages/RecipeDetailPage'
 import { RouteErrorPage } from '@/pages/RouteErrorPage'
 
@@ -16,9 +15,17 @@ const routes: RouteObject[] = [
     children: [
       { index: true, element: <HomePage /> },
       { path: 'cuisines/:cuisineId', element: <CuisinePage /> },
-      { path: 'recipes/new', element: <PlaceholderPage title="New recipe" /> },
+      // The editor pages pull in the form libraries. Loading them lazily keeps
+      // those out of the bundle for people who only browse recipes.
+      {
+        path: 'recipes/new',
+        lazy: () => import('@/pages/NewRecipePage').then((m) => ({ Component: m.NewRecipePage })),
+      },
       { path: 'recipes/:recipeId', element: <RecipeDetailPage /> },
-      { path: 'recipes/:recipeId/edit', element: <PlaceholderPage title="Edit recipe" /> },
+      {
+        path: 'recipes/:recipeId/edit',
+        lazy: () => import('@/pages/EditRecipePage').then((m) => ({ Component: m.EditRecipePage })),
+      },
       { path: '*', element: <NotFoundPage /> },
     ],
   },

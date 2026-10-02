@@ -5,9 +5,12 @@ import { dataService, type RecipeFilters } from '@/services/data'
 export const recipeQueries = {
   all: () => ['recipes'] as const,
 
+  /** Prefix shared by every recipe list, whatever its filters. */
+  lists: () => [...recipeQueries.all(), 'list'] as const,
+
   list: (filters: RecipeFilters = {}) =>
     queryOptions({
-      queryKey: [...recipeQueries.all(), 'list', filters],
+      queryKey: [...recipeQueries.lists(), filters],
       queryFn: () => dataService.listRecipes(filters),
     }),
 

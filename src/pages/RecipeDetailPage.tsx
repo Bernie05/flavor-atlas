@@ -1,15 +1,18 @@
 import { useQuery } from '@tanstack/react-query'
-import { Link, useParams } from 'react-router'
+import { useState } from 'react'
+import { Link, useNavigate, useParams } from 'react-router'
 import { ErrorState } from '@/components/feedback/ErrorState'
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { Plate } from '@/components/ui/Plate'
 import { StarRating } from '@/components/ui/StarRating'
 import { cuisineQueries } from '@/features/cuisines/queries'
 import { cuisineTint } from '@/features/cuisines/utils'
 import { summarizeRatings } from '@/features/ratings/summary'
 import { IngredientChecklist } from '@/features/recipes/components/IngredientChecklist'
+import { useDeleteRecipe } from '@/features/recipes/mutations'
 import { recipeQueries } from '@/features/recipes/queries'
 import { DIFFICULTY_LABELS, formatDuration, totalMinutes } from '@/features/recipes/utils'
-import { NotFoundError } from '@/services/data'
+import { NotFoundError, describeError } from '@/services/data'
 import { NotFoundPage } from './NotFoundPage'
 
 export function RecipeDetailPage() {
@@ -17,6 +20,12 @@ export function RecipeDetailPage() {
   const recipeQuery = useQuery(recipeQueries.detail(recipeId))
   // Usually already cached from the home page, so this costs no extra request.
   const cuisines = useQuery(cuisineQueries.list())
+  const navigate = useNavigate()
+  const deleteRecipe = useDeleteRecipe()
+  const [confirmingDelete, setConfirmingDelete] = useState(false)
+
+  // A deleted recipe's query is removed; don't flash "not found" while leaving.
+  if (deleteRecipe.isSuccess) return null
 
   if (recipeQuery.error instanceof NotFoundError) {
     return <NotFoundPage message="This recipe may have been deleted." />
@@ -43,6 +52,25 @@ export function RecipeDetailPage() {
   return (
     <article className="space-y-8" style={cuisineTint(recipe.cuisineId)}>
       <title>{`${recipe.title} · Flavor Atlas`}</title>
+
+      <ConfirmDialog
+        open={confirmingDelete}
+        title={`Delete ${recipe.title}?`}
+        description="The recipe and its ratings will be removed. This can't be undone."
+        confirmLabel="Delete recipe"
+        pendingLabel="Deleting…"
+        isPending={deleteRecipe.isPending}
+        error={deleteRecipe.isError ? describeError(deleteRecipe.error) : undefined}
+        onCancel={() => {
+          setConfirmingDelete(false)
+          deleteRecipe.reset()
+        }}
+        onConfirm={() =>
+          deleteRecipe.mutate(recipe.id, {
+            onSuccess: () => navigate(`/cuisines/${recipe.cuisineId}`, { replace: true }),
+          })
+        }
+      />
 
       <header className="atlas-dots grid items-center gap-6 rounded-3xl p-5 sm:grid-cols-[1fr_auto] sm:p-8">
         <div className="min-w-0 space-y-3">
@@ -77,6 +105,22 @@ export function RecipeDetailPage() {
           />
         )}
       </header>
+
+      <div className="flex flex-wrap justify-end gap-2">
+        <Link
+          to={`/recipes/${recipe.id}/edit`}
+          className="inline-flex min-h-10 items-center rounded-full border border-line-strong px-4 text-sm font-semibold hover:bg-surface-sunken"
+        >
+          Edit recipe
+        </Link>
+        <button
+          type="button"
+          onClick={() => setConfirmingDelete(true)}
+          className="min-h-10 rounded-full px-4 text-sm font-semibold text-danger hover:bg-surface-sunken"
+        >
+          Delete
+        </button>
+      </div>
 
       {/* 6-column grid on phones: 3 facts on the first row, 2 wider ones on the second. */}
       <dl className="grid grid-cols-6 gap-px overflow-hidden rounded-2xl bg-line ring-1 ring-line sm:grid-cols-5">

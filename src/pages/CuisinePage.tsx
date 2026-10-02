@@ -111,7 +111,15 @@ function CuisineView({ cuisineId }: { cuisineId: string }) {
         </select>
       </div>
 
-      <h2 className="sr-only">Recipes</h2>
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="text-2xl">Recipes</h2>
+        <Link
+          to={`/recipes/new?cuisine=${cuisineId}`}
+          className="inline-flex min-h-10 items-center rounded-full border border-line-strong px-4 text-sm font-semibold whitespace-nowrap hover:bg-surface-sunken"
+        >
+          + Add {cuisine.data?.name ?? ''} recipe
+        </Link>
+      </div>
       {recipes.isPending ? (
         <CardGridSkeleton />
       ) : recipes.isError ? (
@@ -120,6 +128,16 @@ function CuisineView({ cuisineId }: { cuisineId: string }) {
         <EmptyState
           title={query ? `No recipes match "${query}"` : 'No recipes here yet'}
           description={query ? 'Try a different name or ingredient.' : 'Be the first to add one.'}
+          action={
+            !query && (
+              <Link
+                to={`/recipes/new?cuisine=${cuisineId}`}
+                className="inline-flex min-h-10 items-center rounded-full bg-ink px-4 font-semibold text-canvas hover:bg-accent"
+              >
+                Add a recipe
+              </Link>
+            )
+          }
         />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

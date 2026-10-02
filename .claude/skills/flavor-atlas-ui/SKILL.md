@@ -52,6 +52,8 @@ Wrap anything that belongs to a cuisine with `style={cuisineTint(cuisineId)}` fr
 - Radius by role: `rounded-3xl` tinted headers, `rounded-2xl` cards, `rounded-full` pills, inputs and buttons.
 - Cards: `bg-surface ring-1 ring-line`, hover `ring-tint`. No shadows except plates.
 - Primary button: `bg-ink text-canvas hover:bg-accent rounded-full`. Text links: `text-accent hover:text-accent-hover`.
+- Forms: wrap controls in `Field` (`components/ui/form.tsx`) with `inputClass` and `describedBy()` from `formStyles.ts`. Validate with the Zod schema through `zodResolver`. Field errors are plain text linked by `aria-describedby`; the form has exactly one `role="alert"` summary ("Fix 3 fields to save."). Never use `window.confirm()`; use `ConfirmDialog`.
+- Destructive actions: `text-danger` for the trigger, `bg-danger text-on-danger` for the confirm button inside `ConfirmDialog`.
 - Every list fetch has three states: `CardGridSkeleton`, `ErrorState` (with retry), `EmptyState`.
 - Motion: small and purposeful (the plate's food tilts on hover). Always pair with `motion-reduce:` overrides.
 
