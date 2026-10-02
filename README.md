@@ -1,6 +1,12 @@
 # 🗺️ Flavor Atlas
 
-A recipe book organized by cuisine: browse Filipino, Chinese, Korean and Japanese dishes, search and sort them, see ingredients and steps, rate recipes, and (soon) write recipes with AI assistance. Supports light and dark mode.
+A recipe book organized by cuisine: browse Filipino, Chinese, Korean and Japanese dishes, search and sort them, tick off ingredients as you prep, rate recipes, and (soon) write recipes with AI assistance.
+
+## Design
+
+**An atlas of plates.** Each cuisine is a colored region on the map (Filipino sun-yellow, Chinese lacquer red, Korean blue, Japanese plum) and every recipe is a plate set on its region's color. Cuisines carry the coordinates of their capital, quantities and times use a monospace face, and dish names use Young Serif. Every color is a theme token with light and dark values.
+
+The full design system lives in [`.claude/skills/flavor-atlas-ui/SKILL.md`](.claude/skills/flavor-atlas-ui/SKILL.md).
 
 ## Tech stack
 
@@ -22,6 +28,8 @@ npm run dev:all        # starts json-server (3001) and Vite (5173) together
 ```
 
 Open http://localhost:5173.
+
+After pulling changes to `db.seed.json`, run `npm run db:reset` so your local `db.json` matches the new data shape.
 
 | Script | What it does |
 |---|---|
@@ -90,10 +98,20 @@ src/
 
 Each feature has a `schema.ts` with Zod schemas. They are the single source of truth: TypeScript types are inferred from them, and the same schemas validate forms and AI output.
 
+## Working with Claude Code
+
+This repo ships Claude Code configuration in `.claude/`:
+
+| Path | What it is |
+|---|---|
+| `.claude/skills/flavor-atlas-ui/` | A **skill**: the design system as instructions. Claude loads it automatically whenever it works on UI, so new pages match the existing design. |
+| `.claude/agents/ui-reviewer.md` | A **subagent**: a read-only reviewer that audits contrast, accessibility and phone layout. Ask Claude to "run the ui-reviewer agent" after UI changes. |
+
 ## Roadmap
 
 - [x] **Phase 1:** project foundation, routing, seed data
 - [x] **Phase 2:** browse cuisines and recipes, search and sort, recipe detail, dark mode
+- [x] **Redesign:** atlas-of-plates design system, ingredient checklist, Claude Code skill and reviewer agent
 - [ ] **Phase 3:** create, edit and delete recipes
 - [ ] **Phase 4:** ratings
 - [ ] **Phase 5:** AI-assisted descriptions, steps and ingredients

@@ -16,6 +16,8 @@ export const ingredientSchema = z.object({
 /** What a user submits when creating or editing a recipe. */
 export const recipeInputSchema = z.object({
   title: z.string().trim().min(2, 'Title must be at least 2 characters').max(80),
+  /** The dish shown on its plate. Empty falls back to the cuisine's emoji. */
+  emoji: z.string().trim().max(8),
   cuisineId: z.string().min(1, 'Choose a cuisine'),
   description: z.string().trim().max(500),
   imageUrl: z.union([z.url(), z.literal('')]),

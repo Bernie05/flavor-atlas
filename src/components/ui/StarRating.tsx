@@ -25,7 +25,7 @@ export function StarRating({ value, count, size = 'sm' }: StarRatingProps) {
         </span>
       </span>
       {count !== undefined && (
-        <span className="text-sm text-ink-muted tabular-nums">
+        <span className="text-sm whitespace-nowrap text-ink-muted tabular-nums">
           {count === 0 ? 'No ratings yet' : `${value.toFixed(1)} · ${count} ${count === 1 ? 'rating' : 'ratings'}`}
         </span>
       )}

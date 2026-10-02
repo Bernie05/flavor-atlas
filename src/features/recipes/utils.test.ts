@@ -5,6 +5,7 @@ import { filterRecipes, formatDuration, formatQuantity, sortRecipes } from './ut
 const makeRecipe = (overrides: Partial<RecipeWithRatings>): RecipeWithRatings => ({
   id: '1',
   title: 'Recipe',
+  emoji: '',
   cuisineId: 'korean',
   description: '',
   imageUrl: '',
@@ -74,6 +75,13 @@ describe('sortRecipes', () => {
     expect(ids(sortRecipes([old, loved, quick], 'newest'))).toEqual(['quick', 'loved', 'old'])
     expect(ids(sortRecipes([old, loved, quick], 'top-rated'))[0]).toBe('loved')
     expect(ids(sortRecipes([old, loved, quick], 'quickest'))).toEqual(['quick', 'loved', 'old'])
+  })
+
+  it('breaks top-rated ties by number of ratings', () => {
+    const rating = (id: string) => ({ id, recipeId: 'x', score: 5, comment: '', createdAt: '2026-02-02T00:00:00.000Z' })
+    const once = makeRecipe({ id: 'once', ratings: [rating('a')] })
+    const twice = makeRecipe({ id: 'twice', ratings: [rating('b'), rating('c')] })
+    expect(ids(sortRecipes([once, twice], 'top-rated'))).toEqual(['twice', 'once'])
   })
 
   it('does not mutate the input array', () => {

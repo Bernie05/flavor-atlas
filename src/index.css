@@ -1,45 +1,95 @@
 @import 'tailwindcss';
 
 /*
- * Design tokens. Every color is a CSS variable with a light and a dark value,
- * and Tailwind utilities (bg-surface, text-ink, ...) point at the variables.
- * Components never hard-code a theme: switching themes only swaps tokens.
+ * Flavor Atlas design tokens.
+ * Concept: an atlas of plates. Each cuisine is a colored region on the map,
+ * and every recipe is a plate set on its region's color.
  *
- * Palette: herb green accent, saffron for stars, neutrals tinted toward green.
+ * Every color is a CSS variable with a light and a dark value. Tailwind
+ * utilities (bg-surface, text-ink, bg-tint-soft, ...) point at these variables,
+ * so components never hard-code a theme. See .claude/skills/flavor-atlas-ui.
  */
 :root {
-  --canvas: #f5f6f2;
+  /* Neutrals, tinted slightly toward herb green */
+  --canvas: #f4f5f1;
   --surface: #ffffff;
-  --surface-sunken: #ebeee7;
-  --ink: #18211d;
-  --ink-muted: #4f5b55;
-  --ink-subtle: #76817b;
-  --line: #d9dfd6;
+  --surface-sunken: #e9ece5;
+  --ink: #17201c;
+  --ink-muted: #4c5852;
+  --ink-subtle: #5f6b65;
+  --line: #d8ddd5;
+  /* Boundaries of form controls: must reach 3:1 against their background */
+  --line-strong: #868f8a;
+
+  /* Interactive accent: herb green */
   --accent: #0e6b55;
   --accent-hover: #0a5644;
   --accent-soft: #dcefe6;
   --accent-ink: #0a5644;
   --on-accent: #ffffff;
-  --star: #d98a00;
-  --star-empty: #d9dfd6;
+
+  /* Cuisine regions: base, soft background, readable text on soft */
+  --c-filipino: #a87400;
+  --c-filipino-soft: #fbefc8;
+  --c-filipino-ink: #7a5200;
+  --c-chinese: #c8322b;
+  --c-chinese-soft: #f9dfdb;
+  --c-chinese-ink: #8f1f1a;
+  --c-korean: #2f5fa7;
+  --c-korean-soft: #dde6f5;
+  --c-korean-ink: #1f4380;
+  --c-japanese: #a8456f;
+  --c-japanese-soft: #f5dfe9;
+  --c-japanese-ink: #7d2c50;
+
+  /* Default tint = accent; cuisineTint() overrides these per element */
+  --tint: var(--accent);
+  --tint-soft: var(--accent-soft);
+  --tint-ink: var(--accent-ink);
+
+  /* Plates */
+  --plate: #ffffff;
+  --plate-rim: #e3e7e0;
+  --plate-shadow: rgb(23 32 28 / 0.28);
+
+  /* Feedback */
+  --star: #a86a00;
+  --star-empty: #d3d9d0;
   --danger: #b42318;
+
   color-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
-    --canvas: #0e1311;
-    --surface: #161d1a;
-    --surface-sunken: #1d2622;
-    --ink: #e7ece8;
-    --ink-muted: #a9b4ae;
-    --ink-subtle: #7f8b85;
-    --line: #2a3430;
-    --accent: #43c2a0;
-    --accent-hover: #63d4b5;
-    --accent-soft: #163a30;
-    --accent-ink: #93e3cc;
+    --canvas: #0d1210;
+    --surface: #151c19;
+    --surface-sunken: #1c2521;
+    --ink: #e8ede9;
+    --ink-muted: #aab5af;
+    --ink-subtle: #86928c;
+    --line: #29332f;
+    --line-strong: #5d6a63;
+    --accent: #45c4a2;
+    --accent-hover: #66d6b7;
+    --accent-soft: #15362d;
+    --accent-ink: #95e4ce;
     --on-accent: #052219;
+    --c-filipino: #f2c043;
+    --c-filipino-soft: #33290f;
+    --c-filipino-ink: #f6d27a;
+    --c-chinese: #f0675d;
+    --c-chinese-soft: #391917;
+    --c-chinese-ink: #f6a59d;
+    --c-korean: #6e9be6;
+    --c-korean-soft: #15233a;
+    --c-korean-ink: #a9c4f2;
+    --c-japanese: #df7aa6;
+    --c-japanese-soft: #341926;
+    --c-japanese-ink: #efaccb;
+    --plate: #222b27;
+    --plate-rim: #34403b;
+    --plate-shadow: rgb(0 0 0 / 0.6);
     --star: #f4b42a;
     --star-empty: #3a4540;
     --danger: #f97066;
@@ -48,18 +98,34 @@
 }
 
 :root[data-theme='dark'] {
-  --canvas: #0e1311;
-  --surface: #161d1a;
-  --surface-sunken: #1d2622;
-  --ink: #e7ece8;
-  --ink-muted: #a9b4ae;
-  --ink-subtle: #7f8b85;
-  --line: #2a3430;
-  --accent: #43c2a0;
-  --accent-hover: #63d4b5;
-  --accent-soft: #163a30;
-  --accent-ink: #93e3cc;
+  --canvas: #0d1210;
+  --surface: #151c19;
+  --surface-sunken: #1c2521;
+  --ink: #e8ede9;
+  --ink-muted: #aab5af;
+  --ink-subtle: #86928c;
+  --line: #29332f;
+  --line-strong: #5d6a63;
+  --accent: #45c4a2;
+  --accent-hover: #66d6b7;
+  --accent-soft: #15362d;
+  --accent-ink: #95e4ce;
   --on-accent: #052219;
+  --c-filipino: #f2c043;
+  --c-filipino-soft: #33290f;
+  --c-filipino-ink: #f6d27a;
+  --c-chinese: #f0675d;
+  --c-chinese-soft: #391917;
+  --c-chinese-ink: #f6a59d;
+  --c-korean: #6e9be6;
+  --c-korean-soft: #15233a;
+  --c-korean-ink: #a9c4f2;
+  --c-japanese: #df7aa6;
+  --c-japanese-soft: #341926;
+  --c-japanese-ink: #efaccb;
+  --plate: #222b27;
+  --plate-rim: #34403b;
+  --plate-shadow: rgb(0 0 0 / 0.6);
   --star: #f4b42a;
   --star-empty: #3a4540;
   --danger: #f97066;
@@ -74,32 +140,111 @@
   --color-ink-muted: var(--ink-muted);
   --color-ink-subtle: var(--ink-subtle);
   --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
   --color-accent: var(--accent);
   --color-accent-hover: var(--accent-hover);
   --color-accent-soft: var(--accent-soft);
   --color-accent-ink: var(--accent-ink);
   --color-on-accent: var(--on-accent);
+  --color-tint: var(--tint);
+  --color-tint-soft: var(--tint-soft);
+  --color-tint-ink: var(--tint-ink);
   --color-star: var(--star);
   --color-star-empty: var(--star-empty);
   --color-danger: var(--danger);
+}
 
-  --font-display: 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif;
+@theme {
+  --font-display: 'Young Serif', ui-serif, Georgia, serif;
   --font-sans: 'Figtree', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+}
+
+/*
+ * Page ground. Deliberately outside any @layer: unlayered rules beat layered
+ * ones, so this wins over a host page's own body reset (the phone preview
+ * injects one) instead of losing to it.
+ */
+html,
+body {
+  background: var(--canvas);
+  color: var(--ink);
+}
+
+body {
+  font-family: 'Figtree', ui-sans-serif, system-ui, sans-serif;
+  font-size: 1rem;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
 }
 
 @layer base {
-  body {
-    @apply bg-canvas font-sans text-ink antialiased;
-  }
-
   h1,
   h2,
   h3 {
-    @apply font-display;
+    font-family: var(--font-display);
+    font-weight: 400;
+    line-height: 1.15;
     text-wrap: balance;
   }
 
   :focus-visible {
-    @apply outline-2 outline-offset-2 outline-accent;
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  /* Small uppercase labels: coordinates, eyebrows, facts. */
+  .label-mono {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* A faint dot grid in the cuisine's color, like an atlas's graticule. */
+  .atlas-dots {
+    background-color: var(--tint-soft);
+    background-image: radial-gradient(
+      color-mix(in oklab, var(--tint) 28%, transparent) 1px,
+      transparent 1.5px
+    );
+    background-size: 14px 14px;
+  }
+
+  /* A plate: white disc with a rim ring and a soft shadow, food in the middle. */
+  .plate {
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    aspect-ratio: 1;
+    border-radius: 9999px;
+    background: radial-gradient(
+      circle,
+      var(--plate) 0 56%,
+      var(--plate-rim) 57% 59%,
+      var(--plate) 60% 100%
+    );
+    box-shadow:
+      0 0 0 1px var(--plate-rim),
+      0 14px 28px -14px var(--plate-shadow);
+  }
+
+  .plate-food {
+    line-height: 1;
+    transition: transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .group:hover .plate-food,
+  .group:focus-visible .plate-food {
+    transform: rotate(-10deg) scale(1.08);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .plate-food {
+      transition: none;
+    }
   }
 }

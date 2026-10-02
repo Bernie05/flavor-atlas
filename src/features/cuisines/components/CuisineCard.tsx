@@ -1,33 +1,35 @@
 import { Link } from 'react-router'
+import { Plate } from '@/components/ui/Plate'
 import type { Cuisine } from '../schema'
+import { cuisineTint, formatCoordinates } from '../utils'
 
 interface CuisineCardProps {
   cuisine: Cuisine
   recipeCount: number
 }
 
+/** A cuisine as a colored region of the atlas. */
 export function CuisineCard({ cuisine, recipeCount }: CuisineCardProps) {
   return (
     <Link
       to={`/cuisines/${cuisine.id}`}
-      className="group flex items-start gap-4 rounded-xl border border-line bg-surface p-4 transition-colors hover:border-accent"
+      style={cuisineTint(cuisine.id)}
+      aria-label={`${cuisine.name}, ${recipeCount} ${recipeCount === 1 ? 'recipe' : 'recipes'}`}
+      className="group flex flex-col gap-4 rounded-2xl bg-tint-soft p-4 ring-1 ring-transparent transition hover:ring-tint sm:p-5"
     >
-      <span
-        aria-hidden
-        className="grid size-12 shrink-0 place-items-center rounded-lg bg-accent-soft text-2xl"
-      >
-        {cuisine.emoji}
+      <span className="flex items-start justify-between gap-2">
+        <Plate emoji={cuisine.emoji} size="sm" />
+        <span className="label-mono whitespace-nowrap text-tint-ink tabular-nums">
+          {recipeCount} {recipeCount === 1 ? 'recipe' : 'recipes'}
+        </span>
       </span>
       <span className="min-w-0">
-        <span className="flex items-baseline justify-between gap-2">
-          <span className="font-display text-lg font-semibold group-hover:text-accent">
-            {cuisine.name}
-          </span>
-          <span className="shrink-0 text-xs text-ink-subtle tabular-nums">
-            {recipeCount} {recipeCount === 1 ? 'recipe' : 'recipes'}
-          </span>
+        <span className="block font-display text-2xl text-tint-ink">{cuisine.name}</span>
+        <span className="label-mono mt-1 block text-ink-muted tabular-nums">
+          {cuisine.origin}
+          <span className="hidden sm:inline"> · {formatCoordinates(cuisine)}</span>
         </span>
-        <span className="mt-0.5 block text-sm text-ink-muted">{cuisine.description}</span>
+        <span className="mt-2 hidden text-sm text-ink-muted sm:block">{cuisine.description}</span>
       </span>
     </Link>
   )

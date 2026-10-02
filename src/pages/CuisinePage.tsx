@@ -4,7 +4,9 @@ import { Link, useParams, useSearchParams } from 'react-router'
 import { CardGridSkeleton } from '@/components/feedback/CardGridSkeleton'
 import { EmptyState } from '@/components/feedback/EmptyState'
 import { ErrorState } from '@/components/feedback/ErrorState'
+import { Plate } from '@/components/ui/Plate'
 import { cuisineQueries } from '@/features/cuisines/queries'
+import { cuisineTint, formatCoordinates } from '@/features/cuisines/utils'
 import { RecipeCard } from '@/features/recipes/components/RecipeCard'
 import { recipeQueries } from '@/features/recipes/queries'
 import {
@@ -55,21 +57,24 @@ function CuisineView({ cuisineId }: { cuisineId: string }) {
   const visibleRecipes = sortRecipes(filterRecipes(recipes.data ?? [], query), sort)
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" style={cuisineTint(cuisineId)}>
       {cuisine.data && <title>{`${cuisine.data.name} recipes · Flavor Atlas`}</title>}
 
       <nav aria-label="Breadcrumb">
-        <Link to="/" className="text-sm text-ink-muted hover:text-accent">
+        <Link to="/" className="label-mono inline-block py-2 text-ink-muted hover:text-accent">
           ← All cuisines
         </Link>
       </nav>
 
-      <header className="flex items-center gap-4">
-        <span aria-hidden className="grid size-14 shrink-0 place-items-center rounded-xl bg-accent-soft text-3xl">
-          {cuisine.data?.emoji ?? '🍽️'}
-        </span>
-        <div className="min-w-0">
-          <h1 className="text-3xl font-bold">{cuisine.data?.name ?? 'Loading…'}</h1>
+      <header className="atlas-dots flex items-center gap-5 rounded-3xl p-5 sm:gap-8 sm:p-8">
+        <Plate emoji={cuisine.data?.emoji ?? '🍽️'} size="md" className="sm:size-32 sm:text-6xl" />
+        <div className="min-w-0 space-y-1.5">
+          {cuisine.data && (
+            <p className="label-mono text-tint-ink tabular-nums">
+              {cuisine.data.origin} · {formatCoordinates(cuisine.data)}
+            </p>
+          )}
+          <h1 className="text-4xl text-tint-ink sm:text-5xl">{cuisine.data?.name ?? 'Loading…'}</h1>
           <p className="text-ink-muted">{cuisine.data?.description}</p>
         </div>
       </header>
@@ -84,7 +89,7 @@ function CuisineView({ cuisineId }: { cuisineId: string }) {
           value={query}
           onChange={(event) => applyFilters({ query: event.target.value, sort })}
           placeholder="Search by name or ingredient"
-          className="min-w-0 flex-1 rounded-full border border-line bg-surface px-4 py-2 placeholder:text-ink-subtle"
+          className="min-w-0 flex-1 rounded-full border border-line-strong bg-surface px-4 py-2.5 placeholder:text-ink-subtle"
         />
         <label htmlFor="recipe-sort" className="sr-only">
           Sort recipes
@@ -96,7 +101,7 @@ function CuisineView({ cuisineId }: { cuisineId: string }) {
             const value = event.target.value
             if (isRecipeSort(value)) applyFilters({ query, sort: value })
           }}
-          className="rounded-full border border-line bg-surface px-4 py-2"
+          className="rounded-full border border-line-strong bg-surface px-4 py-2.5"
         >
           {Object.entries(RECIPE_SORTS).map(([value, label]) => (
             <option key={value} value={value}>
@@ -106,6 +111,7 @@ function CuisineView({ cuisineId }: { cuisineId: string }) {
         </select>
       </div>
 
+      <h2 className="sr-only">Recipes</h2>
       {recipes.isPending ? (
         <CardGridSkeleton />
       ) : recipes.isError ? (
@@ -118,7 +124,7 @@ function CuisineView({ cuisineId }: { cuisineId: string }) {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {visibleRecipes.map((recipe) => (
-            <RecipeCard key={recipe.id} recipe={recipe} cuisine={cuisine.data} />
+            <RecipeCard key={recipe.id} recipe={recipe} cuisine={cuisine.data} showCuisineLabel={false} />
           ))}
         </div>
       )}

@@ -1,14 +1,47 @@
 {
   "cuisines": [
-    { "id": "filipino", "name": "Filipino", "emoji": "🇵🇭", "description": "Bold sour, salty and savory flavors from the islands." },
-    { "id": "chinese", "name": "Chinese", "emoji": "🥟", "description": "Wok-fired dishes, dumplings and regional spice." },
-    { "id": "korean", "name": "Korean", "emoji": "🌶️", "description": "Fermented, spicy and comforting home cooking." },
-    { "id": "japanese", "name": "Japanese", "emoji": "🍱", "description": "Clean, balanced flavors built on dashi and soy." }
+    {
+      "id": "filipino",
+      "name": "Filipino",
+      "emoji": "🥭",
+      "description": "Bold sour, salty and savory flavors from the islands.",
+      "origin": "Manila",
+      "latitude": 14.6,
+      "longitude": 120.98
+    },
+    {
+      "id": "chinese",
+      "name": "Chinese",
+      "emoji": "🥟",
+      "description": "Wok-fired dishes, dumplings and regional spice.",
+      "origin": "Beijing",
+      "latitude": 39.9,
+      "longitude": 116.41
+    },
+    {
+      "id": "korean",
+      "name": "Korean",
+      "emoji": "🌶️",
+      "description": "Fermented, spicy and comforting home cooking.",
+      "origin": "Seoul",
+      "latitude": 37.57,
+      "longitude": 126.98
+    },
+    {
+      "id": "japanese",
+      "name": "Japanese",
+      "emoji": "🍱",
+      "description": "Clean, balanced flavors built on dashi and soy.",
+      "origin": "Tokyo",
+      "latitude": 35.68,
+      "longitude": 139.69
+    }
   ],
   "recipes": [
     {
       "id": "1",
       "title": "Chicken Adobo",
+      "emoji": "🥘",
       "cuisineId": "filipino",
       "description": "Chicken braised in vinegar, soy sauce, garlic and bay leaves until tender and glossy. The unofficial national dish of the Philippines.",
       "imageUrl": "",
@@ -17,13 +50,41 @@
       "servings": 4,
       "difficulty": "easy",
       "ingredients": [
-        { "name": "chicken thighs and drumsticks", "quantity": 1, "unit": "kg" },
-        { "name": "soy sauce", "quantity": 0.5, "unit": "cup" },
-        { "name": "cane vinegar", "quantity": 0.33, "unit": "cup" },
-        { "name": "garlic, crushed", "quantity": 1, "unit": "head" },
-        { "name": "bay leaves", "quantity": 3, "unit": "" },
-        { "name": "whole black peppercorns", "quantity": 1, "unit": "tsp" },
-        { "name": "water", "quantity": 1, "unit": "cup" }
+        {
+          "name": "chicken thighs and drumsticks",
+          "quantity": 1,
+          "unit": "kg"
+        },
+        {
+          "name": "soy sauce",
+          "quantity": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "cane vinegar",
+          "quantity": 0.33,
+          "unit": "cup"
+        },
+        {
+          "name": "garlic, crushed",
+          "quantity": 1,
+          "unit": "head"
+        },
+        {
+          "name": "bay leaves",
+          "quantity": 3,
+          "unit": ""
+        },
+        {
+          "name": "whole black peppercorns",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "name": "water",
+          "quantity": 1,
+          "unit": "cup"
+        }
       ],
       "steps": [
         "Combine the chicken, soy sauce and garlic in a pot and marinate for at least 15 minutes.",
@@ -37,6 +98,7 @@
     {
       "id": "2",
       "title": "Sinigang na Baboy",
+      "emoji": "🍲",
       "cuisineId": "filipino",
       "description": "A sour tamarind soup with tender pork belly and vegetables. Comfort food for rainy days.",
       "imageUrl": "",
@@ -45,15 +107,51 @@
       "servings": 6,
       "difficulty": "medium",
       "ingredients": [
-        { "name": "pork belly, cubed", "quantity": 1, "unit": "kg" },
-        { "name": "tamarind soup base", "quantity": 1, "unit": "packet" },
-        { "name": "tomatoes, quartered", "quantity": 2, "unit": "" },
-        { "name": "onion, quartered", "quantity": 1, "unit": "" },
-        { "name": "radish, sliced", "quantity": 1, "unit": "" },
-        { "name": "string beans", "quantity": 1, "unit": "bunch" },
-        { "name": "kangkong (water spinach)", "quantity": 1, "unit": "bunch" },
-        { "name": "fish sauce", "quantity": 2, "unit": "tbsp" },
-        { "name": "water", "quantity": 2, "unit": "liters" }
+        {
+          "name": "pork belly, cubed",
+          "quantity": 1,
+          "unit": "kg"
+        },
+        {
+          "name": "tamarind soup base",
+          "quantity": 1,
+          "unit": "packet"
+        },
+        {
+          "name": "tomatoes, quartered",
+          "quantity": 2,
+          "unit": ""
+        },
+        {
+          "name": "onion, quartered",
+          "quantity": 1,
+          "unit": ""
+        },
+        {
+          "name": "radish, sliced",
+          "quantity": 1,
+          "unit": ""
+        },
+        {
+          "name": "string beans",
+          "quantity": 1,
+          "unit": "bunch"
+        },
+        {
+          "name": "kangkong (water spinach)",
+          "quantity": 1,
+          "unit": "bunch"
+        },
+        {
+          "name": "fish sauce",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "name": "water",
+          "quantity": 2,
+          "unit": "liters"
+        }
       ],
       "steps": [
         "Boil the pork in water, skimming off the scum, then add the onion and tomatoes.",
@@ -67,6 +165,7 @@
     {
       "id": "3",
       "title": "Mapo Tofu",
+      "emoji": "🍛",
       "cuisineId": "chinese",
       "description": "Silky tofu in a fiery, numbing Sichuan sauce with ground pork and fermented broad bean paste.",
       "imageUrl": "",
@@ -75,14 +174,46 @@
       "servings": 3,
       "difficulty": "medium",
       "ingredients": [
-        { "name": "soft tofu, cubed", "quantity": 400, "unit": "g" },
-        { "name": "ground pork", "quantity": 150, "unit": "g" },
-        { "name": "doubanjiang (chili bean paste)", "quantity": 2, "unit": "tbsp" },
-        { "name": "ground Sichuan peppercorns", "quantity": 1, "unit": "tsp" },
-        { "name": "garlic, minced", "quantity": 3, "unit": "cloves" },
-        { "name": "chicken stock", "quantity": 1, "unit": "cup" },
-        { "name": "cornstarch slurry", "quantity": 2, "unit": "tbsp" },
-        { "name": "scallions, sliced", "quantity": 2, "unit": "" }
+        {
+          "name": "soft tofu, cubed",
+          "quantity": 400,
+          "unit": "g"
+        },
+        {
+          "name": "ground pork",
+          "quantity": 150,
+          "unit": "g"
+        },
+        {
+          "name": "doubanjiang (chili bean paste)",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "name": "ground Sichuan peppercorns",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "name": "garlic, minced",
+          "quantity": 3,
+          "unit": "cloves"
+        },
+        {
+          "name": "chicken stock",
+          "quantity": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "cornstarch slurry",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "name": "scallions, sliced",
+          "quantity": 2,
+          "unit": ""
+        }
       ],
       "steps": [
         "Blanch the tofu cubes in salted simmering water for 2 minutes, then drain.",
@@ -96,6 +227,7 @@
     {
       "id": "4",
       "title": "Egg Fried Rice",
+      "emoji": "🍳",
       "cuisineId": "chinese",
       "description": "Fluffy day-old rice tossed in a hot wok with egg, scallions and soy sauce. Ready in 15 minutes.",
       "imageUrl": "",
@@ -104,12 +236,36 @@
       "servings": 2,
       "difficulty": "easy",
       "ingredients": [
-        { "name": "cooked rice, chilled overnight", "quantity": 3, "unit": "cups" },
-        { "name": "eggs, beaten", "quantity": 3, "unit": "" },
-        { "name": "scallions, sliced", "quantity": 3, "unit": "" },
-        { "name": "light soy sauce", "quantity": 1, "unit": "tbsp" },
-        { "name": "neutral oil", "quantity": 2, "unit": "tbsp" },
-        { "name": "white pepper", "quantity": 0.25, "unit": "tsp" }
+        {
+          "name": "cooked rice, chilled overnight",
+          "quantity": 3,
+          "unit": "cups"
+        },
+        {
+          "name": "eggs, beaten",
+          "quantity": 3,
+          "unit": ""
+        },
+        {
+          "name": "scallions, sliced",
+          "quantity": 3,
+          "unit": ""
+        },
+        {
+          "name": "light soy sauce",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "name": "neutral oil",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "name": "white pepper",
+          "quantity": 0.25,
+          "unit": "tsp"
+        }
       ],
       "steps": [
         "Heat the oil in a wok over high heat until shimmering.",
@@ -122,6 +278,7 @@
     {
       "id": "5",
       "title": "Kimchi Fried Rice",
+      "emoji": "🍚",
       "cuisineId": "korean",
       "description": "Tangy, spicy fried rice made with well-fermented kimchi and topped with a runny fried egg.",
       "imageUrl": "",
@@ -130,13 +287,41 @@
       "servings": 2,
       "difficulty": "easy",
       "ingredients": [
-        { "name": "cooked rice", "quantity": 2, "unit": "cups" },
-        { "name": "kimchi, chopped", "quantity": 1, "unit": "cup" },
-        { "name": "kimchi juice", "quantity": 2, "unit": "tbsp" },
-        { "name": "gochujang", "quantity": 1, "unit": "tbsp" },
-        { "name": "sesame oil", "quantity": 1, "unit": "tsp" },
-        { "name": "eggs", "quantity": 2, "unit": "" },
-        { "name": "roasted seaweed, crumbled", "quantity": 1, "unit": "sheet" }
+        {
+          "name": "cooked rice",
+          "quantity": 2,
+          "unit": "cups"
+        },
+        {
+          "name": "kimchi, chopped",
+          "quantity": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "kimchi juice",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "name": "gochujang",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "name": "sesame oil",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "name": "eggs",
+          "quantity": 2,
+          "unit": ""
+        },
+        {
+          "name": "roasted seaweed, crumbled",
+          "quantity": 1,
+          "unit": "sheet"
+        }
       ],
       "steps": [
         "Stir-fry the kimchi in a little oil for 3 minutes until slightly caramelized.",
@@ -149,6 +334,7 @@
     {
       "id": "6",
       "title": "Bibimbap",
+      "emoji": "🥗",
       "cuisineId": "korean",
       "description": "A colorful rice bowl with seasoned vegetables, beef, a fried egg and spicy gochujang sauce, mixed together just before eating.",
       "imageUrl": "",
@@ -157,15 +343,51 @@
       "servings": 4,
       "difficulty": "medium",
       "ingredients": [
-        { "name": "cooked short-grain rice", "quantity": 4, "unit": "cups" },
-        { "name": "beef sirloin, thinly sliced", "quantity": 250, "unit": "g" },
-        { "name": "spinach", "quantity": 200, "unit": "g" },
-        { "name": "bean sprouts", "quantity": 200, "unit": "g" },
-        { "name": "carrot, julienned", "quantity": 1, "unit": "" },
-        { "name": "shiitake mushrooms, sliced", "quantity": 6, "unit": "" },
-        { "name": "eggs", "quantity": 4, "unit": "" },
-        { "name": "gochujang", "quantity": 3, "unit": "tbsp" },
-        { "name": "sesame oil", "quantity": 2, "unit": "tbsp" }
+        {
+          "name": "cooked short-grain rice",
+          "quantity": 4,
+          "unit": "cups"
+        },
+        {
+          "name": "beef sirloin, thinly sliced",
+          "quantity": 250,
+          "unit": "g"
+        },
+        {
+          "name": "spinach",
+          "quantity": 200,
+          "unit": "g"
+        },
+        {
+          "name": "bean sprouts",
+          "quantity": 200,
+          "unit": "g"
+        },
+        {
+          "name": "carrot, julienned",
+          "quantity": 1,
+          "unit": ""
+        },
+        {
+          "name": "shiitake mushrooms, sliced",
+          "quantity": 6,
+          "unit": ""
+        },
+        {
+          "name": "eggs",
+          "quantity": 4,
+          "unit": ""
+        },
+        {
+          "name": "gochujang",
+          "quantity": 3,
+          "unit": "tbsp"
+        },
+        {
+          "name": "sesame oil",
+          "quantity": 2,
+          "unit": "tbsp"
+        }
       ],
       "steps": [
         "Marinate the beef in soy sauce, sugar, garlic and sesame oil for 15 minutes.",
@@ -179,6 +401,7 @@
     {
       "id": "7",
       "title": "Chicken Teriyaki",
+      "emoji": "🍗",
       "cuisineId": "japanese",
       "description": "Crispy-skinned chicken thighs glazed in a sweet and savory homemade teriyaki sauce.",
       "imageUrl": "",
@@ -187,11 +410,31 @@
       "servings": 2,
       "difficulty": "easy",
       "ingredients": [
-        { "name": "boneless chicken thighs, skin on", "quantity": 2, "unit": "" },
-        { "name": "soy sauce", "quantity": 3, "unit": "tbsp" },
-        { "name": "mirin", "quantity": 3, "unit": "tbsp" },
-        { "name": "sake", "quantity": 2, "unit": "tbsp" },
-        { "name": "sugar", "quantity": 1, "unit": "tbsp" }
+        {
+          "name": "boneless chicken thighs, skin on",
+          "quantity": 2,
+          "unit": ""
+        },
+        {
+          "name": "soy sauce",
+          "quantity": 3,
+          "unit": "tbsp"
+        },
+        {
+          "name": "mirin",
+          "quantity": 3,
+          "unit": "tbsp"
+        },
+        {
+          "name": "sake",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "name": "sugar",
+          "quantity": 1,
+          "unit": "tbsp"
+        }
       ],
       "steps": [
         "Mix the soy sauce, mirin, sake and sugar into a sauce.",
@@ -205,6 +448,7 @@
     {
       "id": "8",
       "title": "Miso Soup",
+      "emoji": "🥣",
       "cuisineId": "japanese",
       "description": "A light, savory soup of dashi and miso with tofu, wakame and scallions. Ready in 10 minutes.",
       "imageUrl": "",
@@ -213,11 +457,31 @@
       "servings": 4,
       "difficulty": "easy",
       "ingredients": [
-        { "name": "dashi stock", "quantity": 4, "unit": "cups" },
-        { "name": "white miso paste", "quantity": 3, "unit": "tbsp" },
-        { "name": "silken tofu, cubed", "quantity": 200, "unit": "g" },
-        { "name": "dried wakame", "quantity": 1, "unit": "tbsp" },
-        { "name": "scallions, sliced", "quantity": 2, "unit": "" }
+        {
+          "name": "dashi stock",
+          "quantity": 4,
+          "unit": "cups"
+        },
+        {
+          "name": "white miso paste",
+          "quantity": 3,
+          "unit": "tbsp"
+        },
+        {
+          "name": "silken tofu, cubed",
+          "quantity": 200,
+          "unit": "g"
+        },
+        {
+          "name": "dried wakame",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "name": "scallions, sliced",
+          "quantity": 2,
+          "unit": ""
+        }
       ],
       "steps": [
         "Soak the wakame in water for 5 minutes, then drain.",
@@ -230,15 +494,75 @@
     }
   ],
   "ratings": [
-    { "id": "1", "recipeId": "1", "score": 5, "comment": "Tastes like home.", "createdAt": "2026-09-28T10:00:00.000Z" },
-    { "id": "2", "recipeId": "1", "score": 4, "comment": "", "createdAt": "2026-09-28T11:00:00.000Z" },
-    { "id": "3", "recipeId": "2", "score": 5, "comment": "Perfectly sour.", "createdAt": "2026-09-28T12:00:00.000Z" },
-    { "id": "4", "recipeId": "3", "score": 4, "comment": "Spicy, as it should be.", "createdAt": "2026-09-29T10:00:00.000Z" },
-    { "id": "5", "recipeId": "4", "score": 4, "comment": "", "createdAt": "2026-09-29T11:00:00.000Z" },
-    { "id": "6", "recipeId": "5", "score": 5, "comment": "Use old kimchi, trust me.", "createdAt": "2026-09-30T10:00:00.000Z" },
-    { "id": "7", "recipeId": "5", "score": 5, "comment": "", "createdAt": "2026-09-30T11:00:00.000Z" },
-    { "id": "8", "recipeId": "6", "score": 4, "comment": "Lots of prep but worth it.", "createdAt": "2026-09-30T12:00:00.000Z" },
-    { "id": "9", "recipeId": "7", "score": 5, "comment": "", "createdAt": "2026-10-01T10:00:00.000Z" },
-    { "id": "10", "recipeId": "8", "score": 3, "comment": "Simple and nice.", "createdAt": "2026-10-01T11:00:00.000Z" }
+    {
+      "id": "1",
+      "recipeId": "1",
+      "score": 5,
+      "comment": "Tastes like home.",
+      "createdAt": "2026-09-28T10:00:00.000Z"
+    },
+    {
+      "id": "2",
+      "recipeId": "1",
+      "score": 4,
+      "comment": "",
+      "createdAt": "2026-09-28T11:00:00.000Z"
+    },
+    {
+      "id": "3",
+      "recipeId": "2",
+      "score": 5,
+      "comment": "Perfectly sour.",
+      "createdAt": "2026-09-28T12:00:00.000Z"
+    },
+    {
+      "id": "4",
+      "recipeId": "3",
+      "score": 4,
+      "comment": "Spicy, as it should be.",
+      "createdAt": "2026-09-29T10:00:00.000Z"
+    },
+    {
+      "id": "5",
+      "recipeId": "4",
+      "score": 4,
+      "comment": "",
+      "createdAt": "2026-09-29T11:00:00.000Z"
+    },
+    {
+      "id": "6",
+      "recipeId": "5",
+      "score": 5,
+      "comment": "Use old kimchi, trust me.",
+      "createdAt": "2026-09-30T10:00:00.000Z"
+    },
+    {
+      "id": "7",
+      "recipeId": "5",
+      "score": 5,
+      "comment": "",
+      "createdAt": "2026-09-30T11:00:00.000Z"
+    },
+    {
+      "id": "8",
+      "recipeId": "6",
+      "score": 4,
+      "comment": "Lots of prep but worth it.",
+      "createdAt": "2026-09-30T12:00:00.000Z"
+    },
+    {
+      "id": "9",
+      "recipeId": "7",
+      "score": 5,
+      "comment": "",
+      "createdAt": "2026-10-01T10:00:00.000Z"
+    },
+    {
+      "id": "10",
+      "recipeId": "8",
+      "score": 3,
+      "comment": "Simple and nice.",
+      "createdAt": "2026-10-01T11:00:00.000Z"
+    }
   ]
 }

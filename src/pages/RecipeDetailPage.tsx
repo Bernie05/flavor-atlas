@@ -1,12 +1,14 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link, useParams } from 'react-router'
 import { ErrorState } from '@/components/feedback/ErrorState'
+import { Plate } from '@/components/ui/Plate'
 import { StarRating } from '@/components/ui/StarRating'
 import { cuisineQueries } from '@/features/cuisines/queries'
+import { cuisineTint } from '@/features/cuisines/utils'
 import { summarizeRatings } from '@/features/ratings/summary'
-import { RecipeCover } from '@/features/recipes/components/RecipeCover'
+import { IngredientChecklist } from '@/features/recipes/components/IngredientChecklist'
 import { recipeQueries } from '@/features/recipes/queries'
-import { DIFFICULTY_LABELS, formatDuration, formatQuantity, totalMinutes } from '@/features/recipes/utils'
+import { DIFFICULTY_LABELS, formatDuration, totalMinutes } from '@/features/recipes/utils'
 import { NotFoundError } from '@/services/data'
 import { NotFoundPage } from './NotFoundPage'
 
@@ -39,76 +41,67 @@ export function RecipeDetailPage() {
   ]
 
   return (
-    <article className="space-y-8">
+    <article className="space-y-8" style={cuisineTint(recipe.cuisineId)}>
       <title>{`${recipe.title} · Flavor Atlas`}</title>
 
-      <nav aria-label="Breadcrumb" className="text-sm text-ink-muted">
-        <Link to="/" className="hover:text-accent">
-          Cuisines
-        </Link>
-        {cuisine && (
-          <>
-            <span aria-hidden> / </span>
-            <Link to={`/cuisines/${cuisine.id}`} className="hover:text-accent">
-              {cuisine.name}
-            </Link>
-          </>
-        )}
-      </nav>
-
-      <header className="grid gap-6 md:grid-cols-[1fr_minmax(0,20rem)] md:items-start">
+      <header className="atlas-dots grid items-center gap-6 rounded-3xl p-5 sm:grid-cols-[1fr_auto] sm:p-8">
         <div className="min-w-0 space-y-3">
-          <h1 className="text-3xl font-bold sm:text-4xl">{recipe.title}</h1>
+          <nav aria-label="Breadcrumb" className="label-mono text-tint-ink">
+            <Link to="/" className="inline-block py-2 hover:underline">
+              Cuisines
+            </Link>
+            {cuisine && (
+              <>
+                <span aria-hidden> / </span>
+                <Link to={`/cuisines/${cuisine.id}`} className="inline-block py-2 hover:underline">
+                  {cuisine.name}
+                </Link>
+              </>
+            )}
+          </nav>
+          <h1 className="text-4xl sm:text-5xl">{recipe.title}</h1>
           <StarRating value={rating.average} count={rating.count} size="lg" />
           {recipe.description && <p className="max-w-prose text-ink-muted">{recipe.description}</p>}
         </div>
-        <RecipeCover
-          recipe={recipe}
-          fallbackEmoji={cuisine?.emoji}
-          className="aspect-[16/9] w-full rounded-xl md:aspect-[4/3]"
-        />
+        {recipe.imageUrl ? (
+          <img
+            src={recipe.imageUrl}
+            alt={recipe.title}
+            className="size-40 max-w-full justify-self-center rounded-full object-cover ring-8 ring-[var(--plate)] sm:size-48"
+          />
+        ) : (
+          <Plate
+            emoji={recipe.emoji || cuisine?.emoji || '🍽️'}
+            size="lg"
+            className="justify-self-center sm:size-48 sm:text-8xl"
+          />
+        )}
       </header>
 
-      <dl className="grid grid-cols-6 gap-px overflow-hidden rounded-xl border border-line bg-line sm:grid-cols-5">
+      {/* 6-column grid on phones: 3 facts on the first row, 2 wider ones on the second. */}
+      <dl className="grid grid-cols-6 gap-px overflow-hidden rounded-2xl bg-line ring-1 ring-line sm:grid-cols-5">
         {facts.map((fact, index) => (
           <div
             key={fact.label}
             className={`bg-surface px-4 py-3 sm:col-span-1 ${index < 3 ? 'col-span-2' : 'col-span-3'}`}
           >
-            <dt className="text-xs font-semibold tracking-wide text-ink-subtle uppercase">{fact.label}</dt>
-            <dd className="mt-0.5 font-semibold tabular-nums">{fact.value}</dd>
+            <dt className="label-mono text-ink-subtle">{fact.label}</dt>
+            <dd className="mt-1 font-mono text-lg font-semibold tabular-nums">{fact.value}</dd>
           </div>
         ))}
       </dl>
 
-      <div className="grid gap-8 md:grid-cols-[minmax(0,18rem)_1fr]">
-        <section aria-labelledby="ingredients-heading" className="min-w-0">
-          <h2 id="ingredients-heading" className="text-xl font-semibold">
-            Ingredients
-          </h2>
-          <ul className="mt-3 divide-y divide-line">
-            {recipe.ingredients.map((ingredient, index) => (
-              <li key={index} className="flex gap-3 py-2">
-                <span className="w-20 shrink-0 font-semibold tabular-nums">
-                  {ingredient.quantity !== undefined && formatQuantity(ingredient.quantity)} {ingredient.unit}
-                </span>
-                <span className="min-w-0">{ingredient.name}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
+      <div className="grid gap-10 md:grid-cols-[minmax(0,20rem)_1fr]">
+        <IngredientChecklist key={recipe.id} ingredients={recipe.ingredients} />
 
         <section aria-labelledby="steps-heading" className="min-w-0">
-          <h2 id="steps-heading" className="text-xl font-semibold">
+          <h2 id="steps-heading" className="text-2xl">
             Steps
           </h2>
-          <ol className="mt-3 space-y-4">
+          <ol className="mt-4 space-y-5">
             {recipe.steps.map((step, index) => (
-              <li key={index} className="flex gap-4">
-                <span
-                  aria-hidden
-                  className="grid size-8 shrink-0 place-items-center rounded-full bg-accent font-semibold text-on-accent tabular-nums"
-                >
+              <li key={index} className="grid grid-cols-[2.5rem_1fr] gap-3">
+                <span aria-hidden className="font-display text-3xl leading-none text-tint tabular-nums">
                   {index + 1}
                 </span>
                 <p className="min-w-0 pt-1">{step}</p>
@@ -125,10 +118,8 @@ function RecipeDetailSkeleton() {
   const bar = 'animate-pulse rounded bg-surface-sunken motion-reduce:animate-none'
   return (
     <div aria-busy="true" aria-label="Loading recipe" className="space-y-4">
-      <div className={`h-4 w-32 ${bar}`} />
-      <div className={`h-9 w-2/3 ${bar}`} />
-      <div className={`h-4 w-40 ${bar}`} />
-      <div className={`h-24 w-full ${bar}`} />
+      <div className={`h-56 w-full rounded-3xl ${bar}`} />
+      <div className={`h-20 w-full ${bar}`} />
     </div>
   )
 }
