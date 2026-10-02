@@ -116,4 +116,5 @@ This repo ships Claude Code configuration in `.claude/`:
 - [x] **Phase 3:** create, edit and delete recipes, with validation and a delete confirmation
 - [x] **Phase 4:** ratings and reviews with optimistic updates
 - [ ] **Phase 5:** AI-assisted descriptions, steps and ingredients
-- [ ] **Phase 6:** phone preview, tests, polish
+- [ ] **Phase 6:** dish variants and regional versions (e.g. Sinigang na Baboy, na Hipon, regional styles). See [docs/plans/dish-variants.md](docs/plans/dish-variants.md)
+- [ ] **Phase 7:** tests, bundle size, polish
