@@ -4,6 +4,8 @@ import { Link } from 'react-router'
 import { Plate } from '@/components/ui/Plate'
 import { Field, FieldMessage } from '@/components/ui/form'
 import { describedBy, inputClass } from '@/components/ui/formStyles'
+import { AiAssist } from '@/features/ai/components/AiAssist'
+import { toAiDraft } from '@/features/ai/draft'
 import type { Cuisine } from '@/features/cuisines/schema'
 import { cuisineTint } from '@/features/cuisines/utils'
 import { describeError } from '@/services/data'
@@ -16,7 +18,7 @@ import {
   type RecipeFormValues,
 } from '../form'
 import { DIFFICULTIES, type RecipeInput } from '../schema'
-import { DIFFICULTY_LABELS } from '../utils'
+import { DIFFICULTY_LABELS, formatQuantity } from '../utils'
 
 interface RecipeFormProps {
   defaultValues: RecipeFormValues
@@ -51,6 +53,8 @@ export function RecipeForm({
     register,
     control,
     handleSubmit,
+    getValues,
+    setValue,
     formState: { errors },
   } = useForm<RecipeFormValues>({
     resolver: zodResolver(recipeFormSchema),
@@ -67,6 +71,8 @@ export function RecipeForm({
   const cuisine = cuisines.find((c) => c.id === cuisineId)
 
   const numberField = { valueAsNumber: true } as const
+  // The AI reads the form at click time, so it sees what the cook just typed.
+  const getDraft = () => toAiDraft(getValues(), cuisines)
   const errorCount = countFieldErrors(errors)
 
   return (
@@ -139,6 +145,15 @@ export function RecipeForm({
             className={inputClass}
           />
         </Field>
+        <AiAssist
+          task="description"
+          label="Write a description"
+          getDraft={getDraft}
+          renderSuggestion={({ description }) => <p>{description}</p>}
+          onApply={({ description }) =>
+            setValue('description', description, { shouldDirty: true, shouldValidate: true })
+          }
+        />
         <div className="grid grid-cols-3 gap-3">
           <Field label="Prep (min)" htmlFor="prepMinutes" error={errors.prepMinutes?.message}>
             <input
@@ -211,6 +226,27 @@ export function RecipeForm({
       <fieldset>
         <legend className="font-display text-2xl">Ingredients</legend>
         <p className="mt-1 text-sm text-ink-subtle">Quantity and unit are optional, as in "2 eggs" or "salt".</p>
+        <div className="mt-3">
+          <AiAssist
+            task="ingredients"
+            label="Suggest ingredients"
+            applyLabel="Replace ingredient list"
+            getDraft={getDraft}
+            renderSuggestion={({ ingredients: list }) => (
+              <ul className="space-y-1">
+                {list.map((ingredient, index) => (
+                  <li key={index} className="flex gap-3">
+                    <span className="w-24 shrink-0 font-mono font-semibold tabular-nums">
+                      {ingredient.quantity !== undefined && formatQuantity(ingredient.quantity)} {ingredient.unit}
+                    </span>
+                    <span className="min-w-0">{ingredient.name}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+            onApply={({ ingredients: list }) => ingredients.replace(list)}
+          />
+        </div>
         <ul className="mt-4 space-y-3 sm:space-y-2">
           {ingredients.fields.map((field, index) => {
             const error = errors.ingredients?.[index]
@@ -281,6 +317,22 @@ export function RecipeForm({
       {/* Steps */}
       <fieldset>
         <legend className="font-display text-2xl">Steps</legend>
+        <div className="mt-3">
+          <AiAssist
+            task="steps"
+            label="Write or tidy up the steps"
+            applyLabel="Replace steps"
+            getDraft={getDraft}
+            renderSuggestion={({ steps: list }) => (
+              <ol className="list-decimal space-y-1 pl-5">
+                {list.map((step, index) => (
+                  <li key={index}>{step}</li>
+                ))}
+              </ol>
+            )}
+            onApply={({ steps: list }) => steps.replace(list.map((text) => ({ text })))}
+          />
+        </div>
         <ol className="mt-4 space-y-3">
           {steps.fields.map((field, index) => {
             const error = errors.steps?.[index]?.text?.message

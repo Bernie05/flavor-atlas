@@ -1,6 +1,6 @@
 # 🗺️ Flavor Atlas
 
-A recipe book organized by cuisine: browse Filipino, Chinese, Korean and Japanese dishes, add and edit your own, search and sort them, tick off ingredients as you prep, rate and review recipes, and (soon) write recipes with AI assistance.
+A recipe book organized by cuisine: browse Filipino, Chinese, Korean and Japanese dishes, add and edit your own, search and sort them, tick off ingredients as you prep, rate and review recipes, and get AI help writing descriptions, ingredient lists and steps.
 
 ## Design
 
@@ -74,6 +74,27 @@ services/data/DataService  the interface
 
 UI code depends only on the `DataService` interface. `VITE_DATA_SOURCE` picks the implementation, so the same app runs against json-server locally or fully offline as a demo.
 
+### AI writing helpers
+
+```
+RecipeForm ✨ → AiService (interface)
+                ├── httpAiService     → POST /api/ai → server/ai/handler.ts → Claude API
+                └── artifactAiService → claude.ai viewer's "sample" capability (phone preview)
+```
+
+- The API key lives only on the server. `ANTHROPIC_API_KEY` has no `VITE_` prefix, so Vite never bundles it; `/api/ai` is served by a Vite dev-server plugin (`server/vitePluginAi.ts`).
+- One prompt builder (`src/features/ai/prompts.ts`) serves both paths.
+- The server uses structured outputs (`betaZodOutputFormat`) so Claude replies in the requested JSON shape, then the browser validates the reply again with the same rules as a hand-typed recipe.
+- Suggestions are shown for review; nothing changes in the form until you choose **Use this**.
+
+To try it locally, add a key to `.env` and restart `npm run dev`:
+
+```bash
+ANTHROPIC_API_KEY=sk-ant-...
+```
+
+Without a key the app works normally and the AI buttons explain how to set it up. `/api/ai` exists only in the dev server for now; a production deployment needs the same handler as a serverless function.
+
 ### Environment variables
 
 | Variable | Values | Default |
@@ -81,6 +102,8 @@ UI code depends only on the `DataService` interface. `VITE_DATA_SOURCE` picks th
 | `VITE_API_URL` | json-server base URL | `http://localhost:3001` |
 | `VITE_DATA_SOURCE` | `http` or `mock` | `http` |
 | `VITE_ROUTER_MODE` | `browser` or `memory` | `browser` |
+| `VITE_AI_SOURCE` | `server` or `artifact` | `server` |
+| `ANTHROPIC_API_KEY` | Claude API key, **server only** | none |
 
 `.env.demo` sets the mock data source and memory router for `npm run dev:mock` and `npm run build:demo`.
 
@@ -93,7 +116,8 @@ src/
   features/     Code grouped by feature: recipes, cuisines, ratings
   lib/          Config and the query client
   pages/        Route-level pages
-  services/     Data access behind the DataService interface
+  services/     Data and AI access behind the DataService and AiService interfaces
+server/         Server-only code: the /api/ai handler and its Vite plugin
 ```
 
 Each feature has a `schema.ts` with Zod schemas. They are the single source of truth: TypeScript types are inferred from them, and the same schemas validate forms and AI output.
@@ -115,6 +139,6 @@ This repo ships Claude Code configuration in `.claude/`:
 - [x] **Redesign:** atlas-of-plates design system, ingredient checklist, Claude Code skill and reviewer agent
 - [x] **Phase 3:** create, edit and delete recipes, with validation and a delete confirmation
 - [x] **Phase 4:** ratings and reviews with optimistic updates
-- [ ] **Phase 5:** AI-assisted descriptions, steps and ingredients
+- [x] **Phase 5:** AI-assisted descriptions, ingredients and steps (Claude)
 - [ ] **Phase 6:** dish variants and regional versions (e.g. Sinigang na Baboy, na Hipon, regional styles). See [docs/plans/dish-variants.md](docs/plans/dish-variants.md)
 - [ ] **Phase 7:** tests, bundle size, polish
