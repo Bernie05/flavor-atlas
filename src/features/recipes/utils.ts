@@ -1,10 +1,19 @@
 import { summarizeRatings } from '@/features/ratings/summary'
+import { config } from '@/lib/config'
 import type { Difficulty, Ingredient, Recipe, RecipeWithRatings } from './schema'
 
 export const DIFFICULTY_LABELS: Record<Difficulty, string> = {
   easy: 'Easy',
   medium: 'Medium',
   hard: 'Hard',
+}
+
+/**
+ * The src for a recipe photo. Bundled photos ("/photos/x.webp") are resolved
+ * against the asset base, so they load in the phone demo too.
+ */
+export function photoSrc(imageUrl: string, assetBase = config.assetBase): string {
+  return imageUrl.startsWith('/photos/') ? assetBase + imageUrl.slice(1) : imageUrl
 }
 
 export const totalMinutes = (recipe: Pick<Recipe, 'prepMinutes' | 'cookMinutes'>) =>

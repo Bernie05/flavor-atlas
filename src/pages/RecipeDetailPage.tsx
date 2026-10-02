@@ -12,6 +12,7 @@ import { otherVersions } from '@/features/dishes/utils'
 import { RatingsSection } from '@/features/ratings/components/RatingsSection'
 import { summarizeRatings } from '@/features/ratings/summary'
 import { IngredientChecklist } from '@/features/recipes/components/IngredientChecklist'
+import { RecipeCover } from '@/features/recipes/components/RecipeCover'
 import { RecipeRow } from '@/features/recipes/components/RecipeRow'
 import { recipeQueries } from '@/features/recipes/queries'
 import type { RecipeWithRatings } from '@/features/recipes/schema'
@@ -119,19 +120,33 @@ function RecipeView({ recipe }: { recipe: RecipeWithRatings }) {
             ))}
           </dl>
         </div>
-        {recipe.imageUrl ? (
-          <img
-            src={recipe.imageUrl}
-            alt={recipe.title}
-            className="size-56 max-w-full justify-self-center rounded-full object-cover ring-8 ring-[var(--plate)]"
-          />
-        ) : (
-          <Plate
-            emoji={recipe.emoji || cuisine?.emoji || '🍽️'}
-            size="lg"
-            className="justify-self-center sm:size-60 sm:text-9xl"
-          />
-        )}
+        {/* A photo is served on a plate: a round crop with a plate-colored rim. */}
+        <RecipeCover
+          recipe={recipe}
+          className="size-56 justify-self-center rounded-full ring-8 ring-[var(--plate)] sm:size-64"
+          fallback={
+            <Plate
+              emoji={recipe.emoji || cuisine?.emoji || '🍽️'}
+              size="lg"
+              className="justify-self-center sm:size-60 sm:text-9xl"
+            />
+          }
+          caption={
+            recipe.imageCredit &&
+            (recipe.imageSourceUrl ? (
+              <a
+                href={recipe.imageSourceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block py-2 underline underline-offset-2"
+              >
+                {recipe.imageCredit}
+              </a>
+            ) : (
+              recipe.imageCredit
+            ))
+          }
+        />
       </header>
 
       {/* Phone-only toggle. Sticks under the site header while you cook. */}

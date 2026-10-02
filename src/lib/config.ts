@@ -12,6 +12,8 @@ interface AppConfig {
   aiSource: 'server' | 'artifact'
   /** 'server' uses the admin password login; 'artifact' lets only the claude.ai owner edit (phone demo). */
   authSource: 'server' | 'artifact'
+  /** Where bundled files (public/) are served from: '/' normally, './' in the phone demo. */
+  assetBase: string
 }
 
 const env = import.meta.env
@@ -22,4 +24,5 @@ export const config: AppConfig = {
   routerMode: env.VITE_ROUTER_MODE === 'memory' ? 'memory' : 'browser',
   aiSource: env.VITE_AI_SOURCE === 'artifact' ? 'artifact' : 'server',
   authSource: env.VITE_AUTH_SOURCE === 'artifact' ? 'artifact' : 'server',
+  assetBase: env.BASE_URL,
 }

@@ -339,6 +339,32 @@ export function RecipeForm({
             className={inputClass}
           />
         </Field>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field
+            label="Photo credit (optional)"
+            htmlFor="imageCredit"
+            error={errors.imageCredit?.message}
+            hint="Free photos usually require it, e.g. “Photo: Jane Doe, CC BY 4.0”."
+          >
+            <input
+              id="imageCredit"
+              {...register('imageCredit')}
+              {...describedBy('imageCredit', errors.imageCredit?.message, true)}
+              className={inputClass}
+            />
+          </Field>
+          <Field label="Photo source page (optional)" htmlFor="imageSourceUrl" error={errors.imageSourceUrl?.message}>
+            <input
+              id="imageSourceUrl"
+              type="url"
+              inputMode="url"
+              {...register('imageSourceUrl')}
+              {...describedBy('imageSourceUrl', errors.imageSourceUrl?.message)}
+              placeholder="https://"
+              className={inputClass}
+            />
+          </Field>
+        </div>
       </fieldset>
 
       {/* Ingredients */}

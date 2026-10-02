@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { RecipeWithRatings } from './schema'
 import {
+  photoSrc,
   applyRecipeFilters,
   DEFAULT_FILTERS,
   filterRecipes,
@@ -24,6 +25,8 @@ const makeRecipe = (overrides: Partial<RecipeWithRatings>): RecipeWithRatings =>
   cuisineId: 'korean',
   description: '',
   imageUrl: '',
+  imageCredit: '',
+  imageSourceUrl: '',
   prepMinutes: 10,
   cookMinutes: 10,
   servings: 2,
@@ -158,5 +161,16 @@ describe('applyRecipeFilters', () => {
     expect(ids(applyRecipeFilters(all, { ...DEFAULT_FILTERS, quick: true }))).toEqual(['kimchi'])
     expect(ids(applyRecipeFilters(all, { ...DEFAULT_FILTERS, query: 'adobo' }))).toEqual(['adobo'])
     expect(ids(applyRecipeFilters(all, { ...DEFAULT_FILTERS, sort: 'quickest' }))).toEqual(['kimchi', 'bibimbap', 'adobo'])
+  })
+})
+
+describe('photoSrc', () => {
+  it('resolves bundled photos against the asset base', () => {
+    expect(photoSrc('/photos/chicken-adobo.webp', '/')).toBe('/photos/chicken-adobo.webp')
+    expect(photoSrc('/photos/chicken-adobo.webp', './')).toBe('./photos/chicken-adobo.webp')
+  })
+
+  it('leaves full links alone', () => {
+    expect(photoSrc('https://example.com/a.jpg', './')).toBe('https://example.com/a.jpg')
   })
 })

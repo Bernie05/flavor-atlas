@@ -12,6 +12,8 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
 
   return {
+    // The phone demo is served from an unknown path, so it loads bundled photos relative to the page.
+    base: mode === 'demo' ? './' : '/',
     plugins: [
       react(),
       tailwindcss(),

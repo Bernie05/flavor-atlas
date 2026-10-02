@@ -46,6 +46,7 @@ Wrap anything that belongs to a cuisine with `style={cuisineTint(cuisineId)}` fr
 
 ## Signature elements
 
+- **Photos** go through `RecipeCover`: 4:3 on cards, a round crop with a plate-colored ring on the recipe hero, with the credit as a small caption under it. If a photo fails to load, the plate takes its place (and the credit hides).
 - **Plate** (`components/ui/Plate.tsx`): the picture for any recipe without a photo. Use `recipe.emoji || cuisine.emoji`. Sizes `sm`, `md`, `lg`.
 - **Atlas dots** (`.atlas-dots`): dotted map background in the current tint. Use for covers and tinted headers only, not on every surface.
 - **Coordinates**: cuisines show `origin · formatCoordinates(cuisine)` in `.label-mono`.

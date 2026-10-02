@@ -14,6 +14,8 @@ const adobo: RecipeWithRatings = {
   variantNote: '',
   description: 'Braised chicken.',
   imageUrl: '',
+  imageCredit: '',
+  imageSourceUrl: '',
   prepMinutes: 10,
   cookMinutes: 45,
   servings: 4,
@@ -113,5 +115,28 @@ describe('reuseExistingDish', () => {
 
   it('only matches dishes in the same cuisine', () => {
     expect(reuseExistingDish(submission('filipino', 'Ramen'), dishes).newDishName).toBe('Ramen')
+  })
+})
+
+describe('photo fields', () => {
+  const withPhoto = (imageUrl: string, imageSourceUrl = '') =>
+    recipeFormSchema.safeParse({
+      ...toFormValues(undefined, { cuisineId: 'filipino', dishId: 'adobo' }),
+      title: 'Adobo',
+      ingredients: [{ name: 'chicken', quantity: 1, unit: 'kg' }],
+      steps: [{ text: 'Braise the chicken.' }],
+      imageUrl,
+      imageSourceUrl,
+    })
+
+  it('accepts https links and bundled photos', () => {
+    expect(withPhoto('https://example.com/adobo.jpg').success).toBe(true)
+    expect(withPhoto('/photos/chicken-adobo.webp').success).toBe(true)
+  })
+
+  it('rejects other schemes and paths, since these end up in src and href', () => {
+    expect(withPhoto('http://example.com/adobo.jpg').success).toBe(false)
+    expect(withPhoto('/photos/../secret.webp').success).toBe(false)
+    expect(withPhoto('', 'javascript:alert(1)').success).toBe(false)
   })
 })

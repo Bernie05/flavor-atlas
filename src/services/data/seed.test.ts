@@ -5,6 +5,8 @@ import { dbSchema } from './mockDataService'
 // The seed is hand-written data with many cross-references. These checks catch
 // a typo'd id before it becomes a blank page.
 const db = dbSchema.parse(seed)
+// Vite lists the files at build time, so the test needs no Node fs types.
+const bundledPhotos = new Set(Object.keys(import.meta.glob('../../../public/photos/*')).map((path) => path.replace('../../../public', '')))
 
 describe('db.seed.json', () => {
   const cuisineIds = new Set(db.cuisines.map((c) => c.id))
@@ -33,6 +35,16 @@ describe('db.seed.json', () => {
     for (const recipe of db.recipes.filter((r) => r.regionId)) {
       expect(regions.get(recipe.regionId)?.cuisineId, recipe.title).toBe(recipe.cuisineId)
       expect(recipe.variantNote, recipe.title).not.toBe('')
+    }
+  })
+
+  it('credits every photo and ships every bundled one', () => {
+    for (const recipe of db.recipes.filter((r) => r.imageUrl)) {
+      expect(recipe.imageCredit, recipe.title).not.toBe('')
+      expect(recipe.imageSourceUrl, recipe.title).not.toBe('')
+      if (recipe.imageUrl.startsWith('/photos/')) {
+        expect(bundledPhotos, recipe.imageUrl).toContain(recipe.imageUrl)
+      }
     }
   })
 

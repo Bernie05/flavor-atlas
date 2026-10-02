@@ -5,6 +5,9 @@ import { ratingSchema } from '@/features/ratings/schema'
 // From them we derive TypeScript types (z.infer), validate forms,
 // and later validate AI output before it reaches the form.
 
+/** Photos shipped in public/photos: "/photos/chicken-adobo.webp". */
+export const LOCAL_PHOTO = /^\/photos\/[a-z0-9-]+\.(webp|jpg)$/
+
 export const DIFFICULTIES = ['easy', 'medium', 'hard'] as const
 
 export const ingredientSchema = z.object({
@@ -30,7 +33,16 @@ export const recipeInputSchema = z.object({
   /** One line on what makes this version different, shown with its region. */
   variantNote: z.string().trim().max(160, 'Keep the note to one line'),
   description: z.string().trim().max(500, 'Keep the description under 500 characters'),
-  imageUrl: z.union([z.url('Enter a full link starting with https://'), z.literal('')]),
+  /** A full https link, a photo bundled with the app (/photos/…), or '' for the plate. */
+  imageUrl: z.union([
+    z.url({ protocol: /^https$/, error: 'Enter a full link starting with https://' }),
+    z.string().regex(LOCAL_PHOTO),
+    z.literal(''),
+  ]),
+  /** Who took the photo and its license, e.g. "Photo: Jane Doe, CC BY-SA 4.0". Required by most free licenses. */
+  imageCredit: z.string().trim().max(160, 'Keep the credit short'),
+  /** The photo's source page, linked from the credit. */
+  imageSourceUrl: z.union([z.url({ protocol: /^https$/, error: 'Enter a full link starting with https://' }), z.literal('')]),
   prepMinutes: z.number({ error: 'Enter minutes' }).int('Use whole minutes').min(0, 'Cannot be negative'),
   cookMinutes: z.number({ error: 'Enter minutes' }).int('Use whole minutes').min(0, 'Cannot be negative'),
   servings: z.number({ error: 'Enter servings' }).int('Use a whole number').min(1, 'Serves at least 1'),
