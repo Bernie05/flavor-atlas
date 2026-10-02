@@ -1,0 +1,244 @@
+{
+  "cuisines": [
+    { "id": "filipino", "name": "Filipino", "emoji": "🇵🇭", "description": "Bold sour, salty and savory flavors from the islands." },
+    { "id": "chinese", "name": "Chinese", "emoji": "🥟", "description": "Wok-fired dishes, dumplings and regional spice." },
+    { "id": "korean", "name": "Korean", "emoji": "🌶️", "description": "Fermented, spicy and comforting home cooking." },
+    { "id": "japanese", "name": "Japanese", "emoji": "🍱", "description": "Clean, balanced flavors built on dashi and soy." }
+  ],
+  "recipes": [
+    {
+      "id": "1",
+      "title": "Chicken Adobo",
+      "cuisineId": "filipino",
+      "description": "Chicken braised in vinegar, soy sauce, garlic and bay leaves until tender and glossy. The unofficial national dish of the Philippines.",
+      "imageUrl": "",
+      "prepMinutes": 10,
+      "cookMinutes": 45,
+      "servings": 4,
+      "difficulty": "easy",
+      "ingredients": [
+        { "name": "chicken thighs and drumsticks", "quantity": 1, "unit": "kg" },
+        { "name": "soy sauce", "quantity": 0.5, "unit": "cup" },
+        { "name": "cane vinegar", "quantity": 0.33, "unit": "cup" },
+        { "name": "garlic, crushed", "quantity": 1, "unit": "head" },
+        { "name": "bay leaves", "quantity": 3, "unit": "" },
+        { "name": "whole black peppercorns", "quantity": 1, "unit": "tsp" },
+        { "name": "water", "quantity": 1, "unit": "cup" }
+      ],
+      "steps": [
+        "Combine the chicken, soy sauce and garlic in a pot and marinate for at least 15 minutes.",
+        "Add the water, bay leaves and peppercorns. Bring to a boil over medium-high heat.",
+        "Pour in the vinegar and let it boil for 2 minutes without stirring to mellow the sharpness.",
+        "Lower the heat, cover and simmer for 30 minutes until the chicken is tender.",
+        "Uncover and reduce the sauce until slightly thick. Serve with steamed rice."
+      ],
+      "createdAt": "2026-09-20T08:00:00.000Z"
+    },
+    {
+      "id": "2",
+      "title": "Sinigang na Baboy",
+      "cuisineId": "filipino",
+      "description": "A sour tamarind soup with tender pork belly and vegetables. Comfort food for rainy days.",
+      "imageUrl": "",
+      "prepMinutes": 15,
+      "cookMinutes": 75,
+      "servings": 6,
+      "difficulty": "medium",
+      "ingredients": [
+        { "name": "pork belly, cubed", "quantity": 1, "unit": "kg" },
+        { "name": "tamarind soup base", "quantity": 1, "unit": "packet" },
+        { "name": "tomatoes, quartered", "quantity": 2, "unit": "" },
+        { "name": "onion, quartered", "quantity": 1, "unit": "" },
+        { "name": "radish, sliced", "quantity": 1, "unit": "" },
+        { "name": "string beans", "quantity": 1, "unit": "bunch" },
+        { "name": "kangkong (water spinach)", "quantity": 1, "unit": "bunch" },
+        { "name": "fish sauce", "quantity": 2, "unit": "tbsp" },
+        { "name": "water", "quantity": 2, "unit": "liters" }
+      ],
+      "steps": [
+        "Boil the pork in water, skimming off the scum, then add the onion and tomatoes.",
+        "Simmer for about 1 hour until the pork is tender.",
+        "Add the radish and cook for 5 minutes, then the string beans for 3 minutes.",
+        "Stir in the tamarind soup base and season with fish sauce.",
+        "Add the kangkong, turn off the heat and serve hot."
+      ],
+      "createdAt": "2026-09-21T08:00:00.000Z"
+    },
+    {
+      "id": "3",
+      "title": "Mapo Tofu",
+      "cuisineId": "chinese",
+      "description": "Silky tofu in a fiery, numbing Sichuan sauce with ground pork and fermented broad bean paste.",
+      "imageUrl": "",
+      "prepMinutes": 10,
+      "cookMinutes": 15,
+      "servings": 3,
+      "difficulty": "medium",
+      "ingredients": [
+        { "name": "soft tofu, cubed", "quantity": 400, "unit": "g" },
+        { "name": "ground pork", "quantity": 150, "unit": "g" },
+        { "name": "doubanjiang (chili bean paste)", "quantity": 2, "unit": "tbsp" },
+        { "name": "ground Sichuan peppercorns", "quantity": 1, "unit": "tsp" },
+        { "name": "garlic, minced", "quantity": 3, "unit": "cloves" },
+        { "name": "chicken stock", "quantity": 1, "unit": "cup" },
+        { "name": "cornstarch slurry", "quantity": 2, "unit": "tbsp" },
+        { "name": "scallions, sliced", "quantity": 2, "unit": "" }
+      ],
+      "steps": [
+        "Blanch the tofu cubes in salted simmering water for 2 minutes, then drain.",
+        "Fry the ground pork until browned, then add the doubanjiang and garlic and cook until fragrant.",
+        "Pour in the stock, slide in the tofu and simmer gently for 5 minutes.",
+        "Thicken with the cornstarch slurry, pushing the tofu gently so it doesn't break.",
+        "Finish with Sichuan pepper and scallions. Serve over rice."
+      ],
+      "createdAt": "2026-09-22T08:00:00.000Z"
+    },
+    {
+      "id": "4",
+      "title": "Egg Fried Rice",
+      "cuisineId": "chinese",
+      "description": "Fluffy day-old rice tossed in a hot wok with egg, scallions and soy sauce. Ready in 15 minutes.",
+      "imageUrl": "",
+      "prepMinutes": 5,
+      "cookMinutes": 10,
+      "servings": 2,
+      "difficulty": "easy",
+      "ingredients": [
+        { "name": "cooked rice, chilled overnight", "quantity": 3, "unit": "cups" },
+        { "name": "eggs, beaten", "quantity": 3, "unit": "" },
+        { "name": "scallions, sliced", "quantity": 3, "unit": "" },
+        { "name": "light soy sauce", "quantity": 1, "unit": "tbsp" },
+        { "name": "neutral oil", "quantity": 2, "unit": "tbsp" },
+        { "name": "white pepper", "quantity": 0.25, "unit": "tsp" }
+      ],
+      "steps": [
+        "Heat the oil in a wok over high heat until shimmering.",
+        "Pour in the eggs and scramble until just set, then break them into small pieces.",
+        "Add the rice and toss constantly for 3 to 4 minutes until every grain is hot.",
+        "Season with soy sauce and white pepper, then fold in the scallions and serve."
+      ],
+      "createdAt": "2026-09-23T08:00:00.000Z"
+    },
+    {
+      "id": "5",
+      "title": "Kimchi Fried Rice",
+      "cuisineId": "korean",
+      "description": "Tangy, spicy fried rice made with well-fermented kimchi and topped with a runny fried egg.",
+      "imageUrl": "",
+      "prepMinutes": 5,
+      "cookMinutes": 15,
+      "servings": 2,
+      "difficulty": "easy",
+      "ingredients": [
+        { "name": "cooked rice", "quantity": 2, "unit": "cups" },
+        { "name": "kimchi, chopped", "quantity": 1, "unit": "cup" },
+        { "name": "kimchi juice", "quantity": 2, "unit": "tbsp" },
+        { "name": "gochujang", "quantity": 1, "unit": "tbsp" },
+        { "name": "sesame oil", "quantity": 1, "unit": "tsp" },
+        { "name": "eggs", "quantity": 2, "unit": "" },
+        { "name": "roasted seaweed, crumbled", "quantity": 1, "unit": "sheet" }
+      ],
+      "steps": [
+        "Stir-fry the kimchi in a little oil for 3 minutes until slightly caramelized.",
+        "Add the rice, kimchi juice and gochujang and fry until evenly red and hot.",
+        "Drizzle with sesame oil and divide between two bowls.",
+        "Fry the eggs sunny side up, place one on each bowl and top with seaweed."
+      ],
+      "createdAt": "2026-09-24T08:00:00.000Z"
+    },
+    {
+      "id": "6",
+      "title": "Bibimbap",
+      "cuisineId": "korean",
+      "description": "A colorful rice bowl with seasoned vegetables, beef, a fried egg and spicy gochujang sauce, mixed together just before eating.",
+      "imageUrl": "",
+      "prepMinutes": 30,
+      "cookMinutes": 20,
+      "servings": 4,
+      "difficulty": "medium",
+      "ingredients": [
+        { "name": "cooked short-grain rice", "quantity": 4, "unit": "cups" },
+        { "name": "beef sirloin, thinly sliced", "quantity": 250, "unit": "g" },
+        { "name": "spinach", "quantity": 200, "unit": "g" },
+        { "name": "bean sprouts", "quantity": 200, "unit": "g" },
+        { "name": "carrot, julienned", "quantity": 1, "unit": "" },
+        { "name": "shiitake mushrooms, sliced", "quantity": 6, "unit": "" },
+        { "name": "eggs", "quantity": 4, "unit": "" },
+        { "name": "gochujang", "quantity": 3, "unit": "tbsp" },
+        { "name": "sesame oil", "quantity": 2, "unit": "tbsp" }
+      ],
+      "steps": [
+        "Marinate the beef in soy sauce, sugar, garlic and sesame oil for 15 minutes.",
+        "Blanch the spinach and bean sprouts separately and season each with sesame oil and salt.",
+        "Sauté the carrot and mushrooms separately, then cook the beef over high heat.",
+        "Fry the eggs sunny side up.",
+        "Arrange everything over the rice, top with an egg and serve with gochujang to mix in."
+      ],
+      "createdAt": "2026-09-25T08:00:00.000Z"
+    },
+    {
+      "id": "7",
+      "title": "Chicken Teriyaki",
+      "cuisineId": "japanese",
+      "description": "Crispy-skinned chicken thighs glazed in a sweet and savory homemade teriyaki sauce.",
+      "imageUrl": "",
+      "prepMinutes": 5,
+      "cookMinutes": 20,
+      "servings": 2,
+      "difficulty": "easy",
+      "ingredients": [
+        { "name": "boneless chicken thighs, skin on", "quantity": 2, "unit": "" },
+        { "name": "soy sauce", "quantity": 3, "unit": "tbsp" },
+        { "name": "mirin", "quantity": 3, "unit": "tbsp" },
+        { "name": "sake", "quantity": 2, "unit": "tbsp" },
+        { "name": "sugar", "quantity": 1, "unit": "tbsp" }
+      ],
+      "steps": [
+        "Mix the soy sauce, mirin, sake and sugar into a sauce.",
+        "Place the chicken skin side down in a cold pan, then cook over medium heat for 8 minutes until crisp.",
+        "Flip and cook for another 5 minutes. Wipe out the excess fat.",
+        "Pour in the sauce and simmer, spooning it over the chicken until glossy and thick.",
+        "Slice and serve with rice, drizzling the remaining glaze on top."
+      ],
+      "createdAt": "2026-09-26T08:00:00.000Z"
+    },
+    {
+      "id": "8",
+      "title": "Miso Soup",
+      "cuisineId": "japanese",
+      "description": "A light, savory soup of dashi and miso with tofu, wakame and scallions. Ready in 10 minutes.",
+      "imageUrl": "",
+      "prepMinutes": 5,
+      "cookMinutes": 5,
+      "servings": 4,
+      "difficulty": "easy",
+      "ingredients": [
+        { "name": "dashi stock", "quantity": 4, "unit": "cups" },
+        { "name": "white miso paste", "quantity": 3, "unit": "tbsp" },
+        { "name": "silken tofu, cubed", "quantity": 200, "unit": "g" },
+        { "name": "dried wakame", "quantity": 1, "unit": "tbsp" },
+        { "name": "scallions, sliced", "quantity": 2, "unit": "" }
+      ],
+      "steps": [
+        "Soak the wakame in water for 5 minutes, then drain.",
+        "Heat the dashi until just below a simmer.",
+        "Dissolve the miso in a ladle of the warm dashi, then stir it back into the pot. Don't let it boil.",
+        "Add the tofu and wakame and warm through for 1 minute.",
+        "Serve topped with scallions."
+      ],
+      "createdAt": "2026-09-27T08:00:00.000Z"
+    }
+  ],
+  "ratings": [
+    { "id": "1", "recipeId": "1", "score": 5, "comment": "Tastes like home.", "createdAt": "2026-09-28T10:00:00.000Z" },
+    { "id": "2", "recipeId": "1", "score": 4, "comment": "", "createdAt": "2026-09-28T11:00:00.000Z" },
+    { "id": "3", "recipeId": "2", "score": 5, "comment": "Perfectly sour.", "createdAt": "2026-09-28T12:00:00.000Z" },
+    { "id": "4", "recipeId": "3", "score": 4, "comment": "Spicy, as it should be.", "createdAt": "2026-09-29T10:00:00.000Z" },
+    { "id": "5", "recipeId": "4", "score": 4, "comment": "", "createdAt": "2026-09-29T11:00:00.000Z" },
+    { "id": "6", "recipeId": "5", "score": 5, "comment": "Use old kimchi, trust me.", "createdAt": "2026-09-30T10:00:00.000Z" },
+    { "id": "7", "recipeId": "5", "score": 5, "comment": "", "createdAt": "2026-09-30T11:00:00.000Z" },
+    { "id": "8", "recipeId": "6", "score": 4, "comment": "Lots of prep but worth it.", "createdAt": "2026-09-30T12:00:00.000Z" },
+    { "id": "9", "recipeId": "7", "score": 5, "comment": "", "createdAt": "2026-10-01T10:00:00.000Z" },
+    { "id": "10", "recipeId": "8", "score": 3, "comment": "Simple and nice.", "createdAt": "2026-10-01T11:00:00.000Z" }
+  ]
+}
