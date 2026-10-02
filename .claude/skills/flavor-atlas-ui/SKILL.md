@@ -47,7 +47,8 @@ Wrap anything that belongs to a cuisine with `style={cuisineTint(cuisineId)}` fr
 ## Signature elements
 
 - **Photos fill their area, never a circle.** Cards: `RecipeCover`, 4:3, edge to edge. Recipe hero and the featured card: the photo is the background, with `.photo-scrim` and `.on-photo` (a scoped theme that turns the tokens light, so stars, labels and links need no special cases). The credit is a small pill over the photo (`PhotoCredit`). `usePhoto` drops a photo that fails to load, and the emoji layout takes its place.
-- **FoodEmoji** (`components/ui/FoodEmoji.tsx`): the picture for a recipe without a photo, set straight on `atlas-dots` (no plate). Use `recipe.emoji || cuisine.emoji`. `sm` is a tinted tile for list rows; `md`/`lg` float with a soft shadow.
+- **Cuisine cloth** (`features/cuisines/components/CuisineCloth.tsx`): the picture area for a recipe without a photo. Each cuisine has a traditional pattern drawn as inline SVG in its tint: Japanese seigaiha waves, Korean jogakbo patchwork, Chinese huiwen fret, Filipino banig weave; unknown cuisines get `atlas-dots`. A spotlight (`--glow`) fades the pattern behind the dish. Never put text on the cloth: on heroes it is a separate picture panel next to the text, on a plain `bg-tint-soft`. A new cuisine needs a pattern here and a tile size in `TILES`.
+- **FoodEmoji** (`components/ui/FoodEmoji.tsx`): the dish on the cloth, with a soft contact shadow (`.food-emoji-grounded`). Use `recipe.emoji || cuisine.emoji`. `sm` is a tinted tile for list rows; `md`/`lg` float with a soft shadow.
 - **Atlas dots** (`.atlas-dots`): dotted map background in the current tint. Use for covers and tinted headers only, not on every surface.
 - **Coordinates**: cuisines show `origin · formatCoordinates(cuisine)` in `.label-mono`.
 - **Region tag** (`features/dishes/components/RegionTag.tsx`): "📍 Name · coords" in `.label-mono` for regional versions. A regional version shows its tag plus the one-line `variantNote` (italic serif on the recipe hero, plain text on cards with `showVariantNote`). Classic versions show neither.
@@ -65,7 +66,7 @@ Breadcrumb (Recipes / Cuisine / Dish) → hero (tinted, dotted), region tag + no
 - Max width `max-w-6xl`, side gutter `px-4`, sections separated with `space-y-*` / `gap-*`, not margins on children.
 - Phone first: check 390px and 320px wide. Grids go 1 column (recipes) or 2 columns (cuisine tiles) on phones.
 - Radius by role: `rounded-3xl` tinted headers, `rounded-2xl` cards, `rounded-full` pills, inputs and buttons.
-- Recipe cards are editorial: the picture block (`rounded-2xl`, photo or emoji on `atlas-dots`) carries the card, text sits below on the page, hover underlines the title. Panels and lists use `bg-surface ring-1 ring-line`. No shadows except the floating emoji.
+- Recipe cards are editorial: the picture block (`rounded-2xl`, photo, or emoji on the cuisine cloth) carries the card, text sits below on the page, hover underlines the title. Panels and lists use `bg-surface ring-1 ring-line`. No shadows except the floating emoji.
 - Collection rows (`RecipeRow`) swipe sideways on phones (`snap-x`, ~78% card width) and become a grid on `sm+`.
 - Primary button: `bg-ink text-canvas hover:bg-accent rounded-full`. Text links: `text-accent hover:text-accent-hover`.
 - Forms: wrap controls in `Field` (`components/ui/form.tsx`) with `inputClass` and `describedBy()` from `formStyles.ts`. Validate with the Zod schema through `zodResolver`. Field errors are plain text linked by `aria-describedby`; the form has exactly one `role="alert"` summary ("Fix 3 fields to save."). Never use `window.confirm()`; use `ConfirmDialog`.

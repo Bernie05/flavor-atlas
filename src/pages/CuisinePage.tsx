@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router'
 import { CardGridSkeleton } from '@/components/feedback/CardGridSkeleton'
 import { ErrorState } from '@/components/feedback/ErrorState'
 import { FoodEmoji } from '@/components/ui/FoodEmoji'
+import { CuisineCloth } from '@/features/cuisines/components/CuisineCloth'
 import { cuisineQueries } from '@/features/cuisines/queries'
 import { cuisineTint, formatCoordinates } from '@/features/cuisines/utils'
 import { DishCard } from '@/features/dishes/components/DishCard'
@@ -35,7 +36,7 @@ function CuisineView({ cuisineId }: { cuisineId: string }) {
     <div className="space-y-10" style={cuisineTint(cuisineId)}>
       {cuisine.data && <title>{`${cuisine.data.name} recipes · Flavor Atlas`}</title>}
 
-      <header className="atlas-dots -mx-4 grid items-center gap-6 px-4 py-10 sm:mx-0 sm:grid-cols-[1fr_auto] sm:rounded-3xl sm:px-10">
+      <header className="-mx-4 grid items-center gap-6 bg-tint-soft px-4 py-8 sm:mx-0 sm:grid-cols-[1fr_auto] sm:rounded-3xl sm:py-8 sm:pr-8 sm:pl-10">
         <div className="min-w-0 space-y-3">
           <nav aria-label="Breadcrumb">
             <Link to="/recipes" className="label-mono inline-flex min-h-10 items-center text-tint-ink hover:underline">
@@ -52,7 +53,10 @@ function CuisineView({ cuisineId }: { cuisineId: string }) {
           )}
           <p className="max-w-prose text-lg text-ink-muted">{cuisine.data?.description}</p>
         </div>
-        <FoodEmoji emoji={cuisine.data?.emoji ?? '🍽️'} size="lg" className="justify-self-center" />
+        {/* The cuisine's own cloth: seigaiha, jogakbo, huiwen or banig. */}
+        <CuisineCloth cuisineId={cuisineId} className="order-first aspect-[4/3] w-full rounded-2xl sm:order-none sm:aspect-square sm:w-56">
+          <FoodEmoji emoji={cuisine.data?.emoji ?? '🍽️'} size="lg" />
+        </CuisineCloth>
       </header>
 
       {recipes.data && dishes.data && (

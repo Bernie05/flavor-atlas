@@ -4,6 +4,7 @@ import { Link, useParams } from 'react-router'
 import { ErrorState } from '@/components/feedback/ErrorState'
 import { FoodEmoji } from '@/components/ui/FoodEmoji'
 import { StarRating } from '@/components/ui/StarRating'
+import { CuisineCloth } from '@/features/cuisines/components/CuisineCloth'
 import { cuisineQueries } from '@/features/cuisines/queries'
 import { cuisineTint } from '@/features/cuisines/utils'
 import { RegionTag } from '@/features/dishes/components/RegionTag'
@@ -81,12 +82,12 @@ function RecipeView({ recipe }: { recipe: RecipeWithRatings }) {
     <article className="space-y-12" style={cuisineTint(recipe.cuisineId)}>
       <title>{`${recipe.title} · Flavor Atlas`}</title>
 
-      {/* With a photo, the photo is the hero's background; without one, the emoji sits on the cuisine's dots. */}
+      {/* With a photo, the photo is the hero's background; without one, the dish sits on its cuisine's cloth. */}
       <header
         className={`-mx-4 -mt-6 sm:mx-0 sm:mt-0 sm:rounded-3xl ${
           photo.visible
             ? 'on-photo relative isolate overflow-hidden px-4 pt-60 pb-8 sm:px-10 sm:pt-72 sm:pb-12 lg:pt-56'
-            : 'atlas-dots grid items-center gap-8 px-4 py-10 sm:px-10 sm:py-12 lg:grid-cols-[1fr_auto]'
+            : 'grid items-center gap-8 bg-tint-soft px-4 py-8 sm:px-8 sm:py-8 lg:grid-cols-[1fr_auto] lg:py-10 lg:pl-10'
         }`}
       >
         {photo.visible && (
@@ -143,7 +144,12 @@ function RecipeView({ recipe }: { recipe: RecipeWithRatings }) {
           </dl>
         </div>
         {!photo.visible && (
-          <FoodEmoji emoji={recipe.emoji || cuisine?.emoji || '🍽️'} size="lg" className="order-first justify-self-center lg:order-none" />
+          <CuisineCloth
+            cuisineId={recipe.cuisineId}
+            className="order-first aspect-[4/3] w-full rounded-2xl lg:order-none lg:aspect-square lg:w-80"
+          >
+            <FoodEmoji emoji={recipe.emoji || cuisine?.emoji || '🍽️'} size="lg" />
+          </CuisineCloth>
         )}
       </header>
 

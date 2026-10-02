@@ -1,6 +1,7 @@
 import { Link } from 'react-router'
 import { FoodEmoji } from '@/components/ui/FoodEmoji'
 import { StarRating } from '@/components/ui/StarRating'
+import { CuisineCloth } from '@/features/cuisines/components/CuisineCloth'
 import type { Cuisine } from '@/features/cuisines/schema'
 import { cuisineTint } from '@/features/cuisines/utils'
 import { summarizeRatings } from '@/features/ratings/summary'
@@ -23,7 +24,7 @@ export function FeaturedRecipeCard({ recipe, cuisine }: FeaturedRecipeCardProps)
       to={`/recipes/${recipe.id}`}
       style={cuisineTint(recipe.cuisineId)}
       className={`group relative isolate grid items-center gap-6 overflow-hidden rounded-3xl p-6 sm:p-8 ${
-        photo.visible ? 'on-photo pt-56 sm:pt-72' : 'atlas-dots sm:grid-cols-[1fr_auto]'
+        photo.visible ? 'on-photo pt-56 sm:pt-72' : 'bg-tint-soft sm:grid-cols-[1fr_auto]'
       }`}
     >
       {photo.visible && (
@@ -51,11 +52,12 @@ export function FeaturedRecipeCard({ recipe, cuisine }: FeaturedRecipeCardProps)
         </span>
       </div>
       {!photo.visible && (
-        <FoodEmoji
-          emoji={recipe.emoji || cuisine?.emoji || '🍽️'}
-          size="lg"
-          className="order-first justify-self-center sm:order-none"
-        />
+        <CuisineCloth
+          cuisineId={recipe.cuisineId}
+          className="order-first aspect-[4/3] w-full rounded-2xl sm:order-none sm:aspect-square sm:w-64"
+        >
+          <FoodEmoji emoji={recipe.emoji || cuisine?.emoji || '🍽️'} size="lg" />
+        </CuisineCloth>
       )}
     </Link>
   )

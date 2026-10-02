@@ -52,6 +52,8 @@
   --plate: #ffffff;
   --plate-rim: #e3e7e0;
   --plate-shadow: rgb(23 32 28 / 0.28);
+  /* Spotlight behind a dish on its cuisine's cloth */
+  --glow: rgb(255 255 255 / 0.92);
 
   /* Feedback */
   --star: #a86a00;
@@ -92,6 +94,7 @@
     --plate: #222b27;
     --plate-rim: #34403b;
     --plate-shadow: rgb(0 0 0 / 0.6);
+    --glow: rgb(13 18 16 / 0.85);
     --star: #f4b42a;
     --star-empty: #3a4540;
     --danger: #f97066;
@@ -129,6 +132,7 @@
   --plate: #222b27;
   --plate-rim: #34403b;
   --plate-shadow: rgb(0 0 0 / 0.6);
+    --glow: rgb(13 18 16 / 0.85);
   --star: #f4b42a;
   --star-empty: #3a4540;
   --danger: #f97066;
@@ -231,13 +235,33 @@ body {
     background-size: 14px 14px;
   }
 
+  /* The pattern fades out behind the dish, like light falling on the table. */
+  .cloth-spotlight {
+    background: radial-gradient(closest-side, var(--glow) 0%, color-mix(in oklab, var(--glow) 55%, transparent) 55%, transparent 100%);
+  }
+
   /* A recipe without a photo: its emoji, tilting a little on hover. */
   .food-emoji {
+    position: relative;
     display: inline-grid;
     flex-shrink: 0;
     place-items: center;
     line-height: 1;
     transition: transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  /* A soft contact shadow, so the dish sits on the cloth instead of floating. */
+  .food-emoji-grounded::after {
+    content: '';
+    position: absolute;
+    bottom: -0.12em;
+    left: 50%;
+    z-index: -1;
+    width: 0.8em;
+    height: 0.14em;
+    translate: -50% 0;
+    border-radius: 50%;
+    background: radial-gradient(closest-side, var(--plate-shadow), transparent);
   }
 
   .group:hover .food-emoji,

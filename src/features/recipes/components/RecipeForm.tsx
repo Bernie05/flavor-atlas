@@ -147,7 +147,7 @@ export function RecipeForm({
         {/* The card picture as the site will show it: the photo, or the emoji on the cuisine's dots. */}
         <div className="grid content-center gap-2">
           <RecipeCover
-            recipe={{ title: title || 'Recipe', imageUrl: previewImageUrl }}
+            recipe={{ title: title || 'Recipe', imageUrl: previewImageUrl, cuisineId }}
             emoji={emoji || cuisine?.emoji}
             className="aspect-[4/3] w-full rounded-2xl ring-1 ring-tint/30"
           />

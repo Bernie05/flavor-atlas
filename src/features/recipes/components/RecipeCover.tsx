@@ -1,10 +1,11 @@
 import { FoodEmoji } from '@/components/ui/FoodEmoji'
+import { CuisineCloth } from '@/features/cuisines/components/CuisineCloth'
 import type { Recipe } from '../schema'
 import { usePhoto } from '../usePhoto'
 
 interface RecipeCoverProps {
-  recipe: Pick<Recipe, 'title' | 'imageUrl'>
-  /** Shown on the cuisine's dotted color when the recipe has no photo. */
+  recipe: Pick<Recipe, 'title' | 'imageUrl' | 'cuisineId'>
+  /** Shown on the cuisine's cloth when the recipe has no photo. */
   emoji?: string
   emojiSize?: 'sm' | 'md' | 'lg'
   className?: string
@@ -12,7 +13,7 @@ interface RecipeCoverProps {
 
 /**
  * The picture area of a recipe: its photo filling the whole area, or its
- * emoji on the cuisine's dotted map color. Expects a parent with
+ * emoji set on the cuisine's patterned cloth. Expects a parent with
  * cuisineTint() applied.
  */
 export function RecipeCover({ recipe, emoji = '🍽️', emojiSize = 'md', className = '' }: RecipeCoverProps) {
@@ -32,8 +33,8 @@ export function RecipeCover({ recipe, emoji = '🍽️', emojiSize = 'md', class
   }
 
   return (
-    <div className={`atlas-dots grid max-w-full place-items-center ${className}`}>
+    <CuisineCloth cuisineId={recipe.cuisineId} className={className}>
       <FoodEmoji emoji={emoji} size={emojiSize} />
-    </div>
+    </CuisineCloth>
   )
 }

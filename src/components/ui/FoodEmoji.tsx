@@ -1,8 +1,8 @@
 const SIZES = {
   // Small sizes sit on a tinted tile so list rows keep an even rhythm.
   sm: 'size-11 rounded-xl bg-tint-soft text-2xl',
-  md: 'text-7xl drop-shadow-[0_10px_12px_var(--plate-shadow)]',
-  lg: 'text-8xl drop-shadow-[0_14px_16px_var(--plate-shadow)] sm:text-9xl',
+  md: 'food-emoji-grounded text-7xl drop-shadow-[0_6px_6px_var(--plate-shadow)]',
+  lg: 'food-emoji-grounded text-8xl drop-shadow-[0_8px_8px_var(--plate-shadow)] sm:text-9xl',
 } as const
 
 interface FoodEmojiProps {
