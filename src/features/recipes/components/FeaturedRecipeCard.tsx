@@ -22,7 +22,8 @@ export function FeaturedRecipeCard({ recipe, cuisine }: FeaturedRecipeCardProps)
   return (
     <Link
       to={`/recipes/${recipe.id}`}
-      style={cuisineTint(recipe.cuisineId)}
+      // Over a photo, .on-photo sets its own light tint; an inline cuisine tint on the same element would override it.
+      style={photo.visible ? undefined : cuisineTint(recipe.cuisineId)}
       className={`group relative isolate grid items-center gap-6 overflow-hidden rounded-3xl p-6 sm:p-8 ${
         photo.visible ? 'on-photo pt-56 sm:pt-72' : 'bg-tint-soft sm:grid-cols-[1fr_auto]'
       }`}

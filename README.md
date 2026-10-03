@@ -13,6 +13,8 @@ Patterns adapted from editorial recipe sites such as NYT Cooking: a serif-and-sa
 
 The full design system lives in [`.claude/skills/flavor-atlas-ui/SKILL.md`](.claude/skills/flavor-atlas-ui/SKILL.md).
 
+Recipe photos are freely licensed (mostly Wikimedia Commons) and bundled in `public/photos/`; see [`docs/photo-credits.md`](docs/photo-credits.md) for authors and licenses.
+
 ## Tech stack
 
 | Layer | Choice |
