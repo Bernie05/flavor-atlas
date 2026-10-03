@@ -1,9 +1,9 @@
 import { Link } from 'react-router'
-import { FoodEmoji } from '@/components/ui/FoodEmoji'
 import type { Recipe } from '@/features/recipes/schema'
 import { usePhoto } from '@/features/recipes/usePhoto'
 import type { Cuisine } from '../schema'
 import { cuisineTint, formatCoordinates } from '../utils'
+import { CuisineFlag } from './CuisineFlag'
 
 interface CuisineCardProps {
   cuisine: Cuisine
@@ -15,7 +15,7 @@ interface CuisineCardProps {
 /**
  * A cuisine as a cover: one of its dishes fills the card, with the name set
  * over a dark gradient, like the recipe heroes. Without a photo it falls back
- * to the cuisine's color and emoji.
+ * to the cuisine's color. The flag marks the country either way.
  */
 export function CuisineCard({ cuisine, recipeCount, cover }: CuisineCardProps) {
   const photo = usePhoto(cover?.imageUrl ?? '')
@@ -45,13 +45,7 @@ export function CuisineCard({ cuisine, recipeCount, cover }: CuisineCardProps) {
       )}
 
       <span className="flex items-start justify-between gap-2">
-        {photo.visible ? (
-          <span aria-hidden className="text-2xl drop-shadow">
-            {cuisine.emoji}
-          </span>
-        ) : (
-          <FoodEmoji emoji={cuisine.emoji} size="sm" className="bg-surface/70" />
-        )}
+        <CuisineFlag countryCode={cuisine.countryCode} size="lg" />
         <span
           className={`label-mono rounded-full px-2.5 py-1 whitespace-nowrap tabular-nums ${
             photo.visible ? 'bg-black/45 text-white backdrop-blur-sm' : 'text-tint-ink'

@@ -2,17 +2,18 @@ import { useQuery } from '@tanstack/react-query'
 import { Link, useParams } from 'react-router'
 import { CardGridSkeleton } from '@/components/feedback/CardGridSkeleton'
 import { ErrorState } from '@/components/feedback/ErrorState'
-import { FoodEmoji } from '@/components/ui/FoodEmoji'
-import { CuisineCloth } from '@/features/cuisines/components/CuisineCloth'
+import { CuisineFlag } from '@/features/cuisines/components/CuisineFlag'
 import { cuisineQueries } from '@/features/cuisines/queries'
 import { cuisineTint, formatCoordinates } from '@/features/cuisines/utils'
 import { DishCard } from '@/features/dishes/components/DishCard'
 import { dishQueries } from '@/features/dishes/queries'
 import { countVersions } from '@/features/dishes/utils'
 import { RecipeBrowser } from '@/features/recipes/components/RecipeBrowser'
+import { RecipeCover } from '@/features/recipes/components/RecipeCover'
 import { recipeQueries } from '@/features/recipes/queries'
 import type { Dish } from '@/features/dishes/schema'
 import type { RecipeWithRatings } from '@/features/recipes/schema'
+import { coverRecipe } from '@/features/recipes/utils'
 import { NotFoundError } from '@/services/data'
 import { NotFoundPage } from './NotFoundPage'
 
@@ -47,16 +48,20 @@ function CuisineView({ cuisineId }: { cuisineId: string }) {
             <em>{cuisine.data?.name ?? 'Loading…'}</em>
           </h1>
           {cuisine.data && (
-            <p className="label-mono text-tint-ink tabular-nums">
+            <p className="label-mono flex items-center gap-2 text-tint-ink tabular-nums">
+              <CuisineFlag countryCode={cuisine.data.countryCode} size="md" />
               {cuisine.data.origin} · {formatCoordinates(cuisine.data)}
             </p>
           )}
           <p className="max-w-prose text-lg text-ink-muted">{cuisine.data?.description}</p>
         </div>
-        {/* The cuisine's own cloth: seigaiha, jogakbo, huiwen or banig. */}
-        <CuisineCloth cuisineId={cuisineId} className="order-first aspect-[4/3] w-full rounded-2xl sm:order-none sm:aspect-square sm:w-56">
-          <FoodEmoji emoji={cuisine.data?.emoji ?? '🍽️'} size="lg" />
-        </CuisineCloth>
+        {/* The same cover as the cuisine's card: its best-rated dish with a photo, else its cloth. */}
+        <RecipeCover
+          recipe={coverRecipe(recipes.data ?? [], cuisineId) ?? { title: '', imageUrl: '', cuisineId }}
+          emoji={cuisine.data?.emoji}
+          emojiSize="lg"
+          className="order-first aspect-[4/3] w-full rounded-2xl sm:order-none sm:aspect-square sm:w-56"
+        />
       </header>
 
       {recipes.data && dishes.data && (

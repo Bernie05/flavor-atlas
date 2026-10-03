@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { NavLink } from 'react-router'
 import { cuisineQueries } from '../queries'
 import { cuisineTint } from '../utils'
+import { CuisineFlag } from './CuisineFlag'
 
 /** A row of cuisine chips under the header: the atlas's quick index. Scrolls sideways on phones. */
 export function CuisineStrip() {
@@ -21,7 +22,7 @@ export function CuisineStrip() {
                 }`
               }
             >
-              <span aria-hidden className="size-2.5 rounded-full bg-tint" />
+              <CuisineFlag countryCode={cuisine.countryCode} size="sm" />
               {cuisine.name}
             </NavLink>
           </li>

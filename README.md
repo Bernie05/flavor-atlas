@@ -26,6 +26,8 @@ Recipe photos are freely licensed (mostly Wikimedia Commons) and bundled in `pub
 | Styling | Tailwind CSS v4 |
 | Fake REST API | json-server |
 
+Country flags are SVGs from [flag-icons](https://github.com/lipis/flag-icons) (MIT).
+
 ## Getting started
 
 ```bash

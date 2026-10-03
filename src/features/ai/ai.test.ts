@@ -42,7 +42,7 @@ describe('toAiDraft', () => {
     values.servings = Number.NaN
     const result = toAiDraft(values, {
       cuisines: [
-        { id: 'filipino', name: 'Filipino', emoji: '🥭', description: '', origin: 'Manila', latitude: 14.6, longitude: 120.98 },
+        { id: 'filipino', name: 'Filipino', emoji: '🥭', countryCode: 'ph', description: '', origin: 'Manila', latitude: 14.6, longitude: 120.98 },
       ],
     })
     expect(result).toMatchObject({ title: 'Halo-Halo', cuisineName: 'Filipino', servings: 4, ingredients: [], steps: [] })
