@@ -7,7 +7,7 @@ import { cuisineQueries } from '@/features/cuisines/queries'
 import { FeaturedRecipeCard } from '@/features/recipes/components/FeaturedRecipeCard'
 import { RecipeRow } from '@/features/recipes/components/RecipeRow'
 import { recipeQueries } from '@/features/recipes/queries'
-import { quickRecipes, sortRecipes } from '@/features/recipes/utils'
+import { coverRecipe, quickRecipes, sortRecipes } from '@/features/recipes/utils'
 
 const ROW_SIZE = 3
 
@@ -68,7 +68,12 @@ export function HomePage() {
         ) : (
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
             {cuisines.data.map((cuisine) => (
-              <CuisineCard key={cuisine.id} cuisine={cuisine} recipeCount={countFor(cuisine.id)} />
+              <CuisineCard
+                key={cuisine.id}
+                cuisine={cuisine}
+                recipeCount={countFor(cuisine.id)}
+                cover={coverRecipe(all, cuisine.id)}
+              />
             ))}
           </div>
         )}

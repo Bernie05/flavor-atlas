@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { RecipeWithRatings } from './schema'
 import {
+  coverRecipe,
   photoSrc,
   applyRecipeFilters,
   DEFAULT_FILTERS,
@@ -172,5 +173,15 @@ describe('photoSrc', () => {
 
   it('leaves full links alone', () => {
     expect(photoSrc('https://example.com/a.jpg', './')).toBe('https://example.com/a.jpg')
+  })
+})
+
+describe('coverRecipe', () => {
+  it("picks the cuisine's best-rated recipe that has a photo", () => {
+    const loved = makeRecipe({ id: 'loved', cuisineId: 'korean', ratings: [{ id: 'r', recipeId: 'loved', score: 5, comment: '', createdAt: '2026-02-02T00:00:00.000Z' }] })
+    const pictured = makeRecipe({ id: 'pictured', cuisineId: 'korean', imageUrl: '/photos/bibimbap.webp' })
+    const other = makeRecipe({ id: 'other', cuisineId: 'japanese', imageUrl: '/photos/miso-soup.webp' })
+    expect(coverRecipe([loved, pictured, other], 'korean')?.id).toBe('pictured')
+    expect(coverRecipe([loved], 'korean')).toBeUndefined()
   })
 })

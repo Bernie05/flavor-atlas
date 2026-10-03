@@ -72,6 +72,14 @@ export const isRecipeSort = (value: string | null): value is RecipeSort =>
   value !== null && value in RECIPE_SORTS
 
 /** Returns a new sorted array; the input is never mutated. */
+/** The photo that stands for a cuisine: its best-rated recipe that has one. */
+export function coverRecipe(recipes: RecipeWithRatings[], cuisineId: string): RecipeWithRatings | undefined {
+  return sortRecipes(
+    recipes.filter((recipe) => recipe.cuisineId === cuisineId && recipe.imageUrl),
+    'top-rated',
+  )[0]
+}
+
 export function sortRecipes(recipes: RecipeWithRatings[], sort: RecipeSort): RecipeWithRatings[] {
   switch (sort) {
     case 'newest':
