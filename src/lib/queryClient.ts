@@ -1,4 +1,5 @@
 import { MutationCache, QueryClient } from '@tanstack/react-query'
+import { sessionQuery } from '@/features/auth/queries'
 import { NotFoundError, UnauthorizedError } from '@/services/data'
 
 export const queryClient: QueryClient = new QueryClient({
@@ -17,7 +18,7 @@ export const queryClient: QueryClient = new QueryClient({
     // out in another tab): refresh it so the UI hides admin controls everywhere.
     onError: (error) => {
       if (error instanceof UnauthorizedError) {
-        void queryClient.invalidateQueries({ queryKey: ['auth', 'session'] })
+        void queryClient.invalidateQueries({ queryKey: sessionQuery.queryKey })
       }
     },
   }),
