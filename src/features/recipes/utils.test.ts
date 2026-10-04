@@ -6,9 +6,13 @@ import {
   applyRecipeFilters,
   DEFAULT_FILTERS,
   filterRecipes,
+  filtersFromParams,
+  filtersToParams,
   formatDuration,
   formatQuantity,
+  hasActiveFilters,
   highlightIngredients,
+  mainIngredients,
   quickRecipes,
   scaleQuantity,
   sortRecipes,
@@ -157,11 +161,67 @@ describe('applyRecipeFilters', () => {
   const all = [adobo, kimchi, bibimbap]
   const ids = (list: RecipeWithRatings[]) => list.map((r) => r.id)
 
-  it('combines search, cuisine, quick and sort', () => {
+  it('combines search, cuisine, time and sort', () => {
     expect(ids(applyRecipeFilters(all, { ...DEFAULT_FILTERS, cuisineId: 'korean' }))).toEqual(['kimchi', 'bibimbap'])
-    expect(ids(applyRecipeFilters(all, { ...DEFAULT_FILTERS, quick: true }))).toEqual(['kimchi'])
+    expect(ids(applyRecipeFilters(all, { ...DEFAULT_FILTERS, maxMinutes: 30 }))).toEqual(['kimchi'])
+    expect(ids(applyRecipeFilters(all, { ...DEFAULT_FILTERS, maxMinutes: 60 }))).toEqual(['adobo', 'kimchi', 'bibimbap'])
     expect(ids(applyRecipeFilters(all, { ...DEFAULT_FILTERS, query: 'adobo' }))).toEqual(['adobo'])
     expect(ids(applyRecipeFilters(all, { ...DEFAULT_FILTERS, sort: 'quickest' }))).toEqual(['kimchi', 'bibimbap', 'adobo'])
+  })
+
+  it('filters by difficulty and main ingredient, ignoring case', () => {
+    const pork = makeRecipe({ id: 'pork', mainIngredient: 'Pork', difficulty: 'medium' })
+    const list = [...all, pork]
+    expect(ids(applyRecipeFilters(list, { ...DEFAULT_FILTERS, difficulty: 'medium' }))).toEqual(['pork'])
+    expect(ids(applyRecipeFilters(list, { ...DEFAULT_FILTERS, ingredient: 'pork' }))).toEqual(['pork'])
+    expect(applyRecipeFilters(list, { ...DEFAULT_FILTERS, ingredient: 'pork', difficulty: 'hard' })).toEqual([])
+  })
+})
+
+describe('filtersFromParams / filtersToParams', () => {
+  it('round-trips every filter through the URL', () => {
+    const filters = {
+      ...DEFAULT_FILTERS,
+      query: 'garlic',
+      cuisineId: 'filipino',
+      maxMinutes: 60,
+      difficulty: 'easy' as const,
+      ingredient: 'pork',
+      sort: 'quickest' as const,
+    }
+    const params = filtersToParams(filters)
+    expect(params.toString()).toBe('q=garlic&cuisine=filipino&time=60&level=easy&ingredient=pork&sort=quickest')
+    expect(filtersFromParams(params)).toEqual(filters)
+  })
+
+  it('keeps default links empty and falls back on unknown values', () => {
+    expect(filtersToParams(DEFAULT_FILTERS).toString()).toBe('')
+    expect(filtersFromParams(new URLSearchParams('time=45&level=expert&sort=random'))).toEqual(DEFAULT_FILTERS)
+  })
+
+  it('still reads the older quick=1 link as under 30 minutes', () => {
+    expect(filtersFromParams(new URLSearchParams('quick=1')).maxMinutes).toBe(30)
+  })
+
+  it('leaves a locked cuisine out of the URL', () => {
+    const params = filtersToParams({ ...DEFAULT_FILTERS, cuisineId: 'korean' }, 'korean')
+    expect(params.toString()).toBe('')
+    expect(filtersFromParams(params, 'korean').cuisineId).toBe('korean')
+  })
+})
+
+describe('hasActiveFilters', () => {
+  it('ignores sort and a locked cuisine', () => {
+    expect(hasActiveFilters({ ...DEFAULT_FILTERS, sort: 'quickest' })).toBe(false)
+    expect(hasActiveFilters({ ...DEFAULT_FILTERS, cuisineId: 'korean' }, 'korean')).toBe(false)
+    expect(hasActiveFilters({ ...DEFAULT_FILTERS, difficulty: 'hard' })).toBe(true)
+  })
+})
+
+describe('mainIngredients', () => {
+  it('lists each main ingredient once, most common first', () => {
+    const list = ['beef', 'Pork', 'pork ', '', 'chicken', 'beef', 'pork'].map((mainIngredient) => ({ mainIngredient }))
+    expect(mainIngredients(list)).toEqual(['pork', 'beef', 'chicken'])
   })
 })
 

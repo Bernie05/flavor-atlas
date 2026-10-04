@@ -91,7 +91,7 @@ export function HomePage() {
             description="Weeknight dinners, start to table."
             recipes={quickRecipes(all).slice(0, ROW_SIZE)}
             cuisinesById={cuisinesById}
-            moreHref="/recipes?quick=1"
+            moreHref="/recipes?time=30"
           />
           <RecipeRow
             id="loved-heading"

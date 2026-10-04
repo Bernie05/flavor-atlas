@@ -142,21 +142,92 @@ export const quickRecipes = (recipes: RecipeWithRatings[], maxMinutes = 30) =>
     'quickest',
   )
 
+/** Time limits the browser offers, in minutes. */
+export const TIME_LIMITS = [30, 60] as const
+
 export interface RecipeFilterState {
   query: string
   cuisineId: string
-  /** Only recipes ready in 30 minutes or less. */
-  quick: boolean
+  /** Only recipes ready within this many minutes; 0 means any time. */
+  maxMinutes: number
+  /** '' means any difficulty. */
+  difficulty: Difficulty | ''
+  /** A recipe's main ingredient ("pork"); '' means any. */
+  ingredient: string
   sort: RecipeSort
 }
 
-export const DEFAULT_FILTERS: RecipeFilterState = { query: '', cuisineId: '', quick: false, sort: 'newest' }
+export const DEFAULT_FILTERS: RecipeFilterState = {
+  query: '',
+  cuisineId: '',
+  maxMinutes: 0,
+  difficulty: '',
+  ingredient: '',
+  sort: 'newest',
+}
+
+const isDifficulty = (value: string | null): value is Difficulty =>
+  value !== null && value in DIFFICULTY_LABELS
+
+/** True when anything narrows the list (sort doesn't). The locked cuisine of a cuisine page doesn't count. */
+export const hasActiveFilters = (filters: RecipeFilterState, lockedCuisineId?: string) =>
+  Boolean(
+    filters.query ||
+      filters.maxMinutes ||
+      filters.difficulty ||
+      filters.ingredient ||
+      (filters.cuisineId && filters.cuisineId !== lockedCuisineId),
+  )
+
+/**
+ * Read filters from the URL. Unknown values fall back to the defaults, so a
+ * hand-edited link never breaks the page. `quick=1` is the older link for
+ * "under 30 minutes" and still works.
+ */
+export function filtersFromParams(params: URLSearchParams, lockedCuisineId?: string): RecipeFilterState {
+  const time = Number(params.get('time'))
+  const level = params.get('level')
+  const sort = params.get('sort')
+  return {
+    query: params.get('q') ?? '',
+    cuisineId: lockedCuisineId ?? params.get('cuisine') ?? '',
+    maxMinutes: TIME_LIMITS.find((limit) => limit === time) ?? (params.get('quick') === '1' ? 30 : 0),
+    difficulty: isDifficulty(level) ? level : '',
+    ingredient: params.get('ingredient')?.trim().toLowerCase() ?? '',
+    sort: isRecipeSort(sort) ? sort : DEFAULT_FILTERS.sort,
+  }
+}
+
+/** The URL for a filter state: only what differs from the defaults, so links stay short. */
+export function filtersToParams(filters: RecipeFilterState, lockedCuisineId?: string): URLSearchParams {
+  const params = new URLSearchParams()
+  if (filters.query) params.set('q', filters.query)
+  if (filters.cuisineId && !lockedCuisineId) params.set('cuisine', filters.cuisineId)
+  if (filters.maxMinutes) params.set('time', String(filters.maxMinutes))
+  if (filters.difficulty) params.set('level', filters.difficulty)
+  if (filters.ingredient) params.set('ingredient', filters.ingredient)
+  if (filters.sort !== DEFAULT_FILTERS.sort) params.set('sort', filters.sort)
+  return params
+}
+
+/** The main ingredients used in a list, most common first, for the ingredient filter. */
+export function mainIngredients(recipes: Pick<Recipe, 'mainIngredient'>[]): string[] {
+  const counts = new Map<string, number>()
+  for (const { mainIngredient } of recipes) {
+    const key = mainIngredient.trim().toLowerCase()
+    if (key) counts.set(key, (counts.get(key) ?? 0) + 1)
+  }
+  return [...counts].toSorted(([a, ca], [b, cb]) => cb - ca || a.localeCompare(b)).map(([name]) => name)
+}
 
 /** Everything the recipe browser does to a list, in one tested function. */
 export function applyRecipeFilters(recipes: RecipeWithRatings[], filters: RecipeFilterState): RecipeWithRatings[] {
   const matching = filterRecipes(recipes, filters.query).filter(
     (recipe) =>
-      (!filters.cuisineId || recipe.cuisineId === filters.cuisineId) && (!filters.quick || totalMinutes(recipe) <= 30),
+      (!filters.cuisineId || recipe.cuisineId === filters.cuisineId) &&
+      (!filters.maxMinutes || totalMinutes(recipe) <= filters.maxMinutes) &&
+      (!filters.difficulty || recipe.difficulty === filters.difficulty) &&
+      (!filters.ingredient || recipe.mainIngredient.trim().toLowerCase() === filters.ingredient),
   )
   return sortRecipes(matching, filters.sort)
 }
