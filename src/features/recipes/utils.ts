@@ -231,3 +231,48 @@ export function applyRecipeFilters(recipes: RecipeWithRatings[], filters: Recipe
   )
   return sortRecipes(matching, filters.sort)
 }
+
+export interface StepTimer {
+  /** The words in the step, e.g. "10 to 15 minutes". */
+  label: string
+  seconds: number
+}
+
+/** Longer waits (marinating overnight) aren't something to watch a countdown for. */
+const MAX_TIMER_SECONDS = 3 * 60 * 60
+
+const UNIT_SECONDS: Record<string, number> = { sec: 1, min: 60, hour: 3600, hr: 3600 }
+
+/**
+ * The times a step mentions, as timers: "Simmer for 10 to 15 minutes" →
+ * 10 minutes. A range starts at its lower bound, so the cook checks early
+ * rather than late. Waits longer than three hours are left out.
+ */
+export function findStepTimers(step: string): StepTimer[] {
+  const pattern = /\b(\d+(?:\.\d+)?)(?:\s*(?:to|–|-)\s*\d+(?:\.\d+)?)?\s*(sec|min|hour|hr)(?:ute|ond)?s?\b/gi
+  const timers: StepTimer[] = []
+  for (const match of step.matchAll(pattern)) {
+    const seconds = Math.round(Number(match[1]) * UNIT_SECONDS[match[2]!.toLowerCase()]!)
+    if (seconds > 0 && seconds <= MAX_TIMER_SECONDS) timers.push({ label: match[0], seconds })
+  }
+  return timers
+}
+
+/** 245 → "4:05", 3723 → "1:02:03" */
+export function formatCountdown(totalSeconds: number): string {
+  const seconds = Math.max(0, Math.ceil(totalSeconds))
+  const h = Math.floor(seconds / 3600)
+  const m = Math.floor((seconds % 3600) / 60)
+  const s = String(seconds % 60).padStart(2, '0')
+  return h > 0 ? `${h}:${String(m).padStart(2, '0')}:${s}` : `${m}:${s}`
+}
+
+/** The recipe's ingredients a step mentions, in recipe order, each once. */
+export function ingredientsInStep<T extends Pick<Ingredient, 'name'>>(step: string, ingredients: T[]): T[] {
+  const mentioned = new Set(
+    highlightIngredients(step, ingredients)
+      .filter((segment) => segment.ingredient)
+      .map((segment) => segment.text.toLowerCase()),
+  )
+  return ingredients.filter((ingredient) => mentioned.has(ingredient.name.split(',')[0]!.trim().toLowerCase()))
+}

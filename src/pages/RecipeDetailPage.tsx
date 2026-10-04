@@ -12,6 +12,7 @@ import { dishQueries, regionQueries } from '@/features/dishes/queries'
 import { otherVersions } from '@/features/dishes/utils'
 import { RatingsSection } from '@/features/ratings/components/RatingsSection'
 import { summarizeRatings } from '@/features/ratings/summary'
+import { CookMode } from '@/features/recipes/components/CookMode'
 import { IngredientChecklist } from '@/features/recipes/components/IngredientChecklist'
 import { PhotoCredit } from '@/features/recipes/components/PhotoCredit'
 import { RecipeRow } from '@/features/recipes/components/RecipeRow'
@@ -53,6 +54,7 @@ function RecipeView({ recipe }: { recipe: RecipeWithRatings }) {
   // Phones show one panel at a time (like NYT Cooking); wider screens show both.
   const [panel, setPanel] = useState<Panel>('ingredients')
   const toggleRef = useRef<HTMLDivElement>(null)
+  const [cooking, setCooking] = useState(false)
 
   // Switching panels while scrolled down would leave you mid-list: bring the
   // new panel's top just under the sticky toggle.
@@ -158,7 +160,8 @@ function RecipeView({ recipe }: { recipe: RecipeWithRatings }) {
         ref={toggleRef}
         className="sticky top-[calc(env(safe-area-inset-top,0px)+3.75rem)] z-10 -mx-4 bg-canvas/90 px-4 py-2 backdrop-blur-md md:hidden"
       >
-        <div className="flex gap-1 rounded-full bg-surface p-1 ring-1 ring-line">
+        <div className="flex items-center gap-2">
+        <div className="flex flex-1 gap-1 rounded-full bg-surface p-1 ring-1 ring-line">
           <button
             type="button"
             aria-pressed={panel === 'ingredients'}
@@ -178,6 +181,10 @@ function RecipeView({ recipe }: { recipe: RecipeWithRatings }) {
             Steps
           </button>
         </div>
+        <button type="button" onClick={() => setCooking(true)} className="min-h-12 shrink-0 rounded-full bg-tint-soft px-4 text-sm font-semibold text-tint-ink ring-1 ring-tint/30">
+          Cook
+        </button>
+        </div>
       </div>
 
       <div className="grid gap-12 md:grid-cols-[minmax(0,20rem)_1fr] lg:gap-16">
@@ -193,9 +200,18 @@ function RecipeView({ recipe }: { recipe: RecipeWithRatings }) {
           aria-labelledby="steps-heading"
           className={`min-w-0 space-y-6 max-md:scroll-mt-32 ${panel === 'steps' ? '' : 'max-md:hidden'}`}
         >
-          <h2 id="steps-heading" className="text-4xl">
-            Steps
-          </h2>
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <h2 id="steps-heading" className="text-4xl">
+              Steps
+            </h2>
+            <button
+              type="button"
+              onClick={() => setCooking(true)}
+              className="min-h-10 rounded-full bg-ink px-4 text-sm font-semibold text-canvas hover:bg-accent"
+            >
+              Start cooking
+            </button>
+          </div>
           <ol className="space-y-8">
             {recipe.steps.map((step, index) => (
               <li key={index} className="grid grid-cols-[3rem_1fr] gap-4 max-md:scroll-mt-32">
@@ -235,6 +251,8 @@ function RecipeView({ recipe }: { recipe: RecipeWithRatings }) {
           moreHref={`/dishes/${dish.id}`}
         />
       )}
+
+      <CookMode recipe={recipe} open={cooking} onClose={() => setCooking(false)} />
 
       <hr className="border-line" />
       <RatingsSection ratings={recipe.ratings} />

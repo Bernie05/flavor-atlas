@@ -6,6 +6,9 @@ import {
   applyRecipeFilters,
   DEFAULT_FILTERS,
   filterRecipes,
+  findStepTimers,
+  formatCountdown,
+  ingredientsInStep,
   filtersFromParams,
   filtersToParams,
   formatDuration,
@@ -243,5 +246,49 @@ describe('coverRecipe', () => {
     const other = makeRecipe({ id: 'other', cuisineId: 'japanese', imageUrl: '/photos/miso-soup.webp' })
     expect(coverRecipe([loved, pictured, other], 'korean')?.id).toBe('pictured')
     expect(coverRecipe([loved], 'korean')).toBeUndefined()
+  })
+})
+
+describe('findStepTimers', () => {
+  it('finds minutes, hours and seconds', () => {
+    expect(findStepTimers('Simmer for 15 minutes, then rest 30 seconds.')).toEqual([
+      { label: '15 minutes', seconds: 900 },
+      { label: '30 seconds', seconds: 30 },
+    ])
+    expect(findStepTimers('Braise for 1 hour.')).toEqual([{ label: '1 hour', seconds: 3600 }])
+    expect(findStepTimers('Bake 1.5 hrs')).toEqual([{ label: '1.5 hrs', seconds: 5400 }])
+  })
+
+  it('starts a range at its lower bound', () => {
+    expect(findStepTimers('Fry 3 to 4 minutes per side.')).toEqual([{ label: '3 to 4 minutes', seconds: 180 }])
+    expect(findStepTimers('Cook 5–7 min')).toEqual([{ label: '5–7 min', seconds: 300 }])
+  })
+
+  it('skips long waits and steps without a time', () => {
+    expect(findStepTimers('Marinate for 10 to 12 hours.')).toEqual([])
+    expect(findStepTimers('Season to taste with 2 tablespoons fish sauce.')).toEqual([])
+  })
+})
+
+describe('formatCountdown', () => {
+  it('pads seconds and adds hours when needed', () => {
+    expect(formatCountdown(245)).toBe('4:05')
+    expect(formatCountdown(3723)).toBe('1:02:03')
+    expect(formatCountdown(0.2)).toBe('0:01')
+    expect(formatCountdown(-5)).toBe('0:00')
+  })
+})
+
+describe('ingredientsInStep', () => {
+  it('lists the ingredients a step names, in recipe order', () => {
+    const ingredients = [
+      { name: 'soy sauce', quantity: 1, unit: 'cup' },
+      { name: 'garlic, crushed', quantity: 6, unit: 'cloves' },
+      { name: 'water', quantity: 1, unit: 'cup' },
+    ]
+    expect(ingredientsInStep('Add the garlic and soy sauce.', ingredients).map((i) => i.name)).toEqual([
+      'soy sauce',
+      'garlic, crushed',
+    ])
   })
 })
