@@ -7,6 +7,7 @@ import { cuisineQueries } from '@/features/cuisines/queries'
 import { cuisineTint } from '@/features/cuisines/utils'
 import { dishQueries, regionQueries } from '@/features/dishes/queries'
 import { RegionTag } from '@/features/dishes/components/RegionTag'
+import { VersionComparison } from '@/features/dishes/components/VersionComparison'
 import { groupVersions } from '@/features/dishes/utils'
 import { RecipeCard } from '@/features/recipes/components/RecipeCard'
 import { recipeQueries } from '@/features/recipes/queries'
@@ -105,6 +106,8 @@ export function DishPage() {
           </ul>
         </section>
       )}
+
+      <VersionComparison recipes={recipes.data} />
     </div>
   )
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { RecipeWithRatings } from '@/features/recipes/schema'
-import { countVersions, groupVersions, otherVersions } from './utils'
+import { compareVersions, countVersions, groupVersions, ingredientKey, otherVersions } from './utils'
 
 const recipe = (id: string, title: string, dishId: string, regionId = '') =>
   ({ id, title, dishId, regionId }) as RecipeWithRatings
@@ -27,5 +27,39 @@ describe('otherVersions', () => {
 describe('countVersions', () => {
   it('counts recipes per dish', () => {
     expect(Object.fromEntries(countVersions([classic, dilaw, gata, sinigang]))).toEqual({ adobo: 3, sinigang: 1 })
+  })
+})
+
+describe('compareVersions', () => {
+  const version = (title: string, names: string[]) => ({ title, ingredients: names.map((name) => ({ name })) })
+
+  it('finds shared ingredients, what each version adds and what it leaves out', () => {
+    const baboy = version('Baboy', ['pork belly', 'Tamarind soup base', 'tomatoes, quartered', 'onion'])
+    const hipon = version('Hipon', ['shrimp', 'tamarind soup base', 'Tomatoes', 'okra'])
+    const bayabas = version('Bayabas', ['ripe guavas', 'tomatoes', 'onion'])
+    const result = compareVersions([baboy, hipon, bayabas])
+
+    expect(result.shared).toEqual(['tomatoes'])
+    expect(result.versions.map((v) => [v.recipe.title, v.only, v.without])).toEqual([
+      ['Baboy', ['pork belly'], []],
+      ['Hipon', ['shrimp', 'okra'], ['onion']],
+      ['Bayabas', ['ripe guavas'], ['Tamarind soup base']],
+    ])
+  })
+
+  it('ignores water and salt', () => {
+    const result = compareVersions([version('A', ['water', 'salt', 'rice']), version('B', ['rice'])])
+    expect(result.shared).toEqual(['rice'])
+    expect(result.versions.every((v) => v.only.length === 0 && v.without.length === 0)).toBe(true)
+  })
+
+  it('compares nothing with fewer than two versions', () => {
+    expect(compareVersions([version('Solo', ['rice'])])).toEqual({ shared: [], versions: [] })
+  })
+})
+
+describe('ingredientKey', () => {
+  it('drops preparation notes and case', () => {
+    expect(ingredientKey('Garlic, crushed')).toBe('garlic')
   })
 })
