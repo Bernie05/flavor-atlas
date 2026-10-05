@@ -117,7 +117,6 @@ export function CookMode({ recipe, open, onClose }: CookModeProps) {
           {timer && (
             <div
               role="timer"
-              aria-live={timeUp ? 'assertive' : 'off'}
               className={`flex min-h-11 items-center justify-between gap-3 rounded-full px-4 ${
                 timeUp ? 'bg-ink text-canvas' : 'bg-tint-soft text-tint-ink'
               }`}
@@ -127,12 +126,16 @@ export function CookMode({ recipe, open, onClose }: CookModeProps) {
               </span>
               <span className="flex shrink-0 items-center gap-3">
                 {!timeUp && <span className="font-mono text-lg font-semibold tabular-nums">{formatCountdown(remaining)}</span>}
-                <button type="button" onClick={() => setTimer(null)} className="min-h-10 text-sm font-semibold underline-offset-4 hover:underline">
+                <button type="button" onClick={() => setTimer(null)} className="min-h-10 min-w-10 px-2 text-sm font-semibold underline-offset-4 hover:underline">
                   {timeUp ? 'Dismiss' : 'Stop'}
                 </button>
               </span>
             </div>
           )}
+          {/* Always in the page and only its text changes: screen readers skip live regions that appear with their content. */}
+          <p className="sr-only" aria-live="assertive">
+            {timeUp && timer ? `Time's up: ${timer.label}` : ''}
+          </p>
         </header>
 
         <div className="min-h-0 flex-1 space-y-6 overflow-y-auto py-8" aria-live="polite">
@@ -150,16 +153,21 @@ export function CookMode({ recipe, open, onClose }: CookModeProps) {
 
           {timers.length > 0 && (
             <div className="flex flex-wrap gap-2">
-              {timers.map((stepTimer, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  onClick={() => startTimer(stepTimer)}
-                  className="inline-flex min-h-11 items-center rounded-full bg-tint-soft px-4 font-semibold text-tint-ink ring-1 ring-tint/30 hover:ring-tint"
-                >
-                  Start {formatCountdown(stepTimer.seconds)} timer
-                </button>
-              ))}
+              {timers.map((stepTimer, i) => {
+                // A second tap would silently restart the countdown.
+                const running = timer?.label === stepTimer.label && !timeUp
+                return (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => startTimer(stepTimer)}
+                    disabled={running}
+                    className="inline-flex min-h-11 items-center rounded-full bg-tint-soft px-4 font-semibold text-tint-ink ring-1 ring-tint/30 hover:ring-tint disabled:opacity-60 disabled:hover:ring-tint/30"
+                  >
+                    {running ? 'Timer running' : `Start ${formatCountdown(stepTimer.seconds)} timer`}
+                  </button>
+                )
+              })}
             </div>
           )}
 

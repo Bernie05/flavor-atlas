@@ -98,8 +98,8 @@ export function RecipeBrowser({ recipes, cuisines, lockedCuisineId }: RecipeBrow
           </div>
         )}
 
-        {/* Sort and three filters as selects in a 2×2 block: on a phone each one stays wide enough to read. */}
-        <div role="group" aria-label="Sort and filter" className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+        {/* Sort and three filters as selects in a 2×2 block, one column on the narrowest phones, so no label gets cut off. */}
+        <div role="group" aria-label="Sort and filter" className="grid grid-cols-2 gap-2 max-[359px]:grid-cols-1 sm:flex sm:flex-wrap">
           <label htmlFor="recipe-sort" className="sr-only">
             Sort recipes
           </label>
@@ -111,7 +111,7 @@ export function RecipeBrowser({ recipes, cuisines, lockedCuisineId }: RecipeBrow
           >
             {Object.entries(RECIPE_SORTS).map(([value, label]) => (
               <option key={value} value={value}>
-                {label}
+                Sort: {label}
               </option>
             ))}
           </select>

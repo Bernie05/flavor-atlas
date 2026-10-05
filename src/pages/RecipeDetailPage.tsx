@@ -161,29 +161,29 @@ function RecipeView({ recipe }: { recipe: RecipeWithRatings }) {
         className="sticky top-[calc(env(safe-area-inset-top,0px)+3.75rem)] z-10 -mx-4 bg-canvas/90 px-4 py-2 backdrop-blur-md md:hidden"
       >
         <div className="flex items-center gap-2">
-        <div className="flex flex-1 gap-1 rounded-full bg-surface p-1 ring-1 ring-line">
-          <button
-            type="button"
-            aria-pressed={panel === 'ingredients'}
-            aria-controls="ingredients-panel"
-            onClick={() => showPanel('ingredients')}
-            className={tabClass(panel === 'ingredients')}
-          >
-            Ingredients
+          <div className="flex flex-1 gap-1 rounded-full bg-surface p-1 ring-1 ring-line">
+            <button
+              type="button"
+              aria-pressed={panel === 'ingredients'}
+              aria-controls="ingredients-panel"
+              onClick={() => showPanel('ingredients')}
+              className={tabClass(panel === 'ingredients')}
+            >
+              Ingredients
+            </button>
+            <button
+              type="button"
+              aria-pressed={panel === 'steps'}
+              aria-controls="steps-panel"
+              onClick={() => showPanel('steps')}
+              className={tabClass(panel === 'steps')}
+            >
+              Steps
+            </button>
+          </div>
+          <button type="button" onClick={() => setCooking(true)} className="min-h-12 shrink-0 rounded-full bg-tint-soft px-4 text-sm font-semibold text-tint-ink ring-1 ring-tint/30 hover:ring-tint">
+            Cook
           </button>
-          <button
-            type="button"
-            aria-pressed={panel === 'steps'}
-            aria-controls="steps-panel"
-            onClick={() => showPanel('steps')}
-            className={tabClass(panel === 'steps')}
-          >
-            Steps
-          </button>
-        </div>
-        <button type="button" onClick={() => setCooking(true)} className="min-h-12 shrink-0 rounded-full bg-tint-soft px-4 text-sm font-semibold text-tint-ink ring-1 ring-tint/30">
-          Cook
-        </button>
         </div>
       </div>
 
