@@ -23,7 +23,7 @@ export function RootLayout() {
     <div className="flex min-h-dvh flex-col">
       <header className="sticky top-[env(safe-area-inset-top,0px)] z-20 border-b border-line bg-canvas/85 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-4 py-2.5">
-          <Link to="/" className="flex items-center gap-2 whitespace-nowrap">
+          <Link to="/" className="flex min-h-10 items-center gap-2 whitespace-nowrap">
             <AtlasMark className="size-7" />
             {/* On the narrowest phones the wordmark gives way to the nav (the mark stays). */}
             <span className="font-display text-2xl leading-none max-[359px]:sr-only">Flavor Atlas</span>

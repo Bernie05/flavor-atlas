@@ -284,9 +284,17 @@ body {
     --tint-ink: #ffffff;
     --star: #f6c04a;
     --star-empty: rgb(255 255 255 / 0.45);
+    /* Soft fills stay translucent white, so white text on them reads over any photo. */
+    --tint-soft: rgb(255 255 255 / 0.18);
+    --surface-sunken: rgb(255 255 255 / 0.12);
     color: var(--ink);
     /* Keeps thin text legible where the photo is bright under the scrim. */
     text-shadow: 0 1px 3px rgb(0 0 0 / 0.45);
+  }
+
+  /* The accent focus ring disappears into a dark photo; white doesn't. */
+  .on-photo :focus-visible {
+    outline-color: var(--ink);
   }
 
   /* Darkens a photo toward the bottom, where its text sits. */

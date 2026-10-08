@@ -48,7 +48,8 @@ export function SaveButton({ recipeId, recipeTitle, variant, className = '' }: S
       aria-pressed={saved}
       onClick={toggle}
       className={`inline-flex min-h-10 items-center gap-2 rounded-full px-4 text-sm font-semibold ring-1 transition-colors ${
-        saved ? 'bg-tint-soft text-tint-ink ring-tint/40' : 'text-ink ring-line-strong hover:bg-surface-sunken'
+        // Outlines in the cuisine's ink (white over a photo) keep the 3:1 a control border needs.
+        saved ? 'bg-tint-soft text-tint-ink ring-tint-ink' : 'text-ink ring-tint-ink/70 hover:bg-surface-sunken'
       } ${className}`}
     >
       <Heart filled={saved} />
