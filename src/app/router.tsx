@@ -10,6 +10,7 @@ import { HomePage } from '@/pages/HomePage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
 import { RecipeDetailPage } from '@/pages/RecipeDetailPage'
 import { RouteErrorPage } from '@/pages/RouteErrorPage'
+import { SavedPage } from '@/pages/SavedPage'
 
 const routes: RouteObject[] = [
   {
@@ -23,6 +24,7 @@ const routes: RouteObject[] = [
       { path: 'recipes/:recipeId', element: <RecipeDetailPage /> },
       { path: 'cuisines/:cuisineId', element: <CuisinePage /> },
       { path: 'dishes/:dishId', element: <DishPage /> },
+      { path: 'saved', element: <SavedPage /> },
       { path: 'login', element: <Navigate to="/admin/login" replace /> },
       { path: '*', element: <NotFoundPage /> },
     ],

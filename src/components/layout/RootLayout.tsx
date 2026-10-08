@@ -3,6 +3,7 @@ import { Link, NavLink, Outlet, ScrollRestoration } from 'react-router'
 import { useSession } from '@/features/auth/queries'
 import { CuisineStrip } from '@/features/cuisines/components/CuisineStrip'
 import { cuisineQueries } from '@/features/cuisines/queries'
+import { useSavedRecipeIds } from '@/features/saved/useSavedRecipes'
 import { AtlasMark } from './AtlasMark'
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
@@ -14,6 +15,7 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
 export function RootLayout() {
   const session = useSession().data
   const cuisines = useQuery(cuisineQueries.list()).data
+  const savedCount = useSavedRecipeIds().length
   // The admin link stays quiet in the footer. In the phone preview only the owner sees it.
   const showAdminLink = session?.mode === 'password' || session?.admin
 
@@ -27,11 +29,22 @@ export function RootLayout() {
             <span className="font-display text-2xl leading-none max-[359px]:sr-only">Flavor Atlas</span>
           </Link>
           <nav aria-label="Main" className="flex items-center">
-            <NavLink to="/" end className={navLinkClass}>
+            {/* On phones the logo is the way home, which leaves room for "Saved". */}
+            <NavLink to="/" end className={(state) => `${navLinkClass(state)} max-sm:hidden`}>
               Home
             </NavLink>
             <NavLink to="/recipes" className={navLinkClass}>
               All recipes
+            </NavLink>
+            <NavLink to="/saved" className={navLinkClass}>
+              Saved
+              {savedCount > 0 && (
+                <span className="ml-1.5 rounded-full bg-accent-soft px-1.5 font-mono text-xs leading-5 text-accent-ink tabular-nums">
+                  <span className="sr-only">(</span>
+                  {savedCount}
+                  <span className="sr-only">)</span>
+                </span>
+              )}
             </NavLink>
           </nav>
         </div>

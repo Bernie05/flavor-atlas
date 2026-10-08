@@ -17,6 +17,7 @@ import { IngredientChecklist } from '@/features/recipes/components/IngredientChe
 import { PhotoCredit } from '@/features/recipes/components/PhotoCredit'
 import { RecipeRow } from '@/features/recipes/components/RecipeRow'
 import { recipeQueries } from '@/features/recipes/queries'
+import { SaveButton } from '@/features/saved/components/SaveButton'
 import type { RecipeWithRatings } from '@/features/recipes/schema'
 import { usePhoto } from '@/features/recipes/usePhoto'
 import { DIFFICULTY_LABELS, formatDuration, highlightIngredients, totalMinutes } from '@/features/recipes/utils'
@@ -137,7 +138,10 @@ function RecipeView({ recipe }: { recipe: RecipeWithRatings }) {
             </p>
           )}
           {recipe.description && <p className="max-w-prose text-lg text-ink-muted">{recipe.description}</p>}
-          <StarRating value={rating.average} count={rating.count} size="lg" />
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
+            <StarRating value={rating.average} count={rating.count} size="lg" />
+            <SaveButton recipeId={recipe.id} recipeTitle={recipe.title} variant="labelled" />
+          </div>
           <dl className="grid grid-cols-2 gap-x-6 min-[360px]:grid-cols-3 gap-y-3 border-t border-tint/25 pt-5 sm:flex sm:flex-wrap sm:gap-x-8">
             {facts.map((fact) => (
               <div key={fact.label}>
