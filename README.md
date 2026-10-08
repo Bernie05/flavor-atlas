@@ -1,19 +1,21 @@
 # 🗺️ Flavor Atlas
 
+[![CI](https://github.com/Bernie05/flavor-atlas/actions/workflows/ci.yml/badge.svg)](https://github.com/Bernie05/flavor-atlas/actions/workflows/ci.yml)
+
 A recipe book organized by cuisine, in two parts:
 
-- **The site** (read-only): browse Filipino, Chinese, Korean and Japanese dishes, search and filter, scale servings, tick off ingredients as you prep, and read reviews. Each dish has a page with its everyday and regional versions (Adobong Dilaw from Batangas, Hakata ramen, Jeonju bibimbap…).
-- **The admin** (`/admin`, password protected): a dashboard, a recipe table to add, edit and delete recipes (with AI help writing descriptions, ingredients and steps), and review management.
+- **The site** (read-only): start from a map of East and Southeast Asia, or browse Filipino, Chinese, Korean and Japanese dishes and filter by time, difficulty and main ingredient. Each recipe scales from 1 to 24 servings (amounts stay readable: "1½ cups", "250 g", "6 onions"), has an ingredient checklist, and a full-screen **cook mode** with one step at a time, tap-to-start timers and a screen that stays on. Each dish has a page with its everyday and regional versions (Adobong Dilaw from Batangas, Hakata ramen, Jeonju bibimbap…) and a comparison of what each version adds or leaves out.
+- **The admin** (`/admin`, password protected): a dashboard, a recipe table to add, edit and delete recipes (with AI help writing descriptions, ingredients and steps), and review management. In the claude.ai phone preview, the artifact's owner is the admin and edits are saved in the artifact's database.
 
 ## Design
 
-**An atlas of dishes, set like a food magazine.** Each cuisine is a colored region on the map (Filipino sun-yellow, Chinese lacquer red, Korean blue, Japanese plum) and every recipe is a food photo (or its emoji) set on its region's color. Headlines use Instrument Serif with italic accents; quantities and times use a monospace face. Every color is a theme token with light and dark values.
+**An atlas of dishes, set like a food magazine.** Each cuisine is a colored region on the map (Filipino sun-yellow, Chinese lacquer red, Korean blue, Japanese plum), pinned at its capital on the home page's map, and every recipe is a food photo (or its emoji) set on its region's color. Headlines use Instrument Serif with italic accents; quantities and times use a monospace face. Every color is a theme token with light and dark values.
 
 Patterns adapted from editorial recipe sites such as NYT Cooking: a serif-and-sans pairing, collections ("Ready in 30 minutes", "Most loved"), an Ingredients / Steps toggle on phones, ingredient names highlighted inside the steps, and a servings scaler.
 
 The full design system lives in [`.claude/skills/flavor-atlas-ui/SKILL.md`](.claude/skills/flavor-atlas-ui/SKILL.md).
 
-Recipe photos are freely licensed (mostly Wikimedia Commons) and bundled in `public/photos/`; see [`docs/photo-credits.md`](docs/photo-credits.md) for authors and licenses.
+Recipe photos are freely licensed (mostly Wikimedia Commons) and bundled in `public/photos/`; see [`docs/photo-credits.md`](docs/photo-credits.md) for authors and licenses. The map's coastlines come from [Natural Earth](https://www.naturalearthdata.com/) (public domain), generated once into an SVG path by `scripts/generate-atlas-map.mjs`.
 
 ## Tech stack
 
@@ -193,4 +195,17 @@ This repo ships Claude Code configuration in `.claude/`:
 - [x] **Admin login:** server-enforced, password hash + signed session cookie. See [docs/plans/admin-auth.md](docs/plans/admin-auth.md)
 - [x] **Admin area + editorial redesign:** read-only public site, `/admin` dashboard, recipe table and review management
 - [x] **Phase 6:** dishes with their versions and regional styles (e.g. Sinigang na Baboy, na Hipon, Lucban's Pancit Habhab). See [docs/plans/dish-variants.md](docs/plans/dish-variants.md)
-- [ ] **Phase 7:** tests, bundle size, polish
+- [x] **Phase 7:** photos, tests and polish
+  - [x] Credited, bundled photos for all 27 recipes ([docs/photo-credits.md](docs/photo-credits.md))
+  - [x] Filters for time, difficulty and main ingredient, kept in shareable URLs
+  - [x] Cook mode: one step at a time, timers, wake lock; amounts follow the servings scaler
+  - [x] "How the versions differ" on dish pages
+  - [x] Scaled amounts written the way a cook would (kitchen fractions, unit changes, plurals)
+  - [x] Atlas map on the home page
+  - [x] Phone preview keeps admin edits in the artifact's database (seed + saved changes)
+  - [x] CI on every push; retries only for errors that can recover; accessibility fixes from `ui-reviewer` audits
+- [ ] **Next**
+  - [ ] Search from every page
+  - [ ] Saved recipes and a shopping list
+  - [ ] "Needs attention" list on the admin dashboard
+  - [ ] Bundle: a named vendor chunk, lazy-load the map
