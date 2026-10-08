@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Recipe } from '../schema'
-import { findStepTimers, formatAmount, formatCountdown, highlightIngredients, ingredientsInStep, type StepTimer } from '../utils'
+import { findStepTimers, formatCountdown, formatIngredient, highlightIngredients, ingredientsInStep, type StepTimer } from '../utils'
 
 interface CookModeProps {
   recipe: Pick<Recipe, 'title' | 'steps' | 'ingredients' | 'servings'>
@@ -179,11 +179,11 @@ export function CookMode({ recipe, people, open, onClose }: CookModeProps) {
               <p className="label-mono text-ink-subtle tabular-nums">In this step · serves {people}</p>
               <ul className="flex flex-wrap gap-2">
                 {needed.map((ingredient) => {
-                  const amount = formatAmount(ingredient, recipe.servings, people)
+                  const { amount, name } = formatIngredient(ingredient, recipe.servings, people)
                   return (
                     <li key={ingredient.name} className="rounded-full bg-surface px-3 py-1.5 text-sm ring-1 ring-line">
                       {amount && <span className="font-mono font-semibold whitespace-nowrap tabular-nums">{amount} </span>}
-                      {ingredient.name}
+                      {name}
                     </li>
                   )
                 })}

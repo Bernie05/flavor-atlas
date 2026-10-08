@@ -29,6 +29,7 @@ export function formatDuration(minutes: number): string {
 
 // Cooks read "½ cup", not "0.5 cup".
 const FRACTIONS: [value: number, glyph: string][] = [
+  [0.125, '⅛'],
   [0.25, '¼'],
   [0.33, '⅓'],
   [0.5, '½'],
@@ -99,14 +100,174 @@ export function sortRecipes(recipes: RecipeWithRatings[], sort: RecipeSort): Rec
 /** Rescale a quantity written for `from` servings to `to` servings. */
 export const scaleQuantity = (quantity: number, from: number, to: number) => (quantity * to) / from
 
-/**
- * An ingredient's amount for `to` servings, as a cook reads it: "1½ cup",
- * "3", or "" when the recipe gives no quantity ("salt, to taste").
- */
-export function formatAmount(ingredient: Pick<Ingredient, 'quantity' | 'unit'>, from: number, to: number): string {
-  if (ingredient.quantity === undefined) return ingredient.unit
-  return [formatQuantity(scaleQuantity(ingredient.quantity, from, to)), ingredient.unit].filter(Boolean).join(' ')
+// --- Scaled amounts, the way a cook writes them ---------------------------------
+
+/** Units that take a plural: [singular, plural]. Abbreviations (g, tbsp) never do. */
+const COUNT_UNITS: [singular: string, plural: string][] = [
+  ['cup', 'cups'],
+  ['clove', 'cloves'],
+  ['head', 'heads'],
+  ['bunch', 'bunches'],
+  ['packet', 'packets'],
+  ['piece', 'pieces'],
+  ['portion', 'portions'],
+  ['sheet', 'sheets'],
+  ['slice', 'slices'],
+  ['liter', 'liters'],
+  ['can', 'cans'],
+  ['stalk', 'stalks'],
+  ['sprig', 'sprigs'],
+]
+
+/** "1½ cups", "½ cup": plural above one. Units not in the list are left as written. */
+function unitFor(unit: string, quantity: number): string {
+  const pair = COUNT_UNITS.find(([singular, plural]) => [singular, plural].includes(unit.toLowerCase()))
+  return pair ? pair[quantity > 1 ? 1 : 0] : unit
 }
+
+/** Measures a cook can actually take with a spoon or cup. */
+const MEASURES = [0, 0.125, 0.25, 1 / 3, 0.5, 2 / 3, 0.75, 1]
+
+/** The nearest whole-plus-measure, never zero: "a pinch" still shows as ⅛. */
+function toMeasure(quantity: number): number {
+  if (quantity >= 10) return Math.round(quantity)
+  const whole = Math.floor(quantity)
+  const candidates = whole === 0 ? MEASURES.slice(1) : MEASURES
+  const nearest = candidates.reduce((best, m) => (Math.abs(quantity - whole - m) < Math.abs(quantity - whole - best) ? m : best))
+  return whole + nearest
+}
+
+/** Metric amounts round to what a scale shows: 1 g under 10, 5 g under 100, 10 g above; litres and kilos to 0.1. */
+function toMetric(quantity: number, unit: string): number {
+  if (['kg', 'l', 'liter', 'liters'].includes(unit)) return Math.max(0.1, Math.round(quantity * 10) / 10)
+  const step = quantity < 10 ? 1 : quantity < 100 ? 5 : 10
+  return Math.max(1, Math.round(quantity / step) * step)
+}
+
+/** Counted items ("2 eggs"): halves below two, whole items from two up. */
+const toCount = (quantity: number) => (quantity >= 2 ? Math.round(quantity) : Math.max(0.5, Math.round(quantity * 2) / 2))
+
+/** True when `quantity` is a whole number of `steps` (e.g. halves), so a converted amount reads cleanly. */
+const isClean = (quantity: number, ...steps: number[]) =>
+  steps.some((step) => Math.abs(Math.round(quantity / step) * step - quantity) < 0.02)
+
+/**
+ * The unit a cook would use for this amount: step up when the bigger unit
+ * reads cleanly (3 tsp → 1 tbsp in whole or half spoons, 12 tbsp → ¾ cup in
+ * quarter or third cups, but 4 tsp stays), step down when the amount
+ * is small (⅛ cup → 2 tbsp, ¼ kg → 250 g). The thresholds never overlap, so
+ * a value can't bounce between two units.
+ */
+function toKitchenUnit(quantity: number, unit: string): { quantity: number; unit: string } {
+  switch (unit.toLowerCase()) {
+    case 'tsp':
+      return quantity >= 3 && isClean(quantity / 3, 0.5) ? toKitchenUnit(quantity / 3, 'tbsp') : { quantity, unit }
+    case 'tbsp':
+      if (quantity < 1) return { quantity: quantity * 3, unit: 'tsp' }
+      return quantity >= 8 && isClean(quantity / 16, 0.25, 1 / 3) ? { quantity: quantity / 16, unit: 'cup' } : { quantity, unit }
+    case 'cup':
+    case 'cups':
+      return quantity < 0.25 ? toKitchenUnit(quantity * 16, 'tbsp') : { quantity, unit }
+    case 'g':
+      return quantity >= 1000 ? { quantity: quantity / 1000, unit: 'kg' } : { quantity, unit }
+    case 'kg':
+      return quantity < 1 ? { quantity: quantity * 1000, unit: 'g' } : { quantity, unit }
+    case 'ml':
+      return quantity >= 1000 ? { quantity: quantity / 1000, unit: 'l' } : { quantity, unit }
+    case 'l':
+    case 'liter':
+    case 'liters':
+      return quantity < 1 ? { quantity: quantity * 1000, unit: 'ml' } : { quantity, unit }
+    default:
+      return { quantity, unit }
+  }
+}
+
+const METRIC_UNITS = ['g', 'kg', 'ml', 'l', 'liter', 'liters']
+const COUNT_LIKE_UNITS = ['', 'whole']
+
+/** A scaled quantity in the unit and precision a cook would write it in. */
+function kitchenAmount(quantity: number, unit: string): { quantity: number; unit: string; metric: boolean } {
+  const converted = toKitchenUnit(quantity, unit)
+  const key = converted.unit.toLowerCase()
+  const metric = METRIC_UNITS.includes(key)
+  const rounded = metric
+    ? toMetric(converted.quantity, key)
+    : COUNT_LIKE_UNITS.includes(key)
+      ? toCount(converted.quantity)
+      : toMeasure(converted.quantity)
+  return { quantity: rounded, unit: unitFor(converted.unit, rounded), metric }
+}
+
+/** Ingredients that have no plural: "2 okra", "1 bok choy". */
+const NO_PLURAL = new Set(['bok choy', 'calamansi', 'okra', 'zucchini', 'kombu', 'ginger', 'garlic', 'rice', 'spinach', 'kimchi', 'tofu'])
+const IRREGULAR: [singular: string, plural: string][] = [
+  ['leaf', 'leaves'],
+  ['chili', 'chilies'],
+  ['tomato', 'tomatoes'],
+  ['potato', 'potatoes'],
+  ['mango', 'mangoes'],
+]
+
+function singularize(word: string): string {
+  const irregular = IRREGULAR.find(([, plural]) => plural === word)
+  if (irregular) return irregular[0]
+  if (/(ch|sh|x|ss|z)es$/.test(word)) return word.slice(0, -2)
+  if (/[^aeiou]ies$/.test(word)) return `${word.slice(0, -3)}y`
+  if (/[^s]s$/.test(word)) return word.slice(0, -1)
+  return word
+}
+
+function pluralize(word: string): string {
+  const irregular = IRREGULAR.find(([singular]) => singular === word)
+  if (irregular) return irregular[1]
+  if (/(ch|sh|x|s|z)$/.test(word)) return `${word}es`
+  if (/[^aeiou]y$/.test(word)) return `${word.slice(0, -1)}ies`
+  return `${word}s`
+}
+
+/**
+ * A counted ingredient's name, agreeing with its count: the seed writes "onion"
+ * for one and "eggs" for three, so scaling must change the word too. Only the
+ * last word before any comma changes ("onions, quartered").
+ */
+function nameForCount(name: string, quantity: number): string {
+  const comma = name.indexOf(',')
+  const head = comma === -1 ? name : name.slice(0, comma)
+  const rest = comma === -1 ? '' : name.slice(comma)
+  if (NO_PLURAL.has(head.trim().toLowerCase())) return name
+  const match = /^(.*?)([A-Za-z]+)(\s*)$/.exec(head)
+  if (!match) return name
+  const [, before, word, space] = match
+  const base = singularize(word!.toLowerCase())
+  if (NO_PLURAL.has(base)) return name
+  const inflected = quantity > 1 ? pluralize(base) : base
+  return `${before}${inflected}${space}${rest}`
+}
+
+/**
+ * An ingredient's amount and name for `to` servings, as a cook writes them:
+ * "1½ cups", "1.2 kg", "6 onions, quartered". The amount is "" when the
+ * recipe gives none, or just the unit ("to taste").
+ */
+export function formatIngredient(
+  ingredient: Pick<Ingredient, 'quantity' | 'unit' | 'name'>,
+  from: number,
+  to: number,
+): { amount: string; name: string } {
+  if (ingredient.quantity === undefined) return { amount: ingredient.unit, name: ingredient.name }
+  const { quantity, unit, metric } = kitchenAmount(scaleQuantity(ingredient.quantity, from, to), ingredient.unit)
+  const counted = COUNT_LIKE_UNITS.includes(ingredient.unit.toLowerCase())
+  return {
+    // Scales show decimals ("4.5 l"); spoons and cups show fractions ("1½ cups").
+    amount: [metric ? String(quantity) : formatQuantity(quantity), unit].filter(Boolean).join(' '),
+    name: counted ? nameForCount(ingredient.name, quantity) : ingredient.name,
+  }
+}
+
+/** Just the amount of {@link formatIngredient}, for places that show the name themselves. */
+export const formatAmount = (ingredient: Pick<Ingredient, 'quantity' | 'unit'>, from: number, to: number) =>
+  formatIngredient({ ...ingredient, name: '' }, from, to).amount
 
 export interface StepSegment {
   text: string

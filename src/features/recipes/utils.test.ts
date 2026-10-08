@@ -13,6 +13,7 @@ import {
   filtersToParams,
   formatAmount,
   formatDuration,
+  formatIngredient,
   formatQuantity,
   hasActiveFilters,
   highlightIngredients,
@@ -297,12 +298,73 @@ describe('ingredientsInStep', () => {
 describe('formatAmount', () => {
   it('scales and formats the quantity with its unit', () => {
     expect(formatAmount({ quantity: 0.5, unit: 'cup' }, 4, 4)).toBe('½ cup')
-    expect(formatAmount({ quantity: 0.5, unit: 'cup' }, 4, 12)).toBe('1½ cup')
     expect(formatAmount({ quantity: 3, unit: '' }, 4, 4)).toBe('3')
+  })
+
+  it('makes the unit agree with the amount', () => {
+    expect(formatAmount({ quantity: 0.5, unit: 'cup' }, 4, 12)).toBe('1½ cups')
+    expect(formatAmount({ quantity: 2, unit: 'cups' }, 4, 2)).toBe('1 cup')
+    expect(formatAmount({ quantity: 1, unit: 'piece' }, 1, 3)).toBe('3 pieces')
+    expect(formatAmount({ quantity: 2, unit: 'liters' }, 4, 2)).toBe('1 liter')
+  })
+
+  it('rounds to amounts a cook can measure', () => {
+    expect(formatAmount({ quantity: 0.33, unit: 'cup' }, 4, 12)).toBe('1 cup') // not 0.99
+    expect(formatAmount({ quantity: 2, unit: 'tsp' }, 20, 4.5)).toBe('½ tsp') // not 0.45
+    expect(formatAmount({ quantity: 12, unit: 'slices' }, 4, 5)).toBe('15 slices')
+    expect(formatAmount({ quantity: 150, unit: 'g' }, 4, 1)).toBe('40 g') // not 37.5
+    expect(formatAmount({ quantity: 0.25, unit: 'tsp' }, 4, 1)).toBe('⅛ tsp') // the smallest measure
+  })
+
+  it('moves to a bigger unit instead of piling up small ones', () => {
+    expect(formatAmount({ quantity: 1, unit: 'tsp' }, 2, 6)).toBe('1 tbsp')
+    expect(formatAmount({ quantity: 4, unit: 'tbsp' }, 4, 8)).toBe('½ cup')
+    expect(formatAmount({ quantity: 400, unit: 'g' }, 4, 12)).toBe('1.2 kg')
+  })
+
+  it('moves to a smaller unit for small amounts', () => {
+    expect(formatAmount({ quantity: 0.25, unit: 'cup' }, 4, 1)).toBe('1 tbsp') // not ⅛ cup
+    expect(formatAmount({ quantity: 2, unit: 'tbsp' }, 6, 2)).toBe('2 tsp') // not ⅔ tbsp
+    expect(formatAmount({ quantity: 1, unit: 'kg' }, 4, 1)).toBe('250 g') // not ¼ kg
+    expect(formatAmount({ quantity: 1.5, unit: 'l' }, 4, 1)).toBe('380 ml')
+  })
+
+  it('only steps up when the bigger unit reads cleanly', () => {
+    expect(formatAmount({ quantity: 1, unit: 'tsp' }, 1, 4)).toBe('4 tsp') // not 1⅓ tbsp
+    expect(formatAmount({ quantity: 2, unit: 'tbsp' }, 4, 20)).toBe('10 tbsp') // not ⅝ cup
+  })
+
+  it('writes metric amounts as decimals', () => {
+    expect(formatAmount({ quantity: 1.5, unit: 'l' }, 4, 12)).toBe('4.5 l')
   })
 
   it('keeps a unit-only amount and leaves out a missing one', () => {
     expect(formatAmount({ unit: 'to taste' }, 4, 8)).toBe('to taste')
     expect(formatAmount({ unit: '' }, 4, 8)).toBe('')
+  })
+})
+
+describe('formatIngredient', () => {
+  const scaled = (quantity: number, name: string, from: number, to: number) =>
+    formatIngredient({ quantity, unit: '', name }, from, to)
+
+  it('makes a counted ingredient agree with its count', () => {
+    expect(scaled(1, 'onion, quartered', 4, 24)).toEqual({ amount: '6', name: 'onions, quartered' })
+    expect(scaled(2, 'eggs', 4, 2)).toEqual({ amount: '1', name: 'egg' })
+    expect(scaled(3, 'bay leaves', 6, 2)).toEqual({ amount: '1', name: 'bay leaf' })
+    expect(scaled(4, "bird's eye chilies", 4, 1)).toEqual({ amount: '1', name: "bird's eye chili" })
+    expect(scaled(1, 'radish, sliced', 1, 2)).toEqual({ amount: '2', name: 'radishes, sliced' })
+  })
+
+  it('counts in halves below two and whole items above', () => {
+    expect(scaled(3, 'eggs', 4, 2)).toEqual({ amount: '1½', name: 'eggs' })
+    expect(scaled(3, 'eggs', 4, 1)).toEqual({ amount: '1', name: 'egg' }) // 0.75 → 1
+    expect(scaled(6, 'eggs', 4, 5)).toEqual({ amount: '8', name: 'eggs' }) // 7.5 → 8
+  })
+
+  it('leaves words without a plural, and measured ingredients, alone', () => {
+    expect(scaled(6, 'okra', 4, 8)).toEqual({ amount: '12', name: 'okra' })
+    expect(scaled(2, 'bok choy, chopped', 2, 1)).toEqual({ amount: '1', name: 'bok choy, chopped' })
+    expect(formatIngredient({ quantity: 2, unit: 'cups', name: 'eggs' }, 2, 1)).toEqual({ amount: '1 cup', name: 'eggs' })
   })
 })

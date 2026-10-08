@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { Ingredient } from '../schema'
-import { formatAmount } from '../utils'
+import { formatIngredient } from '../utils'
 
 interface IngredientChecklistProps {
   ingredients: Ingredient[]
@@ -77,6 +77,7 @@ export function IngredientChecklist({ ingredients, servings, people, onPeopleCha
         {ingredients.map((ingredient, index) => {
           const id = `ingredient-${index}`
           const isChecked = checked.has(index)
+          const { amount, name } = formatIngredient(ingredient, servings, people)
           return (
             <li key={index}>
               <label htmlFor={id} className="flex cursor-pointer items-start gap-3 py-3 max-md:scroll-mt-32">
@@ -88,10 +89,11 @@ export function IngredientChecklist({ ingredients, servings, people, onPeopleCha
                   className="mt-1 size-4 shrink-0 accent-[var(--tint)]"
                 />
                 <span className={`flex min-w-0 flex-1 items-baseline gap-3 ${isChecked ? 'text-ink-subtle line-through' : ''}`}>
-                  <span className="w-20 shrink-0 font-mono text-sm font-semibold tabular-nums">
-                    {formatAmount(ingredient, servings, people)}
+                  {/* min-w, not w: "24 portions" widens its row instead of wrapping. */}
+                  <span className="min-w-24 shrink-0 font-mono text-sm font-semibold whitespace-nowrap tabular-nums">
+                    {amount}
                   </span>
-                  <span className="min-w-0">{ingredient.name}</span>
+                  <span className="min-w-0">{name}</span>
                 </span>
               </label>
             </li>
