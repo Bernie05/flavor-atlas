@@ -71,7 +71,10 @@ function CuisineView({ cuisineId }: { cuisineId: string }) {
       {recipes.isPending || cuisines.isPending ? (
         <CardGridSkeleton />
       ) : recipes.isError || cuisines.isError ? (
-        <ErrorState error={recipes.error ?? cuisines.error} onRetry={() => void recipes.refetch()} />
+        <ErrorState error={recipes.error ?? cuisines.error} onRetry={() => {
+            if (recipes.isError) void recipes.refetch()
+            if (cuisines.isError) void cuisines.refetch()
+          }} />
       ) : (
         <RecipeBrowser recipes={recipes.data} cuisines={cuisines.data} lockedCuisineId={cuisineId} />
       )}

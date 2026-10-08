@@ -8,4 +8,4 @@ export const dataService: DataService =
   config.dataSource === 'mock' ? mockDataService : httpDataService
 
 export type { DataService, RecipeFilters } from './DataService'
-export { ApiError, NotFoundError, UnauthorizedError, describeError } from './errors'
+export { ApiError, NotFoundError, UnauthorizedError, describeError, isRetryable } from './errors'

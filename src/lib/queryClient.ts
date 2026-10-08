@@ -1,6 +1,6 @@
 import { MutationCache, QueryClient } from '@tanstack/react-query'
 import { sessionQuery } from '@/features/auth/queries'
-import { NotFoundError, UnauthorizedError } from '@/services/data'
+import { isRetryable, UnauthorizedError } from '@/services/data'
 
 export const queryClient: QueryClient = new QueryClient({
   defaultOptions: {
@@ -8,9 +8,11 @@ export const queryClient: QueryClient = new QueryClient({
       // Recipes rarely change while you're reading them, so avoid
       // refetching on every window focus.
       staleTime: 60_000,
-      // Retry flaky network errors once, but a missing recipe won't
-      // appear on a second try.
-      retry: (failureCount, error) => !(error instanceof NotFoundError) && failureCount < 1,
+      // Retry a flaky network or server error once. Never retry what fails the
+      // same way every time (404, bad data): TanStack pauses retries while the
+      // tab is hidden, so a pointless retry kept a background tab on its
+      // loading skeleton until the tab came back.
+      retry: (failureCount, error) => isRetryable(error) && failureCount < 1,
     },
   },
   mutationCache: new MutationCache({

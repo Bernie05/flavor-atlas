@@ -25,6 +25,17 @@ export class ApiError extends Error {
   }
 }
 
+/**
+ * Whether trying again might help. Only transient failures qualify: the
+ * network (fetch rejects with a TypeError) or a 5xx from the server. A
+ * missing record, a refused session, a 4xx or data in the wrong shape will
+ * fail the same way every time, so retrying only delays the error message.
+ */
+export function isRetryable(error: unknown): boolean {
+  if (error instanceof ApiError) return error.status >= 500
+  return error instanceof TypeError
+}
+
 /** Turn any thrown value into a sentence a person can act on. */
 export function describeError(error: unknown): string {
   if (error instanceof NotFoundError || error instanceof ApiError || error instanceof UnauthorizedError) {

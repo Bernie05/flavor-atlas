@@ -16,7 +16,10 @@ export function AdminDashboardPage() {
 
   if (recipes.isPending || cuisines.isPending) return <CardGridSkeleton count={4} />
   if (recipes.isError || cuisines.isError) {
-    return <ErrorState error={recipes.error ?? cuisines.error} onRetry={() => void recipes.refetch()} />
+    return <ErrorState error={recipes.error ?? cuisines.error} onRetry={() => {
+            if (recipes.isError) void recipes.refetch()
+            if (cuisines.isError) void cuisines.refetch()
+          }} />
   }
 
   const stats = computeStats(recipes.data, cuisines.data.length)
