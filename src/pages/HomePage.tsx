@@ -2,8 +2,10 @@ import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router'
 import { CardGridSkeleton } from '@/components/feedback/CardGridSkeleton'
 import { ErrorState } from '@/components/feedback/ErrorState'
+import { AtlasMap } from '@/features/atlas/components/AtlasMap'
 import { CuisineCard } from '@/features/cuisines/components/CuisineCard'
 import { cuisineQueries } from '@/features/cuisines/queries'
+import { regionQueries } from '@/features/dishes/queries'
 import { FeaturedRecipeCard } from '@/features/recipes/components/FeaturedRecipeCard'
 import { RecipeRow } from '@/features/recipes/components/RecipeRow'
 import { recipeQueries } from '@/features/recipes/queries'
@@ -14,11 +16,14 @@ const ROW_SIZE = 3
 export function HomePage() {
   const cuisines = useQuery(cuisineQueries.list())
   const recipes = useQuery(recipeQueries.list())
+  // Only the map's regional dots use this; the map draws without them until it loads.
+  const regions = useQuery(regionQueries.list())
 
   const all = recipes.data ?? []
   const cuisinesById = new Map(cuisines.data?.map((cuisine) => [cuisine.id, cuisine]))
   const [featured, ...lovedRest] = sortRecipes(all, 'top-rated')
   const countFor = (cuisineId: string) => all.filter((recipe) => recipe.cuisineId === cuisineId).length
+  const recipeCounts = new Map(cuisines.data?.map((cuisine) => [cuisine.id, countFor(cuisine.id)]))
 
   return (
     <div className="space-y-20">
@@ -66,15 +71,18 @@ export function HomePage() {
         ) : cuisines.isError ? (
           <ErrorState error={cuisines.error} onRetry={() => cuisines.refetch()} />
         ) : (
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            {cuisines.data.map((cuisine) => (
-              <CuisineCard
-                key={cuisine.id}
-                cuisine={cuisine}
-                recipeCount={countFor(cuisine.id)}
-                cover={coverRecipe(all, cuisine.id)}
-              />
-            ))}
+          <div className="grid items-start gap-6 lg:grid-cols-2 lg:gap-8">
+            <AtlasMap cuisines={cuisines.data} regions={regions.data ?? []} recipeCounts={recipeCounts} />
+            <div className="grid grid-cols-2 gap-3">
+              {cuisines.data.map((cuisine) => (
+                <CuisineCard
+                  key={cuisine.id}
+                  cuisine={cuisine}
+                  recipeCount={countFor(cuisine.id)}
+                  cover={coverRecipe(all, cuisine.id)}
+                />
+              ))}
+            </div>
           </div>
         )}
       </section>
