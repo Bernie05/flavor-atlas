@@ -54,7 +54,7 @@ After pulling changes to `db.seed.json`, run `npm run db:reset` so your local `d
 | Script | What it does |
 |---|---|
 | `npm run dev` | The app and its API on port 5173 |
-| `npm run dev:mock` | Web app with in-memory data, no API needed |
+| `npm run dev:mock` | Web app with the seed data in memory, no API needed |
 | `npm run db:reset` | Restore `db.json` from the committed seed (restart `npm run dev` afterwards) |
 | `npm run auth:hash` | Create the admin password hash and session secret for `.env` |
 | `npm test` | Unit tests (Vitest) |
@@ -94,11 +94,14 @@ features/*/queries.ts      query factories: cache keys + fetchers
       │
       ▼
 services/data/DataService  the interface
-      ├── httpDataService  json-server over fetch, responses validated with Zod
-      └── mockDataService  in-memory copy of db.seed.json
+      ├── httpDataService      json-server over fetch, responses validated with Zod
+      ├── mockDataService      db.seed.json in memory
+      └── artifactDataService  phone preview: db.seed.json + changes saved in the artifact's database
 ```
 
-UI code depends only on the `DataService` interface. `VITE_DATA_SOURCE` picks the implementation, so the same app runs against json-server locally or fully offline as a demo.
+UI code depends only on the `DataService` interface. `VITE_DATA_SOURCE` picks the implementation, so the same app runs against json-server locally, fully offline, or as a claude.ai artifact.
+
+The mock and the artifact share their query logic: `createSnapshotDataService(store)` takes any store that can read the whole database and put one record. In the artifact, that store keeps only *changes* in the shared database (an edited record, or a deletion marker) and lays them over the bundled seed (`overlay.ts`). Admin edits survive reloads and every viewer sees them, the seed never has to be copied in, and a view without the database still shows the seed. The database's rules let only the artifact's owner write (published with `db: { rules: [{ path: "", read: "view", write: "owner" }] }`), so the protection doesn't depend on hiding buttons.
 
 ### AI writing helpers
 
@@ -144,7 +147,7 @@ See [docs/plans/admin-auth.md](docs/plans/admin-auth.md) for the design.
 | Variable | Values | Default |
 |---|---|---|
 | `VITE_API_URL` | Data API base URL | `/api/data` (gateway to json-server) |
-| `VITE_DATA_SOURCE` | `http` or `mock` | `http` |
+| `VITE_DATA_SOURCE` | `http`, `mock` or `artifact` | `http` |
 | `VITE_ROUTER_MODE` | `browser` or `memory` | `browser` |
 | `VITE_AI_SOURCE` | `server` or `artifact` | `server` |
 | `ANTHROPIC_API_KEY` | Claude API key, **server only** | none |
@@ -152,7 +155,7 @@ See [docs/plans/admin-auth.md](docs/plans/admin-auth.md) for the design.
 | `SESSION_SECRET` | From `npm run auth:hash`, **server only** | none (login disabled) |
 | `VITE_AUTH_SOURCE` | `server` or `artifact` | `server` |
 
-`.env.demo` sets the mock data source and memory router for `npm run dev:mock` and `npm run build:demo`.
+`.env.demo` sets the artifact data source (which falls back to memory outside claude.ai) and the memory router for `npm run dev:mock` and `npm run build:demo`.
 
 ## Project structure
 
