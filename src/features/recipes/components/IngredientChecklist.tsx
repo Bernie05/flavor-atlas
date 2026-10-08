@@ -1,22 +1,26 @@
 import { useState } from 'react'
 import type { Ingredient } from '../schema'
-import { formatQuantity, scaleQuantity } from '../utils'
+import { formatAmount } from '../utils'
 
 interface IngredientChecklistProps {
   ingredients: Ingredient[]
   /** How many the recipe is written for. */
   servings: number
+  /** How many you're cooking for. Owned by the page, so cook mode scales the same way. */
+  people: number
+  onPeopleChange: (people: number) => void
 }
 
 const MAX_SERVINGS = 24
 
 /**
  * Ingredients as a mise en place checklist, with a servings scaler.
- * State is local and resets when you leave the recipe: a cooking aid, not data.
+ * The servings number is controlled by the page (cook mode needs it too); the
+ * ticks stay local because nothing else reads them. Both reset when you
+ * leave the recipe: a cooking aid, not data.
  */
-export function IngredientChecklist({ ingredients, servings }: IngredientChecklistProps) {
+export function IngredientChecklist({ ingredients, servings, people, onPeopleChange }: IngredientChecklistProps) {
   const [checked, setChecked] = useState<ReadonlySet<number>>(new Set())
-  const [people, setPeople] = useState(servings)
 
   const toggle = (index: number) =>
     setChecked((previous) => {
@@ -43,7 +47,7 @@ export function IngredientChecklist({ ingredients, servings }: IngredientCheckli
       <div className="flex items-center gap-3">
         <button
           type="button"
-          onClick={() => setPeople((n) => Math.max(1, n - 1))}
+          onClick={() => onPeopleChange(Math.max(1, people - 1))}
           disabled={people <= 1}
           aria-label="Fewer servings"
           className={stepButton}
@@ -55,7 +59,7 @@ export function IngredientChecklist({ ingredients, servings }: IngredientCheckli
         </p>
         <button
           type="button"
-          onClick={() => setPeople((n) => Math.min(MAX_SERVINGS, n + 1))}
+          onClick={() => onPeopleChange(Math.min(MAX_SERVINGS, people + 1))}
           disabled={people >= MAX_SERVINGS}
           aria-label="More servings"
           className={stepButton}
@@ -63,7 +67,7 @@ export function IngredientChecklist({ ingredients, servings }: IngredientCheckli
           +
         </button>
         {people !== servings && (
-          <button type="button" onClick={() => setPeople(servings)} className="inline-flex min-h-10 items-center px-2 text-sm font-medium text-accent hover:text-accent-hover">
+          <button type="button" onClick={() => onPeopleChange(servings)} className="inline-flex min-h-10 items-center px-2 text-sm font-medium text-accent hover:text-accent-hover">
             Reset
           </button>
         )}
@@ -85,9 +89,7 @@ export function IngredientChecklist({ ingredients, servings }: IngredientCheckli
                 />
                 <span className={`flex min-w-0 flex-1 items-baseline gap-3 ${isChecked ? 'text-ink-subtle line-through' : ''}`}>
                   <span className="w-20 shrink-0 font-mono text-sm font-semibold tabular-nums">
-                    {ingredient.quantity !== undefined &&
-                      formatQuantity(scaleQuantity(ingredient.quantity, servings, people))}{' '}
-                    {ingredient.unit}
+                    {formatAmount(ingredient, servings, people)}
                   </span>
                   <span className="min-w-0">{ingredient.name}</span>
                 </span>

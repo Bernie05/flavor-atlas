@@ -11,6 +11,7 @@ import {
   ingredientsInStep,
   filtersFromParams,
   filtersToParams,
+  formatAmount,
   formatDuration,
   formatQuantity,
   hasActiveFilters,
@@ -290,5 +291,18 @@ describe('ingredientsInStep', () => {
       'soy sauce',
       'garlic, crushed',
     ])
+  })
+})
+
+describe('formatAmount', () => {
+  it('scales and formats the quantity with its unit', () => {
+    expect(formatAmount({ quantity: 0.5, unit: 'cup' }, 4, 4)).toBe('½ cup')
+    expect(formatAmount({ quantity: 0.5, unit: 'cup' }, 4, 12)).toBe('1½ cup')
+    expect(formatAmount({ quantity: 3, unit: '' }, 4, 4)).toBe('3')
+  })
+
+  it('keeps a unit-only amount and leaves out a missing one', () => {
+    expect(formatAmount({ unit: 'to taste' }, 4, 8)).toBe('to taste')
+    expect(formatAmount({ unit: '' }, 4, 8)).toBe('')
   })
 })

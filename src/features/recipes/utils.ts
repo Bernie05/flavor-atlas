@@ -99,6 +99,15 @@ export function sortRecipes(recipes: RecipeWithRatings[], sort: RecipeSort): Rec
 /** Rescale a quantity written for `from` servings to `to` servings. */
 export const scaleQuantity = (quantity: number, from: number, to: number) => (quantity * to) / from
 
+/**
+ * An ingredient's amount for `to` servings, as a cook reads it: "1½ cup",
+ * "3", or "" when the recipe gives no quantity ("salt, to taste").
+ */
+export function formatAmount(ingredient: Pick<Ingredient, 'quantity' | 'unit'>, from: number, to: number): string {
+  if (ingredient.quantity === undefined) return ingredient.unit
+  return [formatQuantity(scaleQuantity(ingredient.quantity, from, to)), ingredient.unit].filter(Boolean).join(' ')
+}
+
 export interface StepSegment {
   text: string
   /** True when this piece of the step names one of the recipe's ingredients. */

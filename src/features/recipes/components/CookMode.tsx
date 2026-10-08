@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Recipe } from '../schema'
-import { findStepTimers, formatCountdown, highlightIngredients, ingredientsInStep, type StepTimer } from '../utils'
+import { findStepTimers, formatAmount, formatCountdown, highlightIngredients, ingredientsInStep, type StepTimer } from '../utils'
 
 interface CookModeProps {
-  recipe: Pick<Recipe, 'title' | 'steps' | 'ingredients'>
+  recipe: Pick<Recipe, 'title' | 'steps' | 'ingredients' | 'servings'>
+  /** Servings chosen on the recipe page; amounts scale to it. */
+  people: number
   open: boolean
   onClose: () => void
 }
@@ -14,13 +16,14 @@ interface RunningTimer extends StepTimer {
 
 /**
  * The recipe one step at a time, full screen, for cooking with messy hands:
- * big text, big buttons, the ingredients each step uses, timers you start
+ * big text, big buttons, the ingredients each step uses (scaled to the
+ * servings chosen on the page), timers you start
  * with one tap, and a screen that stays on.
  *
  * It stays mounted while closed, so the step you were on and a running timer
  * survive closing and reopening it.
  */
-export function CookMode({ recipe, open, onClose }: CookModeProps) {
+export function CookMode({ recipe, people, open, onClose }: CookModeProps) {
   const dialogRef = useRef<HTMLDialogElement>(null)
   const [stepIndex, setStepIndex] = useState(0)
   const [timer, setTimer] = useState<RunningTimer | null>(null)
@@ -173,13 +176,17 @@ export function CookMode({ recipe, open, onClose }: CookModeProps) {
 
           {needed.length > 0 && (
             <div className="space-y-2">
-              <p className="label-mono text-ink-subtle">In this step</p>
+              <p className="label-mono text-ink-subtle tabular-nums">In this step · serves {people}</p>
               <ul className="flex flex-wrap gap-2">
-                {needed.map((ingredient) => (
-                  <li key={ingredient.name} className="rounded-full bg-surface px-3 py-1.5 text-sm ring-1 ring-line">
-                    {ingredient.name}
-                  </li>
-                ))}
+                {needed.map((ingredient) => {
+                  const amount = formatAmount(ingredient, recipe.servings, people)
+                  return (
+                    <li key={ingredient.name} className="rounded-full bg-surface px-3 py-1.5 text-sm ring-1 ring-line">
+                      {amount && <span className="font-mono font-semibold whitespace-nowrap tabular-nums">{amount} </span>}
+                      {ingredient.name}
+                    </li>
+                  )
+                })}
               </ul>
             </div>
           )}

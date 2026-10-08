@@ -55,6 +55,8 @@ function RecipeView({ recipe }: { recipe: RecipeWithRatings }) {
   const [panel, setPanel] = useState<Panel>('ingredients')
   const toggleRef = useRef<HTMLDivElement>(null)
   const [cooking, setCooking] = useState(false)
+  // Lifted here from the checklist so cook mode shows the same scaled amounts.
+  const [people, setPeople] = useState(recipe.servings)
 
   // Switching panels while scrolled down would leave you mid-list: bring the
   // new panel's top just under the sticky toggle.
@@ -192,7 +194,12 @@ function RecipeView({ recipe }: { recipe: RecipeWithRatings }) {
           id="ingredients-panel"
           className={`max-md:scroll-mt-32 md:sticky md:top-24 md:self-start ${panel === 'ingredients' ? '' : 'max-md:hidden'}`}
         >
-          <IngredientChecklist ingredients={recipe.ingredients} servings={recipe.servings} />
+          <IngredientChecklist
+            ingredients={recipe.ingredients}
+            servings={recipe.servings}
+            people={people}
+            onPeopleChange={setPeople}
+          />
         </div>
 
         <section
@@ -252,7 +259,7 @@ function RecipeView({ recipe }: { recipe: RecipeWithRatings }) {
         />
       )}
 
-      <CookMode recipe={recipe} open={cooking} onClose={() => setCooking(false)} />
+      <CookMode recipe={recipe} people={people} open={cooking} onClose={() => setCooking(false)} />
 
       <hr className="border-line" />
       <RatingsSection ratings={recipe.ratings} />
