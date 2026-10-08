@@ -12,8 +12,14 @@ interface AtlasMapProps {
   recipeCounts: Map<string, number>
 }
 
-/** Roughly how wide a label is in map units, to keep it on the map. */
-const labelWidth = (text: string) => text.length * 7.5
+/**
+ * Label size in map units, so labels scale with the map: about 10px on a
+ * 320px phone and 16px beside the cards on a desktop.
+ */
+const LABEL_SIZE = 13
+
+/** Roughly how wide an uppercase, letter-spaced label is in map units, to keep it on the map. */
+const labelWidth = (text: string) => text.length * LABEL_SIZE * 0.7
 
 /**
  * The atlas itself: the coastlines of East and Southeast Asia with a pin on
@@ -28,8 +34,13 @@ export function AtlasMap({ cuisines, regions, recipeCounts }: AtlasMapProps) {
   return (
     <figure className="space-y-2">
       <div className="overflow-hidden rounded-3xl bg-accent-soft ring-1 ring-line">
-        <svg viewBox={`0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`} role="group" aria-labelledby="atlas-map-title" className="block h-auto w-full">
-          <title id="atlas-map-title">Map of East and Southeast Asia with the atlas's cuisines</title>
+        {/* aria-label rather than <title>: a <title> pops up as a tooltip anywhere on the map. */}
+        <svg
+          viewBox={`0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`}
+          role="group"
+          aria-label="Map of East and Southeast Asia with the atlas's cuisines"
+          className="block h-auto w-full"
+        >
           <path d={LAND_PATH} aria-hidden fill="var(--surface)" stroke="var(--line-strong)" strokeWidth={0.6} strokeLinejoin="round" />
 
           {dots.map(({ region, point }) => (
@@ -47,8 +58,8 @@ export function AtlasMap({ cuisines, regions, recipeCounts }: AtlasMapProps) {
                 style={cuisineTint(cuisine.id)}
                 className="group outline-none"
               >
-                {/* An invisible 44-unit target: the dot itself is too small to tap. */}
-                <circle cx={point.x} cy={point.y} r={22} fill="transparent" />
+                {/* An invisible 52-unit target: still 41px on a 320px phone, where the map scales to 0.8. */}
+                <circle cx={point.x} cy={point.y} r={26} fill="transparent" />
                 <circle
                   cx={point.x}
                   cy={point.y}
@@ -67,15 +78,17 @@ export function AtlasMap({ cuisines, regions, recipeCounts }: AtlasMapProps) {
                   className="origin-center transition-transform [transform-box:fill-box] group-hover:scale-150 motion-reduce:transition-none"
                 />
                 <text
-                  x={side === 'right' ? point.x + 13 : point.x - 13}
-                  y={point.y + 4}
-                  textAnchor={side === 'right' ? 'start' : 'end'}
+                  x={side === 'right' ? point.x + 13 : point.x}
+                  y={side === 'right' ? point.y + 4 : point.y + 24}
+                  textAnchor={side === 'right' ? 'start' : 'middle'}
+                  // Inline, because .label-mono's CSS font-size would override a fontSize attribute.
+                  style={{ fontSize: LABEL_SIZE }}
                   // A halo in the sea's color keeps the label readable over coastlines.
                   stroke="var(--accent-soft)"
                   strokeWidth={4}
                   paintOrder="stroke"
                   fill="var(--tint-ink)"
-                  className="label-mono group-hover:underline"
+                  className="label-mono group-hover:underline group-focus-visible:underline"
                 >
                   {cuisine.name}
                 </text>
@@ -88,12 +101,15 @@ export function AtlasMap({ cuisines, regions, recipeCounts }: AtlasMapProps) {
         <span className="flex flex-wrap items-center gap-x-4 gap-y-1">
           <span className="inline-flex items-center gap-1.5">
             <span aria-hidden className="size-3 rounded-full border-[1.5px] border-ink-muted bg-surface" />
-            Capital: tap for its recipes
+            Capital: opens its recipes
           </span>
-          <span className="inline-flex items-center gap-1.5">
-            <span aria-hidden className="size-1.5 rounded-full bg-ink-muted" />
-            {dots.length} regional kitchens
-          </span>
+          {/* Regions load separately; say nothing rather than "0 regional kitchens". */}
+          {dots.length > 0 && (
+            <span className="inline-flex items-center gap-1.5">
+              <span aria-hidden className="size-1.5 rounded-full bg-ink-muted" />
+              {dots.length} regional kitchens
+            </span>
+          )}
         </span>
         <span className="text-xs text-ink-subtle">Map: Natural Earth</span>
       </figcaption>

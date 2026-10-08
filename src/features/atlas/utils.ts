@@ -21,6 +21,9 @@ export function projectPoint({ latitude, longitude }: { latitude: number; longit
 /** True when a place falls inside the map, so places outside BOUNDS are left off instead of drawn at the edge. */
 export const isOnMap = ({ x, y }: MapPoint) => x >= 0 && x <= MAP_WIDTH && y >= 0 && y <= MAP_HEIGHT
 
-/** Which side of its pin a label goes: the left near the east edge, so "Japanese" doesn't run off the map. */
-export const labelSide = ({ x }: MapPoint, labelWidth: number): 'left' | 'right' =>
-  x + labelWidth + 12 > MAP_WIDTH ? 'left' : 'right'
+/**
+ * Where a pin's label goes: to the right, or below the pin near the east
+ * edge, so "Japanese" neither runs off the map nor stacks onto "Korean".
+ */
+export const labelSide = ({ x }: MapPoint, labelWidth: number): 'right' | 'below' =>
+  x + labelWidth + 14 > MAP_WIDTH ? 'below' : 'right'

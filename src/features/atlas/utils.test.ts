@@ -29,8 +29,8 @@ describe('isOnMap', () => {
 })
 
 describe('labelSide', () => {
-  it('flips a label to the left near the east edge', () => {
+  it('moves a label below its pin near the east edge', () => {
     expect(labelSide({ x: 100, y: 0 }, 60)).toBe('right')
-    expect(labelSide({ x: MAP_WIDTH - 40, y: 0 }, 60)).toBe('left')
+    expect(labelSide({ x: MAP_WIDTH - 40, y: 0 }, 60)).toBe('below')
   })
 })

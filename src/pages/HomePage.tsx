@@ -67,11 +67,15 @@ export function HomePage() {
           <p className="mt-1 text-ink-muted">Each one marked on the map by its capital.</p>
         </div>
         {cuisines.isPending ? (
-          <CardGridSkeleton count={4} />
+          // The map's shape while loading, so the layout doesn't jump when it arrives.
+          <div className="grid items-start gap-6 lg:grid-cols-[1fr_1.2fr] lg:gap-8">
+            <div aria-hidden className="aspect-[360/378] max-w-full animate-pulse rounded-3xl bg-surface-sunken motion-reduce:animate-none" />
+            <CardGridSkeleton count={4} />
+          </div>
         ) : cuisines.isError ? (
           <ErrorState error={cuisines.error} onRetry={() => cuisines.refetch()} />
         ) : (
-          <div className="grid items-start gap-6 lg:grid-cols-2 lg:gap-8">
+          <div className="grid items-start gap-6 lg:grid-cols-[1fr_1.2fr] lg:gap-8">
             <AtlasMap cuisines={cuisines.data} regions={regions.data ?? []} recipeCounts={recipeCounts} />
             <div className="grid grid-cols-2 gap-3">
               {cuisines.data.map((cuisine) => (
