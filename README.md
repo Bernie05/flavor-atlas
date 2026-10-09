@@ -4,12 +4,12 @@
 
 A recipe book organized by cuisine, in two parts:
 
-- **The site** (read-only): start from a map of East and Southeast Asia, or browse Filipino, Chinese, Korean and Japanese dishes and filter by time, difficulty and main ingredient. Each recipe scales from 1 to 24 servings (amounts stay readable: "1½ cups", "250 g", "6 onions"), has an ingredient checklist, a heart to **save** it to a list kept in your own browser (which turns into one combined **shopping list**, each recipe at the servings you choose), and a full-screen **cook mode** with one step at a time, tap-to-start timers and a screen that stays on. Each dish has a page with its everyday and regional versions (Adobong Dilaw from Batangas, Hakata ramen, Jeonju bibimbap…) and a comparison of what each version adds or leaves out.
-- **The admin** (`/admin`, password protected): a dashboard, a recipe table to add, edit and delete recipes (with AI help writing descriptions, ingredients and steps), and review management. In the claude.ai phone preview, the artifact's owner is the admin and edits are saved in the artifact's database.
+- **The site**: start from a map of Asia you can zoom and drag (each cuisine pinned at its capital, each regional kitchen a dot that opens its own page), **search** cuisines, dishes and recipes from any page, or browse Filipino, Chinese, Korean and Japanese dishes and filter by time, difficulty and main ingredient. Each recipe scales from 1 to 24 servings (amounts stay readable: "1½ cups", "250 g", "6 onions"), has an ingredient checklist, a heart to **save** it to a list kept in your own browser (which turns into one combined **shopping list**, each recipe at the servings you choose), and a full-screen **cook mode** with one step at a time, tap-to-start timers and a screen that stays on. Each dish has a page with its everyday and regional versions (Adobong Dilaw from Batangas, Hakata ramen, Jeonju bibimbap…) and a comparison of what each version adds or leaves out. Visitors can **write a review**; it appears once the admin approves it. Nothing else a visitor does changes what others see.
+- **The admin** (`/admin`, password protected): a dashboard with a **needs attention** list (reviews waiting for approval, photos without credits, cuisines without recipes…), a recipe table to add, edit and delete recipes (with AI help writing descriptions, ingredients and steps), **cuisines** to add (pick the capital on the map; colors come from one hue), edit and delete, and review moderation. In the claude.ai phone preview, the artifact's owner is the admin and edits are saved in the artifact's database.
 
 ## Design
 
-**An atlas of dishes, set like a food magazine.** Each cuisine is a colored region on the map (Filipino sun-yellow, Chinese lacquer red, Korean blue, Japanese plum), pinned at its capital on the home page's map, and every recipe is a food photo (or its emoji) set on its region's color. Headlines use Instrument Serif with italic accents; quantities and times use a monospace face. Every color is a theme token with light and dark values.
+**An atlas of dishes, set like a food magazine.** Each cuisine is a colored region on the map (Filipino sun-yellow, Chinese lacquer red, Korean blue, Japanese plum; a cuisine added later gets a palette generated from one hue, checked for contrast in both themes), pinned at its capital on the home page's map, and every recipe is a food photo (or its emoji) set on its region's color. Headlines use Instrument Serif with italic accents; quantities and times use a monospace face. Every color is a theme token with light and dark values.
 
 Patterns adapted from editorial recipe sites such as NYT Cooking: a serif-and-sans pairing, collections ("Ready in 30 minutes", "Most loved"), an Ingredients / Steps toggle on phones, ingredient names highlighted inside the steps, and a servings scaler.
 
@@ -63,6 +63,8 @@ After pulling changes to `db.seed.json`, run `npm run db:reset` so your local `d
 | `npm run typecheck` / `lint` / `build` | Quality checks |
 | `npm run build:demo` | Self-contained single-file build in `dist-demo/` |
 
+`npm install` also turns on a **pre-commit hook** (`.githooks/pre-commit`): typecheck, lint and tests run before every commit, and `.env`, `db.json` and builds are refused. The tests include `server/data/jsonServerApp.test.ts`, which runs the real json-server, since the in-memory data services hide some of its behavior.
+
 ### Dishes, versions and regions
 
 A **dish** (Adobo, Ramen) groups its **versions** (recipes). Each recipe has a `dishId`, an optional `variant` name and `mainIngredient`, and a `regionId` (`''` means a classic, cooked everywhere). Regional versions carry a one-line `variantNote` saying what makes them different. Regions belong to a cuisine and have coordinates, like cuisines do. `src/services/data/seed.test.ts` checks the seed's integrity (every recipe's dish and region belong to its cuisine, and so on). The research behind the regional versions is in [docs/plans/dish-variants.md](docs/plans/dish-variants.md).
@@ -76,13 +78,16 @@ json-server writes every create, update and delete directly into its JSON file. 
 | Method | Endpoint | Purpose |
 |---|---|---|
 | GET | `/cuisines` | All cuisines |
+| POST / PUT / DELETE | `/cuisines/:id` | Add (keeps the slug id), edit, delete (refused while recipes use it) |
 | GET | `/recipes?cuisineId=korean` | Recipes in a cuisine |
 | GET | `/recipes?dishId=adobo` | Every version of a dish |
 | GET / POST | `/dishes` | Dishes (grouped by `cuisineId`) |
 | GET | `/regions` | Regions with coordinates |
 | GET | `/recipes/:id?_embed=ratings` | One recipe with its ratings |
 | POST / PUT / DELETE | `/recipes/:id` | Create, update, delete |
-| POST | `/ratings` | Rate a recipe |
+| POST | `/ratings` | Publish a rating (admin) |
+| POST | `/submissions` | A visitor's review, queued for moderation (the one public write) |
+| GET / DELETE | `/submissions/:id` | The review queue (admin) |
 
 ## Architecture
 
@@ -132,6 +137,7 @@ Without a key the app works normally and the AI buttons explain how to set it up
 Browser ──► Vite dev server (one process; json-server runs inside it)
              ├─ /api/auth/login|logout|session   password → signed session cookie
              ├─ /api/data/*   reads: anyone · writes: admin only (else 401)
+             │                except POST /submissions: anyone, checked and rate-limited
              └─ /api/ai       admin only
 ```
 
@@ -139,8 +145,9 @@ Browser ──► Vite dev server (one process; json-server runs inside it)
 - **json-server has no port of its own.** It runs inside the dev server behind the gateway (`server/data/jsonServerApp.ts`). Its own CLI listens on every network interface with open CORS, which would let anyone on the network skip the gateway.
 - **Session:** an HMAC-signed token with a 7-day expiry, in an `HttpOnly; SameSite=Strict` cookie that page JavaScript can't read.
 - **Login:** scrypt hash compared in constant time, limited to 5 attempts per minute per IP.
-- **Public vs admin:** the public site has no create, edit, delete or rating controls at all; they live in `/admin`, whose pages load lazily so visitors never download them.
-- **Phone preview:** there's no server, so the admin area is shown only to the artifact's owner (claude.ai's `isOwner()`). That's a display choice, not a security boundary: the preview's data lives in each viewer's tab and resets on reload, so nobody can change anything but their own temporary copy.
+- **Public vs admin:** the public site has no create, edit or delete controls; they live in `/admin`, whose pages load lazily so visitors never download them. The one public write is sending a review: the server keeps only the recipe, stars and comment, checks each, sets the id and date, drops a filled honeypot, allows five per visitor per ten minutes, and queues it where only the admin can read it (`server/auth/access.ts`, `server/data/submissions.ts`).
+- **Data integrity:** json-server would give a new cuisine a random id and set a deleted record's references to null; the data handler keeps cuisine slugs and refuses deletes a recipe still depends on (`server/data/slugCreate.ts`, `server/data/integrity.ts`).
+- **Phone preview:** there's no server, so the admin area is shown only to the artifact's owner (claude.ai's `isOwner()`), and the artifact database's rules do the enforcing: everyone may read, only the owner may write, and the review queue is open to people the preview is shared with as Contributors (its rules can't make a queue write-only, as the server does).
 
 See [docs/plans/admin-auth.md](docs/plans/admin-auth.md) for the design.
 
@@ -165,11 +172,11 @@ See [docs/plans/admin-auth.md](docs/plans/admin-auth.md) for the design.
 src/
   app/          App providers and router
   components/   Shared layout and UI components
-  features/     Code grouped by feature: recipes, cuisines, dishes, ratings, ai, admin
+  features/     Code grouped by feature: recipes, cuisines, dishes, ratings, atlas, search, saved, shopping, ai, admin
   lib/          Config and the query client
   pages/        Route-level pages (pages/admin/ for the admin area)
   services/     Data and AI access behind the DataService and AiService interfaces
-server/         Server-only code: the /api/ai handler and its Vite plugin
+server/         Server-only code: auth, the data gateway and its rules, the /api/ai handler, the Vite plugin
 ```
 
 Each feature has a `schema.ts` with Zod schemas. They are the single source of truth: TypeScript types are inferred from them, and the same schemas validate forms and AI output.
@@ -204,9 +211,17 @@ This repo ships Claude Code configuration in `.claude/`:
   - [x] Atlas map on the home page
   - [x] Phone preview keeps admin edits in the artifact's database (seed + saved changes)
   - [x] CI on every push; retries only for errors that can recover; accessibility fixes from `ui-reviewer` audits
-- [ ] **Next**
-  - [ ] Search from every page
+- [x] **Phase 8:** finding, planning and growing the atlas
+  - [x] Search from every page (cuisines, dishes and recipes, accents ignored, why a recipe matched)
   - [x] Saved recipes, kept in the visitor's browser (no account, nothing shared)
   - [x] A shopping list from saved recipes: amounts added up across recipes, tick-offs, copy as text
-  - [ ] "Needs attention" list on the admin dashboard
-  - [ ] Bundle: a named vendor chunk, lazy-load the map
+  - [x] A lighter first download: lazy data service, routes, map and cook mode; named library chunks
+  - [x] A map of Asia that zooms to fit its cuisines, with zoom and drag (buttons, pinch, Ctrl+scroll, keyboard)
+  - [x] Regional kitchens: a page per region, opened from its dot on the map or the 📍 tag on a recipe
+  - [x] Cuisines from the admin: add (capital picked on the map), edit and delete; colors from one hue, flags for every country on the map
+  - [x] "Needs attention" on the admin dashboard
+  - [x] Visitor reviews, published after the admin approves them
+  - [x] Pre-commit hook, and tests against the real json-server
+- [ ] **Next**
+  - [ ] Editing and deleting dishes and regions in the admin
+  - [ ] Moving a recipe to another dish or cuisine in bulk

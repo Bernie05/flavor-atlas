@@ -75,8 +75,9 @@ export function createArtifactStore(
     const snapshots = await Promise.all(
       WRITABLE_COLLECTIONS.map((c) => {
         const get = artifactDb.collection(c).get()
-        // Only the owner may read the review queue (the database's rules); for everyone
-        // else that read is refused, which means "no queue here", not "no database".
+        // The review queue is readable only by those who may send reviews (Contributors
+        // and up; the preview's rules can't make it write-only like the real server).
+        // For view-only visitors the read is refused: "no queue here", not "no database".
         return c === 'submissions' ? get.catch(() => ({ docs: [] })) : get
       }),
     )
