@@ -18,6 +18,14 @@ export function projectPoint({ latitude, longitude }: { latitude: number; longit
   return { x: SCALE * rad(longitude) + OFFSET_X, y: OFFSET_Y - SCALE * mercatorY(latitude) }
 }
 
+/** The inverse of projectPoint: the latitude and longitude under a point on the map (for picking a place by clicking). */
+export function unprojectPoint({ x, y }: MapPoint): { latitude: number; longitude: number } {
+  const longitude = ((x - OFFSET_X) / SCALE) * (180 / Math.PI)
+  // Inverse Mercator: y = ln(tan(π/4 + φ/2))  ⇒  φ = 2·atan(e^y) − π/2
+  const latitude = (2 * Math.atan(Math.exp((OFFSET_Y - y) / SCALE)) - Math.PI / 2) * (180 / Math.PI)
+  return { latitude, longitude }
+}
+
 /** True when a place falls inside the map, so places outside BOUNDS are left off instead of drawn at the edge. */
 export const isOnMap = ({ x, y }: MapPoint) => x >= 0 && x <= MAP_WIDTH && y >= 0 && y <= MAP_HEIGHT
 

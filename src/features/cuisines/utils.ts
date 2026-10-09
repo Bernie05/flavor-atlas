@@ -22,3 +22,16 @@ export function cuisineTint(cuisineId: string | undefined): CSSProperties {
     '--tint-ink': `var(--c-${cuisineId}-ink, var(--accent-ink))`,
   } as CSSProperties
 }
+
+/**
+ * A new cuisine's id from its name: "Vietnamese" → "vietnamese", "Lào Food" → "lao-food".
+ * Empty when the name has no Latin letters or digits, which the form reports.
+ */
+export const cuisineIdFor = (name: string) =>
+  name
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '')
+    .toLowerCase()
+    .replace(/đ/g, 'd')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')

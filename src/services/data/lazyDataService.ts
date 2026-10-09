@@ -4,6 +4,7 @@ import type { DataService } from './DataService'
 const METHODS = {
   listCuisines: true,
   getCuisine: true,
+  createCuisine: true,
   listDishes: true,
   getDish: true,
   createDish: true,

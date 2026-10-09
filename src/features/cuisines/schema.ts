@@ -1,5 +1,8 @@
 import { z } from 'zod'
+import { isOnMap, projectPoint } from '@/features/atlas/utils'
+import { MAP_COUNTRIES } from './flags'
 import { CUISINE_ID } from './palette'
+import { cuisineIdFor } from './utils'
 
 export const cuisineSchema = z.object({
   /** A slug ("filipino"): it names the cuisine's CSS variables, so nothing else is allowed. */
@@ -22,4 +25,31 @@ export const cuisineSchema = z.object({
   hue: z.number().min(0).max(360).optional(),
 })
 
+/**
+ * What the admin fills in to add a cuisine. The id comes from the name
+ * (cuisineIdFor), and a new cuisine always has a hue, so it never needs CSS.
+ */
+export const cuisineInputSchema = z
+  .object({
+    name: z.string().trim().min(2, 'Name the cuisine, e.g. Vietnamese').max(40),
+    countryCode: z.enum(MAP_COUNTRIES, { error: 'Choose a country on the map' }),
+    emoji: z.string().trim().min(1, 'Add an emoji for recipes without a photo').max(8, 'Use a single emoji'),
+    description: z.string().trim().min(10, 'Describe the cuisine in a sentence').max(300),
+    origin: z.string().trim().min(2, 'Name the capital or city the pin marks').max(60),
+    latitude: z.number({ error: 'Enter a latitude' }).min(-90).max(90),
+    longitude: z.number({ error: 'Enter a longitude' }).min(-180).max(180),
+    hue: z.number({ error: 'Pick a color' }).int().min(0).max(359),
+  })
+  // The name becomes the cuisine's id and web address (/cuisines/vietnamese).
+  .refine((input) => cuisineIdFor(input.name) !== '', {
+    message: 'Use Latin letters in the name: it becomes the page address, like /cuisines/vietnamese',
+    path: ['name'],
+  })
+  // A pin outside the drawn map would never show, so it can't be saved.
+  .refine((input) => isOnMap(projectPoint(input)), {
+    message: 'Pick a place on the map: the atlas draws from Pakistan to the Pacific',
+    path: ['latitude'],
+  })
+
 export type Cuisine = z.infer<typeof cuisineSchema>
+export type CuisineInput = z.infer<typeof cuisineInputSchema>

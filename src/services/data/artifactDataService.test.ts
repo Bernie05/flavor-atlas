@@ -56,6 +56,25 @@ describe('artifact data service', () => {
     expect((await reloaded.listRecipes()).some((r) => r.id === '2')).toBe(false)
   })
 
+  it('adds a cuisine with an id from its name, keeps it across reloads, and refuses the same name twice', async () => {
+    const fake = fakeDb()
+    const service = serviceOver(fake.db)
+    const input = {
+      name: 'Vietnamese',
+      countryCode: 'vn' as const,
+      emoji: '🍜',
+      description: 'Fresh herbs and long-simmered broths.',
+      origin: 'Hanoi',
+      latitude: 21.03,
+      longitude: 105.85,
+      hue: 150,
+    }
+    expect(await service.createCuisine(input)).toMatchObject({ id: 'vietnamese', hue: 150 })
+    expect((await serviceOver(fake.db).getCuisine('vietnamese')).origin).toBe('Hanoi')
+    await expect(service.createCuisine({ ...input, name: 'vietnamese ' })).rejects.toMatchObject({ status: 409 })
+    await expect(service.createCuisine({ ...input, name: 'Filipino' })).rejects.toBeInstanceOf(ApiError) // a seed cuisine
+  })
+
   it('stores "to taste" ingredients as plain JSON', async () => {
     const fake = fakeDb()
     const service = serviceOver(fake.db)

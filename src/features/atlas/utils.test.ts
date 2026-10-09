@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { BOUNDS, MAP_HEIGHT, MAP_WIDTH } from './mapBounds'
-import { BASE_VIEW_WIDTH, isOnMap, labelSide, mapView, PIN, pinScale, placesView, projectPoint } from './utils'
+import { BASE_VIEW_WIDTH, isOnMap, labelSide, mapView, PIN, pinScale, placesView, projectPoint, unprojectPoint } from './utils'
 
 describe('projectPoint', () => {
   it('maps the corners of BOUNDS to the corners of the map', () => {
@@ -18,6 +18,16 @@ describe('projectPoint', () => {
     const beijing = projectPoint({ latitude: 39.9, longitude: 116.41 })
     expect(tokyo.x).toBeGreaterThan(manila.x) // east is right
     expect(beijing.y).toBeLessThan(manila.y) // north is up
+  })
+})
+
+describe('unprojectPoint', () => {
+  it('turns a point on the map back into the place it came from', () => {
+    for (const place of [{ latitude: 21.03, longitude: 105.85 }, { latitude: -6.2, longitude: 106.8 }, { latitude: 47.9, longitude: 106.9 }]) {
+      const back = unprojectPoint(projectPoint(place))
+      expect(back.latitude).toBeCloseTo(place.latitude, 6)
+      expect(back.longitude).toBeCloseTo(place.longitude, 6)
+    }
   })
 })
 

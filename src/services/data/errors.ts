@@ -48,3 +48,10 @@ export function describeError(error: unknown): string {
   if (error instanceof ZodError) return 'The server sent recipe data in an unexpected format.'
   return 'Something went wrong. Please try again.'
 }
+
+/** A cuisine id is already taken (HTTP 409 semantics, in every data service). */
+export const cuisineExists = (name: string) =>
+  new ApiError(409, `There's already a cuisine called “${name}”. Pick another name.`)
+
+/** A cuisine name that makes no id (no Latin letters or digits). The form checks first; this is the backstop. */
+export const cuisineNameInvalid = () => new ApiError(400, 'Use Latin letters in the cuisine name.')

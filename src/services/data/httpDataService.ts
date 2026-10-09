@@ -5,7 +5,8 @@ import { ratingSchema } from '@/features/ratings/schema'
 import { recipeSchema, recipeWithRatingsSchema } from '@/features/recipes/schema'
 import { config } from '@/lib/config'
 import type { DataService } from './DataService'
-import { ApiError, NotFoundError, UnauthorizedError } from './errors'
+import { cuisineIdFor } from '@/features/cuisines/utils'
+import { ApiError, cuisineExists, cuisineNameInvalid, NotFoundError, UnauthorizedError } from './errors'
 
 type Method = 'GET' | 'POST' | 'PATCH' | 'DELETE'
 
@@ -46,6 +47,22 @@ export const httpDataService: DataService = {
 
   getCuisine(id) {
     return requestJson('GET', `/cuisines/${encodeURIComponent(id)}`, cuisineSchema)
+  },
+
+  async createCuisine(input) {
+    const id = cuisineIdFor(input.name)
+    if (!id) throw cuisineNameInvalid()
+    // json-server would accept a second record with the same id, so check first.
+    // (Two admins racing is not a concern for a one-admin site.)
+    const taken = await request('GET', `/cuisines/${encodeURIComponent(id)}`).then(
+      () => true,
+      (error: unknown) => {
+        if (error instanceof NotFoundError) return false
+        throw error
+      },
+    )
+    if (taken) throw cuisineExists(input.name)
+    return requestJson('POST', '/cuisines', cuisineSchema, { ...input, id })
   },
 
   listDishes() {

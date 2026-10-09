@@ -1,10 +1,11 @@
 import { z } from 'zod'
-import { cuisineSchema } from '@/features/cuisines/schema'
+import { cuisineSchema, type Cuisine } from '@/features/cuisines/schema'
+import { cuisineIdFor } from '@/features/cuisines/utils'
 import { dishSchema, regionSchema, type Dish } from '@/features/dishes/schema'
 import { ratingSchema, type Rating } from '@/features/ratings/schema'
 import { recipeSchema, type Recipe } from '@/features/recipes/schema'
 import type { DataService } from './DataService'
-import { NotFoundError } from './errors'
+import { cuisineExists, cuisineNameInvalid, NotFoundError } from './errors'
 
 export const dbSchema = z.object({
   cuisines: z.array(cuisineSchema),
@@ -17,9 +18,10 @@ export const dbSchema = z.object({
 export type Db = z.infer<typeof dbSchema>
 
 /** The collections the app can change. Cuisines and regions are fixed. */
-export type WritableCollection = 'dishes' | 'recipes' | 'ratings'
+export type WritableCollection = 'cuisines' | 'dishes' | 'recipes' | 'ratings'
 
 export interface WritableRecords {
+  cuisines: Cuisine
   dishes: Dish
   recipes: Recipe
   ratings: Rating
@@ -61,6 +63,14 @@ export function createSnapshotDataService(store: SnapshotStore): DataService {
     async getCuisine(id) {
       const cuisine = (await store.read()).cuisines.find((c) => c.id === id)
       if (!cuisine) throw new NotFoundError("We couldn't find that cuisine.")
+      return structuredClone(cuisine)
+    },
+
+    async createCuisine(input) {
+      const cuisine: Cuisine = { ...input, id: cuisineIdFor(input.name) }
+      if (!cuisine.id) throw cuisineNameInvalid()
+      if ((await store.read()).cuisines.some((c) => c.id === cuisine.id)) throw cuisineExists(input.name)
+      await store.put('cuisines', cuisine.id, cuisine)
       return structuredClone(cuisine)
     },
 
@@ -147,6 +157,8 @@ export function putRecord<T extends { id: string }>(list: T[], id: string, recor
 export function applyPut<C extends WritableCollection>(db: Db, collection: C, id: string, record: WritableRecords[C] | null): Db {
   // A switch, because TypeScript can't link a generic key to its record type in `{ [collection]: ... }`.
   switch (collection) {
+    case 'cuisines':
+      return { ...db, cuisines: putRecord(db.cuisines, id, record as Cuisine | null) }
     case 'dishes':
       return { ...db, dishes: putRecord(db.dishes, id, record as Dish | null) }
     case 'recipes':
