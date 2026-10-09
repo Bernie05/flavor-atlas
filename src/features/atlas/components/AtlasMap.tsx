@@ -5,7 +5,7 @@ import type { Region } from '@/features/dishes/schema'
 import { LAND_PATH } from '../landPath'
 import { AtlasCaption } from './AtlasCaption'
 import { useMapViewport } from '../useMapViewport'
-import { isOnMap, labelSide, mapView, PIN, pinScale, projectPoint } from '../utils'
+import { isOnMap, mapView, PIN, pinScale, placeLabels, projectPoint } from '../utils'
 
 interface AtlasMapProps {
   cuisines: Cuisine[]
@@ -30,10 +30,8 @@ export function AtlasMap({ cuisines, regions, recipeCounts }: AtlasMapProps) {
   const { view } = viewport
   // Sizes are set for a 360-unit view; a wider view scales them up so they stay the same on screen.
   const k = pinScale(view)
-  const placed = pins.map((pin) => ({
-    ...pin,
-    side: labelSide(pin.point, pin.cuisine.name, view, pins.filter((other) => other !== pin).map((other) => other.point)),
-  }))
+  const sides = placeLabels(pins.map(({ point, cuisine }) => ({ point, text: cuisine.name })), view)
+  const placed = pins.map((pin, i) => ({ ...pin, side: sides[i] ?? 'below' }))
 
   return (
     <figure className="space-y-2">
@@ -70,6 +68,7 @@ export function AtlasMap({ cuisines, regions, recipeCounts }: AtlasMapProps) {
                 // Where the pin is, so Tab can bring it into a zoomed-in view.
                 data-pin-x={point.x}
                 data-pin-y={point.y}
+                data-pin-label={cuisine.name}
               >
                 <circle cx={point.x} cy={point.y} r={PIN.hitRadius * k} fill="transparent" />
                 <circle
@@ -99,9 +98,9 @@ export function AtlasMap({ cuisines, regions, recipeCounts }: AtlasMapProps) {
           {placed.map(({ cuisine, point, side }) => (
             <Link key={cuisine.id} to={`/cuisines/${cuisine.id}`} tabIndex={-1} aria-hidden style={cuisineTint(cuisine.id)} className="group">
               <text
-                x={side === 'right' ? point.x + PIN.labelGap * k : point.x}
-                y={side === 'right' ? point.y + 4 * k : point.y + 24 * k}
-                textAnchor={side === 'right' ? 'start' : 'middle'}
+                x={side === 'right' ? point.x + PIN.labelGap * k : side === 'left' ? point.x - PIN.labelGap * k : point.x}
+                y={side === 'below' ? point.y + 24 * k : side === 'above' ? point.y - 14 * k : point.y + 4 * k}
+                textAnchor={side === 'right' ? 'start' : side === 'left' ? 'end' : 'middle'}
                 // Inline, because .label-mono's CSS font-size would override a fontSize attribute.
                 style={{ fontSize: PIN.labelSize * k }}
                 // A halo in the sea's color keeps the label readable over coastlines.
@@ -123,7 +122,7 @@ export function AtlasMap({ cuisines, regions, recipeCounts }: AtlasMapProps) {
 }
 
 const controlClass =
-  'grid size-10 place-items-center rounded-full text-ink hover:bg-surface-sunken aria-disabled:cursor-default aria-disabled:text-ink-subtle aria-disabled:hover:bg-transparent'
+  'grid size-10 place-items-center rounded-full text-ink hover:bg-surface-sunken aria-disabled:cursor-default aria-disabled:opacity-40 aria-disabled:hover:bg-transparent'
 
 /**
  * Zoom in, zoom out and reset: the way to zoom that works for everyone,
@@ -131,10 +130,14 @@ const controlClass =
  * focus on the button, as on the shopping list's steppers.
  */
 function MapControls({ viewport }: { viewport: Omit<ReturnType<typeof useMapViewport>, 'svgRef' | 'handlers'> }) {
-  const { canZoomIn, canZoomOut, isHome, zoomIn, zoomOut, reset } = viewport
+  const { canZoomIn, canZoomOut, isHome, zoomIn, zoomOut, reset, announcement } = viewport
   return (
     <div role="group" aria-label="Map zoom" className="absolute top-2 right-2 z-10 flex flex-col gap-1">
-      <div className="flex flex-col rounded-full bg-surface/90 shadow-sm ring-1 ring-line backdrop-blur">
+      {/* Always present, so each new message is announced. */}
+      <p role="status" className="sr-only">
+        {announcement}
+      </p>
+      <div className="flex flex-col rounded-full bg-surface/90 ring-1 ring-line-strong backdrop-blur">
         <button type="button" aria-label="Zoom in" aria-disabled={!canZoomIn} onClick={() => canZoomIn && zoomIn()} className={controlClass}>
           <svg aria-hidden viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
             <path d="M12 6v12M6 12h12" />
@@ -152,7 +155,7 @@ function MapControls({ viewport }: { viewport: Omit<ReturnType<typeof useMapView
         aria-label="Reset map"
         aria-disabled={isHome}
         onClick={() => !isHome && reset()}
-        className={`${controlClass} bg-surface/90 shadow-sm ring-1 ring-line backdrop-blur`}
+        className={`${controlClass} bg-surface/90 ring-1 ring-line-strong backdrop-blur`}
       >
         <svg aria-hidden viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
           <path d="M4 12a8 8 0 1 0 2.5-5.8M4 4v4h4" />

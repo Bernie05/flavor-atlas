@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState, type FocusEvent, type MouseEvent, type PointerEvent } from 'react'
-import { panView, pinScale, revealPoint, viewCenter, viewLimits, zoomView, type MapPoint, type MapView } from './utils'
+import { panView, pinMargins, revealPoint, viewCenter, viewLimits, zoomView, type MapPoint, type MapView } from './utils'
 
 /** Pixels a pointer must move before a press becomes a drag (so a tap on a pin still opens it). */
 const DRAG_THRESHOLD = 4
 const BUTTON_ZOOM = 1.6
+
+/** How close the view is compared with the home view, as a percentage: 160 = 1.6x. */
+const zoomPercent = (home: MapView, view: MapView) => Math.round((home.width / view.width) * 100)
 
 const sameView = (a: MapView, b: MapView) => a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height
 
@@ -16,6 +19,9 @@ const sameView = (a: MapView, b: MapView) => a.x === b.x && a.y === b.y && a.wid
  */
 export function useMapViewport(home: MapView) {
   const [state, setState] = useState({ home, view: home })
+  // What the zoom buttons last did, for screen readers. Drags and pinches stay silent:
+  // announcing every frame would drown everything else out.
+  const [announcement, setAnnouncement] = useState('')
   // New data (an added cuisine) moves the home view: start again from it.
   // Adjusting state during render avoids drawing one frame of the old view.
   if (!sameView(state.home, home)) setState({ home, view: home })
@@ -125,7 +131,7 @@ export function useMapViewport(home: MapView) {
     const pin = (event.target as Element).closest<SVGElement>('[data-pin-x]')
     if (!pin) return
     const point = { x: Number(pin.dataset.pinX), y: Number(pin.dataset.pinY) }
-    update((v) => revealPoint(v, point, 30 * pinScale(v)))
+    update((v) => revealPoint(v, point, pinMargins(v, pin.dataset.pinLabel)))
   }
 
   return {
@@ -135,9 +141,21 @@ export function useMapViewport(home: MapView) {
     isHome: sameView(view, home),
     canZoomIn: view.width > limits.minWidth + 0.5,
     canZoomOut: view.width < limits.maxWidth - 0.5,
-    zoomIn: () => update((v) => zoomView(v, BUTTON_ZOOM, viewCenter(v), limits)),
-    zoomOut: () => update((v) => zoomView(v, 1 / BUTTON_ZOOM, viewCenter(v), limits)),
-    reset: () => update(() => home),
+    announcement,
+    zoomIn: () => {
+      const next = zoomView(view, BUTTON_ZOOM, viewCenter(view), limits)
+      update(() => next)
+      setAnnouncement(`Zoomed in, ${zoomPercent(home, next)}%`)
+    },
+    zoomOut: () => {
+      const next = zoomView(view, 1 / BUTTON_ZOOM, viewCenter(view), limits)
+      update(() => next)
+      setAnnouncement(`Zoomed out, ${zoomPercent(home, next)}%`)
+    },
+    reset: () => {
+      update(() => home)
+      setAnnouncement('Map reset')
+    },
     handlers: {
       onPointerDown,
       onPointerMove,

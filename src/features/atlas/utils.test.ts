@@ -3,14 +3,19 @@ import { BOUNDS, MAP_HEIGHT, MAP_WIDTH } from './mapBounds'
 import {
   BASE_VIEW_WIDTH,
   clampView,
+  controlsBox,
+  CONTROLS_ROOM,
   isOnMap,
+  labelBox,
   labelSide,
   mapView,
   panView,
   PIN,
   pinScale,
+  placeLabels,
   placesView,
   projectPoint,
+  pinMargins,
   revealPoint,
   unprojectPoint,
   viewCenter,
@@ -70,7 +75,7 @@ describe('mapView', () => {
 
   it('zooms to East Asia when the cuisines are all there', () => {
     const view = mapView([manila, beijing, tokyo])
-    expect(view.width).toBeCloseTo(BASE_VIEW_WIDTH)
+    expect(view.width).toBeCloseTo(BASE_VIEW_WIDTH + CONTROLS_ROOM) // the old East Asia view, plus room for the zoom buttons
     expect(view.height / view.width).toBeGreaterThanOrEqual(0.75 - 1e-9)
     for (const p of [manila, beijing, tokyo]) expect(inView(view, p)).toBe(true)
     expect(inView(view, delhi)).toBe(false)
@@ -89,10 +94,9 @@ describe('mapView', () => {
     expect(delhi.x - reach).toBeGreaterThanOrEqual(view.x)
   })
 
-  it('adds extra width to the west, where the labels are not', () => {
+  it('adds extra width to the west, so the home view keeps the coast of Vietnam', () => {
     const view = mapView([manila, beijing, tokyo])
-    const eastRoom = view.x + view.width - tokyo.x
-    expect(beijing.x - view.x).toBeGreaterThan(eastRoom) // Vietnam's coast in view, not empty Pacific
+    expect(view.x).toBeLessThanOrEqual(place(16, 108).x) // Da Nang's coast
   })
 
   it('stays inside the drawn map and keeps a card-like shape', () => {
@@ -117,19 +121,28 @@ describe('placesView', () => {
 
 describe('labelSide', () => {
   const seoul = place(37.57, 126.98)
-  const japanView = mapView([manila, beijing, tokyo])
+  const home = mapView([manila, beijing, tokyo, seoul])
 
   it('puts a label right of its pin when there is room', () => {
-    expect(labelSide(beijing, 'Chinese', japanView, [seoul, tokyo, manila])).toBe('right')
+    expect(labelSide(beijing, 'Chinese', home, [seoul, tokyo, manila])).toBe('right')
   })
 
-  it('moves a label below its pin near the east edge of the view', () => {
-    expect(labelSide(tokyo, 'Japanese', { ...japanView, width: tokyo.x - japanView.x + 20 })).toBe('below')
+  it('moves a label to the left near the east edge of the view', () => {
+    // Manila sits low in the view, away from the buttons in the top-right corner.
+    const tight = { ...home, width: manila.x - home.x + 20 }
+    expect(labelSide(manila, 'Filipino', tight)).toBe('left')
   })
 
-  it('moves a label below when it would cover another pin once the map zooms out', () => {
+  it('keeps labels clear of the zoom buttons in the top-right corner', () => {
+    const buttons = controlsBox(home)
+    // A pin just left of the buttons, level with them: its label can't go right.
+    const underButtons = { x: buttons.left - 20, y: buttons.top + 40 }
+    expect(labelSide(underButtons, 'Japanese', home)).not.toBe('right')
+  })
+
+  it('moves a label off another pin once the map zooms out', () => {
     const wide = mapView([manila, beijing, tokyo, seoul, delhi])
-    expect(labelSide(beijing, 'Chinese', wide, [seoul])).toBe('below')
+    expect(labelSide(beijing, 'Chinese', wide, [seoul])).not.toBe('right')
   })
 })
 
@@ -169,9 +182,54 @@ describe('zooming and panning', () => {
 
   it('moves a zoomed view just enough to show a pin reached with Tab', () => {
     const zoomed = zoomView(home, 3, tokyo, limits)
-    const shown = revealPoint(zoomed, manila, 20)
+    const even = { left: 20, right: 20, top: 20, bottom: 20 }
+    const shown = revealPoint(zoomed, manila, even)
     expect(manila.x).toBeGreaterThanOrEqual(shown.x + 20 - 1e-9)
     expect(manila.y).toBeLessThanOrEqual(shown.y + shown.height - 20 + 1e-9)
-    expect(revealPoint(zoomed, tokyo, 20)).toEqual(zoomed) // already in view: no jump
+    expect(revealPoint(zoomed, tokyo, even)).toEqual(zoomed) // already in view: no jump
+  })
+
+  it('leaves room on the right of a revealed pin for its label and the zoom buttons', () => {
+    const zoomed = zoomView(home, 3, manila, limits)
+    const margins = pinMargins(zoomed)
+    const shown = revealPoint(zoomed, tokyo, margins)
+    expect(shown.x + shown.width - tokyo.x).toBeGreaterThanOrEqual(margins.right - 1e-9)
+  })
+})
+
+describe('placeLabels', () => {
+  const seoul = place(37.57, 126.98)
+  const seedPins = [
+    { point: manila, text: 'Filipino' },
+    { point: beijing, text: 'Chinese' },
+    { point: seoul, text: 'Korean' },
+    { point: tokyo, text: 'Japanese' },
+  ]
+  const hits = (a: { left: number; right: number; top: number; bottom: number }, b: typeof a) =>
+    a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top
+  const boxesFor = (pins: typeof seedPins, view: ReturnType<typeof mapView>) =>
+    placeLabels(pins, view).map((side, i) => labelBox(pins[i]!.point, pins[i]!.text, side, pinScale(view)))
+
+  it('leaves every label clear of the others, the pins and the buttons at the home view', () => {
+    const view = mapView(seedPins.map((pin) => pin.point))
+    const boxes = boxesFor(seedPins, view)
+    for (const [i, box] of boxes.entries()) {
+      expect(hits(box, controlsBox(view)), seedPins[i]!.text).toBe(false)
+      for (const [j, other] of boxes.entries()) if (i !== j) expect(hits(box, other), `${seedPins[i]!.text} / ${seedPins[j]!.text}`).toBe(false)
+    }
+  })
+
+  it('zoomed far out, never puts a label under the buttons or over a pin; crowded labels may touch', () => {
+    const pins = [...seedPins, { point: delhi, text: 'Indian' }]
+    const view = mapView(pins.map((pin) => pin.point))
+    const reach = PIN.radius * pinScale(view)
+    for (const [i, box] of boxesFor(pins, view).entries()) {
+      expect(hits(box, controlsBox(view)), pins[i]!.text).toBe(false)
+      for (const [j, pin] of pins.entries())
+        if (i !== j) {
+          const dot = { left: pin.point.x - reach, right: pin.point.x + reach, top: pin.point.y - reach, bottom: pin.point.y + reach }
+          expect(hits(box, dot), `${pins[i]!.text} over ${pin.text}`).toBe(false)
+        }
+    }
   })
 })

@@ -20,9 +20,9 @@ const AtlasMap = lazy(() => import('@/features/atlas/components/AtlasMap').then(
 
 /**
  * Stands in for the map while it loads, in the map's own shape (the seed's view
- * is about 12:11) so the page doesn't jump when the map arrives.
+ * is 420:330) so the page doesn't jump when the map arrives.
  */
-function MapPlaceholder({ ratio = '12 / 11', regionalKitchens }: { ratio?: string; regionalKitchens?: number }) {
+function MapPlaceholder({ ratio = '420 / 330', regionalKitchens }: { ratio?: string; regionalKitchens?: number }) {
   return (
     <figure aria-hidden className="space-y-2">
       <div style={{ aspectRatio: ratio }} className="max-w-full animate-pulse rounded-3xl bg-surface-sunken motion-reduce:animate-none" />

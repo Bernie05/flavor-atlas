@@ -18,12 +18,13 @@ const MIN_WEIGHT = Number(process.env.MIN_WEIGHT ?? 0.01)
 const simplified = simplify(presimplify(land50), MIN_WEIGHT)
 const land = feature(simplified, simplified.objects.land)
 
-// The coastlines drawn: Pakistan to the Pacific, Java to Mongolia, so a new Asian cuisine
+// The coastlines drawn: Pakistan to the mid-Pacific, Java to Mongolia, so a new Asian cuisine
 // (Thai, Indian, Indonesian…) only needs its seed entry. The map zooms to the cuisines it
 // shows (mapView() in src/features/atlas/utils.ts), so a wide area costs bytes, not detail.
-const BOUNDS = { west: 60, east: 155, south: -12, north: 55 }
-// About 7.6 map units per degree, as before, so coastline detail looks the same when zoomed in.
-const WIDTH = 720
+const BOUNDS = { west: 60, east: 175, south: -12, north: 55 }
+// About 7.6 map units per degree, so coastline detail looks the same when zoomed in. East
+// reaches past Japan into open Pacific, so a view of Japan has room for the zoom buttons.
+const WIDTH = 872
 
 const rad = (deg) => (deg * Math.PI) / 180
 const mercY = (lat) => Math.log(Math.tan(Math.PI / 4 + rad(lat) / 2))

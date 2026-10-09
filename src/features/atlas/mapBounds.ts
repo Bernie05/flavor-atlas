@@ -2,8 +2,8 @@
 // Kept apart from the coastlines so pages can place things on the map without loading them.
 
 /** The part of the world the map draws, in degrees. */
-export const BOUNDS = {"west":60,"east":155,"south":-12,"north":55} as const
+export const BOUNDS = {"west":60,"east":175,"south":-12,"north":55} as const
 
 /** The map's coordinate space (SVG viewBox), in map units. */
-export const MAP_WIDTH = 720
+export const MAP_WIDTH = 872
 export const MAP_HEIGHT = 593

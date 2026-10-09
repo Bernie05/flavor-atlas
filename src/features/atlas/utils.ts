@@ -62,20 +62,31 @@ export const labelWidth = (text: string) => text.length * PIN.labelSize * 0.7
 const PADDING = 36
 /** Labels sit to the right of their pins: the gap plus a label as long as "JAPANESE". */
 const LABEL_ROOM = PIN.labelGap + labelWidth('Japanese')
+/**
+ * The zoom buttons sit in the map's top-right corner. The east margin keeps
+ * room for them too, so they never cover a pin or label at the home view
+ * (48px of buttons on a 288px-wide phone map is 60 units of a 360 view).
+ */
+export const CONTROLS_ROOM = 60
 /** Keep the shape close to the cards beside it: never a thin strip, never a tall column. */
 const MIN_RATIO = 0.75
 const MAX_RATIO = 1.1
 
-function fit(points: MapPoint[], padding: number): MapView {
+/** The narrowest home view: the old East Asia width plus room for the zoom buttons. */
+const MIN_HOME_WIDTH = BASE_VIEW_WIDTH + CONTROLS_ROOM
+
+/** Fit with margins sized for zoom `k` (pins, labels and buttons are k times bigger in map units). */
+function fit(points: MapPoint[], k: number): MapView {
+  const padding = Math.max(PADDING, PIN.hitRadius * k + 4)
   const xs = points.map((p) => p.x)
   const ys = points.map((p) => p.y)
   let x = Math.min(...xs) - padding
   let y = Math.min(...ys) - padding
-  let width = Math.max(...xs) + Math.max(LABEL_ROOM, padding) - x
+  let width = Math.max(...xs) + Math.max((LABEL_ROOM + CONTROLS_ROOM) * k, padding) - x
   let height = Math.max(...ys) + padding - y
 
-  // Extra width goes to the west: the labels already pad the east side.
-  if (width < BASE_VIEW_WIDTH) [x, width] = [x - (BASE_VIEW_WIDTH - width), BASE_VIEW_WIDTH]
+  // Extra width goes to the west: the labels and buttons already pad the east side.
+  if (width < MIN_HOME_WIDTH) [x, width] = [x - (MIN_HOME_WIDTH - width), MIN_HOME_WIDTH]
   // Extra height is shared between north and south; every place stays in view.
   if (height < width * MIN_RATIO) [y, height] = [y - (width * MIN_RATIO - height) / 2, width * MIN_RATIO]
   if (height > width * MAX_RATIO) [x, width] = [x - (height / MAX_RATIO - width) / 2, height / MAX_RATIO]
@@ -91,38 +102,104 @@ function fit(points: MapPoint[], padding: number): MapView {
 /**
  * The view that fits every place with room to spare, so adding a cuisine
  * (Thai, Indian…) widens the map without code changes. Never narrower than
- * BASE_VIEW_WIDTH, kept to a card-like shape, and inside the drawn map.
- * A wider view draws bigger pins, so the padding is checked against the
- * final zoom: a pin's tap target is never cut off at the edge.
+ * MIN_HOME_WIDTH, kept to a card-like shape, and inside the drawn map.
+ * Margins depend on the zoom (a wider view draws bigger pins, labels and
+ * buttons in map units) and the zoom on the margins, so the fit is refined
+ * a few times: tap targets aren't cut off and the buttons never cover a label.
  */
 export function mapView(points: MapPoint[]): MapView {
   if (points.length === 0) return { x: 0, y: 0, width: MAP_WIDTH, height: MAP_HEIGHT }
-  const first = fit(points, PADDING)
-  const needed = PIN.hitRadius * pinScale(first) + 4
-  return needed > PADDING ? fit(points, needed) : first
+  let view = fit(points, 1)
+  for (let i = 0; i < 3; i++) view = fit(points, pinScale(view))
+  return view
 }
 
 /** The view for a set of places given in degrees, leaving out any the map doesn't draw. */
 export const placesView = (places: { latitude: number; longitude: number }[]) =>
   mapView(places.map((place) => projectPoint(place)).filter(isOnMap))
 
+export type LabelSide = 'right' | 'left' | 'below' | 'above'
+
+export interface Box {
+  left: number
+  right: number
+  top: number
+  bottom: number
+}
+
+const overlaps = (a: Box, b: Box) => a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top
+
 /**
- * Where a pin's label goes: to its right, or below the pin when the right
- * would run off the view or cover another pin (so tapping "Chinese" never
- * opens Korean). `others` are the other pins.
+ * The zoom buttons' corner in map units. Sized for a phone, where the map is
+ * smallest and the buttons cover the most of it: 48px wide, 132px tall.
  */
-export function labelSide(point: MapPoint, text: string, view: MapView, others: MapPoint[] = []): 'right' | 'below' {
+export const controlsBox = (view: MapView): Box => {
   const k = pinScale(view)
-  const left = point.x + PIN.labelGap * k
-  const right = left + labelWidth(text) * k
-  const top = point.y - PIN.labelSize * k
-  const bottom = point.y + PIN.labelSize * k * 0.5
-  if (right > view.x + view.width) return 'below'
+  return { left: view.x + view.width - CONTROLS_ROOM * k, right: view.x + view.width, top: view.y, bottom: view.y + 165 * k }
+}
+
+/** Where a label would sit on each side of its pin. */
+export function labelBox(point: MapPoint, text: string, side: LabelSide, k: number): Box {
+  const width = labelWidth(text) * k
+  const height = PIN.labelSize * k
+  if (side === 'below' || side === 'above') {
+    const baseline = side === 'below' ? point.y + 24 * k : point.y - 14 * k
+    return { left: point.x - width / 2, right: point.x + width / 2, top: baseline - height, bottom: baseline + height * 0.3 }
+  }
+  const left = side === 'right' ? point.x + PIN.labelGap * k : point.x - PIN.labelGap * k - width
+  return { left, right: left + width, top: point.y - height, bottom: point.y + height * 0.5 }
+}
+
+/**
+ * Where a pin's label goes: right of the pin if it fits, else left, below
+ * or above. It fits when it stays inside the view, covers no other pin (so
+ * tapping "Chinese" never opens Korean) and stays clear of the zoom buttons.
+ * `others` are the other pins.
+ */
+export function labelSide(
+  point: MapPoint,
+  text: string,
+  view: MapView,
+  others: MapPoint[] = [],
+  placedLabels: Box[] = [],
+): LabelSide {
+  const k = pinScale(view)
   const reach = PIN.radius * k
-  const covers = others.some(
-    (other) => other.x + reach > left && other.x - reach < right && other.y + reach > top && other.y - reach < bottom,
-  )
-  return covers ? 'below' : 'right'
+  // What a label must avoid, weighted by the harm of covering it: under the buttons
+  // or off the map it can't be tapped, over a pin it blocks that pin, over another
+  // label it only looks crowded (zooming in separates them).
+  const obstacles = [
+    { box: controlsBox(view), weight: 4 },
+    ...others.map((other) => ({
+      box: { left: other.x - reach, right: other.x + reach, top: other.y - reach, bottom: other.y + reach },
+      weight: 2,
+    })),
+    ...placedLabels.map((box) => ({ box, weight: 1 })),
+  ]
+  const cost = (side: LabelSide) => {
+    const box = labelBox(point, text, side, k)
+    const inside = box.left >= view.x && box.right <= view.x + view.width && box.top >= view.y && box.bottom <= view.y + view.height
+    return (inside ? 0 : 4) + obstacles.reduce((total, obstacle) => total + (overlaps(box, obstacle.box) ? obstacle.weight : 0), 0)
+  }
+  // The first clean side in reading order, else the least bad one.
+  const sides = ['right', 'left', 'below', 'above'] as const
+  return sides.find((side) => cost(side) === 0) ?? sides.reduce((best, side) => (cost(side) < cost(best) ? side : best))
+}
+
+/**
+ * A side for every pin's label, placed one at a time so each label also
+ * avoids the ones already placed. Pins come in the order given (the seed's
+ * order), so the result is stable: labels don't jump around between renders.
+ */
+export function placeLabels(pins: { point: MapPoint; text: string }[], view: MapView): LabelSide[] {
+  const k = pinScale(view)
+  const placed: Box[] = []
+  return pins.map((pin) => {
+    const others = pins.filter((other) => other !== pin).map((other) => other.point)
+    const side = labelSide(pin.point, pin.text, view, others, placed)
+    placed.push(labelBox(pin.point, pin.text, side, k))
+    return side
+  })
 }
 
 /** How far the map zooms: in until the view is a third of the home view's width, out to the whole drawn map. */
@@ -168,11 +245,34 @@ export function zoomView(view: MapView, factor: number, focus: MapPoint, limits:
 /** Move the view by a distance in map units, staying inside the map. */
 export const panView = (view: MapView, dx: number, dy: number): MapView => clampView({ ...view, x: view.x + dx, y: view.y + dy })
 
-/** The view moved just enough that `point` sits at least `margin` inside it (for a pin reached with Tab). */
-export function revealPoint(view: MapView, point: MapPoint, margin: number): MapView {
-  const x = Math.min(Math.max(view.x, point.x + margin - view.width), point.x - margin)
-  const y = Math.min(Math.max(view.y, point.y + margin - view.height), point.y - margin)
+/** Room to keep around a point, per side, in map units. */
+export interface Margins {
+  left: number
+  right: number
+  top: number
+  bottom: number
+}
+
+/**
+ * The view moved just enough that `point` sits inside it with the given
+ * margins (for a pin reached with Tab: room on the right for its label and
+ * the zoom buttons).
+ */
+export function revealPoint(view: MapView, point: MapPoint, margins: Margins): MapView {
+  const x = Math.min(Math.max(view.x, point.x + margins.right - view.width), point.x - margins.left)
+  const y = Math.min(Math.max(view.y, point.y + margins.bottom - view.height), point.y - margins.top)
   return clampView({ ...view, x, y })
+}
+
+/** Margins that keep a pin, its label and the zoom buttons clear of each other at this zoom. */
+export const pinMargins = (view: MapView, labelText = 'Japanese'): Margins => {
+  const k = pinScale(view)
+  return {
+    left: 30 * k,
+    top: 30 * k,
+    bottom: 30 * k,
+    right: (PIN.labelGap + labelWidth(labelText) + CONTROLS_ROOM) * k,
+  }
 }
 
 export const viewCenter = (view: MapView): MapPoint => ({ x: view.x + view.width / 2, y: view.y + view.height / 2 })
