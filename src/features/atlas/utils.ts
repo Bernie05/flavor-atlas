@@ -1,4 +1,4 @@
-import { BOUNDS, MAP_HEIGHT, MAP_WIDTH } from './landPath'
+import { BOUNDS, MAP_HEIGHT, MAP_WIDTH } from './mapBounds'
 
 const rad = (degrees: number) => (degrees * Math.PI) / 180
 const mercatorY = (latitude: number) => Math.log(Math.tan(Math.PI / 4 + rad(latitude) / 2))
@@ -32,33 +32,45 @@ export interface MapView {
 /** Around 47° of longitude, the width the map had when it showed only East Asia. Pin and label sizes are set for it. */
 export const BASE_VIEW_WIDTH = 360
 
+/**
+ * Pin and label sizes in map units at BASE_VIEW_WIDTH. A wider view multiplies
+ * them by its zoom (pinScale), so they stay the same size on screen.
+ */
+export const PIN = {
+  /** Invisible tap target: 41px on a 320px phone. */
+  hitRadius: 26,
+  radius: 8,
+  labelSize: 13,
+  /** Gap from the pin to a label on its right. */
+  labelGap: 13,
+} as const
+
+/** How much bigger pins are drawn in this view than in a BASE_VIEW_WIDTH one. */
+export const pinScale = (view: Pick<MapView, 'width'>) => view.width / BASE_VIEW_WIDTH
+
+/** Roughly how wide an uppercase, letter-spaced label is, in map units at BASE_VIEW_WIDTH. */
+export const labelWidth = (text: string) => text.length * PIN.labelSize * 0.7
+
 const PADDING = 36
-/** Labels sit to the right of their pins, so the view leaves room for them there. */
-const LABEL_ROOM = 64
+/** Labels sit to the right of their pins: the gap plus a label as long as "JAPANESE". */
+const LABEL_ROOM = PIN.labelGap + labelWidth('Japanese')
 /** Keep the shape close to the cards beside it: never a thin strip, never a tall column. */
 const MIN_RATIO = 0.75
 const MAX_RATIO = 1.1
 
-/**
- * The view that fits every place with room to spare, so adding a cuisine
- * (Thai, Indian…) widens the map without code changes. Never narrower than
- * BASE_VIEW_WIDTH, kept to a card-like shape, and inside the drawn map.
- */
-export function mapView(points: MapPoint[]): MapView {
-  if (points.length === 0) return { x: 0, y: 0, width: MAP_WIDTH, height: MAP_HEIGHT }
-
+function fit(points: MapPoint[], padding: number): MapView {
   const xs = points.map((p) => p.x)
   const ys = points.map((p) => p.y)
-  let x = Math.min(...xs) - PADDING
-  let y = Math.min(...ys) - PADDING
-  let width = Math.max(...xs) + LABEL_ROOM - x
-  let height = Math.max(...ys) + PADDING - y
+  let x = Math.min(...xs) - padding
+  let y = Math.min(...ys) - padding
+  let width = Math.max(...xs) + Math.max(LABEL_ROOM, padding) - x
+  let height = Math.max(...ys) + padding - y
 
-  // Grow around the center, never shrink: every place stays in view.
-  const grow = (start: number, size: number, target: number) => [start - (target - size) / 2, target] as const
-  if (width < BASE_VIEW_WIDTH) [x, width] = grow(x, width, BASE_VIEW_WIDTH)
-  if (height < width * MIN_RATIO) [y, height] = grow(y, height, width * MIN_RATIO)
-  if (height > width * MAX_RATIO) [x, width] = grow(x, width, height / MAX_RATIO)
+  // Extra width goes to the west: the labels already pad the east side.
+  if (width < BASE_VIEW_WIDTH) [x, width] = [x - (BASE_VIEW_WIDTH - width), BASE_VIEW_WIDTH]
+  // Extra height is shared between north and south; every place stays in view.
+  if (height < width * MIN_RATIO) [y, height] = [y - (width * MIN_RATIO - height) / 2, width * MIN_RATIO]
+  if (height > width * MAX_RATIO) [x, width] = [x - (height / MAX_RATIO - width) / 2, height / MAX_RATIO]
 
   // Slide back inside the drawn map, and never show more than it has.
   width = Math.min(width, MAP_WIDTH)
@@ -69,8 +81,38 @@ export function mapView(points: MapPoint[]): MapView {
 }
 
 /**
- * Where a pin's label goes: to the right, or below the pin near the view's
- * east edge, so "Japanese" neither runs off the map nor stacks onto "Korean".
+ * The view that fits every place with room to spare, so adding a cuisine
+ * (Thai, Indian…) widens the map without code changes. Never narrower than
+ * BASE_VIEW_WIDTH, kept to a card-like shape, and inside the drawn map.
+ * A wider view draws bigger pins, so the padding is checked against the
+ * final zoom: a pin's tap target is never cut off at the edge.
  */
-export const labelSide = ({ x }: MapPoint, labelWidth: number, view: Pick<MapView, 'x' | 'width'>): 'right' | 'below' =>
-  x + labelWidth + 14 > view.x + view.width ? 'below' : 'right'
+export function mapView(points: MapPoint[]): MapView {
+  if (points.length === 0) return { x: 0, y: 0, width: MAP_WIDTH, height: MAP_HEIGHT }
+  const first = fit(points, PADDING)
+  const needed = PIN.hitRadius * pinScale(first) + 4
+  return needed > PADDING ? fit(points, needed) : first
+}
+
+/** The view for a set of places given in degrees, leaving out any the map doesn't draw. */
+export const placesView = (places: { latitude: number; longitude: number }[]) =>
+  mapView(places.map((place) => projectPoint(place)).filter(isOnMap))
+
+/**
+ * Where a pin's label goes: to its right, or below the pin when the right
+ * would run off the view or cover another pin (so tapping "Chinese" never
+ * opens Korean). `others` are the other pins.
+ */
+export function labelSide(point: MapPoint, text: string, view: MapView, others: MapPoint[] = []): 'right' | 'below' {
+  const k = pinScale(view)
+  const left = point.x + PIN.labelGap * k
+  const right = left + labelWidth(text) * k
+  const top = point.y - PIN.labelSize * k
+  const bottom = point.y + PIN.labelSize * k * 0.5
+  if (right > view.x + view.width) return 'below'
+  const reach = PIN.radius * k
+  const covers = others.some(
+    (other) => other.x + reach > left && other.x - reach < right && other.y + reach > top && other.y - reach < bottom,
+  )
+  return covers ? 'below' : 'right'
+}

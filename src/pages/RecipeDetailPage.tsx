@@ -23,8 +23,11 @@ import { DIFFICULTY_LABELS, formatDuration, highlightIngredients, totalMinutes }
 import { NotFoundError } from '@/services/data'
 import { NotFoundPage } from './NotFoundPage'
 
-// Cook mode loads on first use: most visits read the recipe and never open it.
-const CookMode = lazy(() => import('@/features/recipes/components/CookMode').then((m) => ({ default: m.CookMode })))
+// Cook mode loads on first use: most visits read the recipe and never open it. Pointing at or
+// focusing a Cook button starts the download, so the tap itself rarely waits.
+const loadCookMode = () => import('@/features/recipes/components/CookMode')
+const CookMode = lazy(() => loadCookMode().then((m) => ({ default: m.CookMode })))
+const preloadCookMode = () => void loadCookMode()
 
 export function RecipeDetailPage() {
   const { recipeId = '' } = useParams()
@@ -195,7 +198,7 @@ function RecipeView({ recipe }: { recipe: RecipeWithRatings }) {
               Steps
             </button>
           </div>
-          <button type="button" onClick={startCooking} className="min-h-12 shrink-0 rounded-full bg-tint-soft px-4 text-sm font-semibold text-tint-ink ring-1 ring-tint/30 hover:ring-tint">
+          <button type="button" onClick={startCooking} onPointerEnter={preloadCookMode} onFocus={preloadCookMode} className="min-h-12 shrink-0 rounded-full bg-tint-soft px-4 text-sm font-semibold text-tint-ink ring-1 ring-tint/30 hover:ring-tint">
             Cook
           </button>
         </div>
@@ -225,7 +228,7 @@ function RecipeView({ recipe }: { recipe: RecipeWithRatings }) {
             </h2>
             <button
               type="button"
-              onClick={startCooking}
+              onClick={startCooking} onPointerEnter={preloadCookMode} onFocus={preloadCookMode}
               className="min-h-10 rounded-full bg-ink px-4 text-sm font-semibold text-canvas hover:bg-accent"
             >
               Start cooking

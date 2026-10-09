@@ -3,6 +3,8 @@ import { lazy, Suspense } from 'react'
 import { Link } from 'react-router'
 import { CardGridSkeleton } from '@/components/feedback/CardGridSkeleton'
 import { ErrorState } from '@/components/feedback/ErrorState'
+import { AtlasCaption } from '@/features/atlas/components/AtlasCaption'
+import { isOnMap, placesView, projectPoint } from '@/features/atlas/utils'
 import { CuisineCard } from '@/features/cuisines/components/CuisineCard'
 import { cuisineQueries } from '@/features/cuisines/queries'
 import { regionQueries } from '@/features/dishes/queries'
@@ -16,10 +18,18 @@ const ROW_SIZE = 3
 // The map and its coastlines (about 40 KB) load in their own chunk, only on the home page.
 const AtlasMap = lazy(() => import('@/features/atlas/components/AtlasMap').then((m) => ({ default: m.AtlasMap })))
 
-/** The map's shape while it loads, so the layout doesn't jump when it arrives. */
-const mapPlaceholder = (
-  <div aria-hidden className="aspect-[360/378] max-w-full animate-pulse rounded-3xl bg-surface-sunken motion-reduce:animate-none" />
-)
+/**
+ * Stands in for the map while it loads, in the map's own shape (the seed's view
+ * is about 12:11) so the page doesn't jump when the map arrives.
+ */
+function MapPlaceholder({ ratio = '12 / 11', regionalKitchens }: { ratio?: string; regionalKitchens?: number }) {
+  return (
+    <figure aria-hidden className="space-y-2">
+      <div style={{ aspectRatio: ratio }} className="max-w-full animate-pulse rounded-3xl bg-surface-sunken motion-reduce:animate-none" />
+      <AtlasCaption regionalKitchens={regionalKitchens} />
+    </figure>
+  )
+}
 
 export function HomePage() {
   const cuisines = useQuery(cuisineQueries.list())
@@ -31,6 +41,10 @@ export function HomePage() {
   const cuisinesById = new Map(cuisines.data?.map((cuisine) => [cuisine.id, cuisine]))
   const [featured, ...lovedRest] = sortRecipes(all, 'top-rated')
   const countFor = (cuisineId: string) => all.filter((recipe) => recipe.cuisineId === cuisineId).length
+  // The shape the map will have, from the same places it fits (the coastlines aren't needed for that).
+  const view = placesView([...(cuisines.data ?? []), ...(regions.data ?? [])])
+  const mapRatio = `${view.width} / ${view.height}`
+  const regionalKitchens = regions.data?.filter((region) => isOnMap(projectPoint(region))).length
   const recipeCounts = new Map(cuisines.data?.map((cuisine) => [cuisine.id, countFor(cuisine.id)]))
 
   return (
@@ -77,16 +91,21 @@ export function HomePage() {
         {cuisines.isPending ? (
           // The map's shape while loading, so the layout doesn't jump when it arrives.
           <div className="grid items-start gap-6 lg:grid-cols-[1fr_1.2fr] lg:gap-8">
-            {mapPlaceholder}
+            <MapPlaceholder />
             <CardGridSkeleton count={4} />
           </div>
         ) : cuisines.isError ? (
           <ErrorState error={cuisines.error} onRetry={() => cuisines.refetch()} />
         ) : (
           <div className="grid items-start gap-6 lg:grid-cols-[1fr_1.2fr] lg:gap-8">
-            <Suspense fallback={mapPlaceholder}>
-              <AtlasMap cuisines={cuisines.data} regions={regions.data ?? []} recipeCounts={recipeCounts} />
-            </Suspense>
+            {regions.isPending ? (
+              // Regional dots can widen the view, so the map waits for them instead of drawing twice.
+              <MapPlaceholder ratio={mapRatio} regionalKitchens={regionalKitchens} />
+            ) : (
+              <Suspense fallback={<MapPlaceholder ratio={mapRatio} regionalKitchens={regionalKitchens} />}>
+                <AtlasMap cuisines={cuisines.data} regions={regions.data ?? []} recipeCounts={recipeCounts} />
+              </Suspense>
+            )}
             <div className="grid grid-cols-2 gap-3">
               {cuisines.data.map((cuisine) => (
                 <CuisineCard
