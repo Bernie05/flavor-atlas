@@ -102,4 +102,21 @@ describe('the data API (json-server behind our handler)', () => {
     expect((await call('GET', `/dishes/${dish.body!.id as string}`)).status).toBe(404)
     await expectNoDanglingRecipes()
   })
+
+  it('queues a visitor review without publishing it, and checks what was sent', async () => {
+    const before = ((await call('GET', '/recipes/1?_embed=ratings')).body!.ratings as unknown[]).length
+    expect(await call('POST', '/submissions', { recipeId: '1', score: 5, comment: 'Lovely' })).toMatchObject({ status: 201, body: { status: 'pending' } })
+    expect((await call('POST', '/submissions', { recipeId: '1', score: 9 })).status).toBe(400)
+    expect((await call('POST', '/submissions', { recipeId: '1', score: 5, website: 'spam' })).status).toBe(201)
+    const queue = (await call('GET', '/submissions')).body as unknown as { comment: string }[]
+    expect(queue.map((s) => s.comment)).toEqual(['Lovely']) // the bot's review was dropped
+    // Not public: the recipe's ratings are unchanged until the admin approves.
+    expect(((await call('GET', '/recipes/1?_embed=ratings')).body!.ratings as unknown[]).length).toBe(before)
+  })
+
+  it('slows down a visitor who sends too many', async () => {
+    const statuses = []
+    for (let i = 0; i < 6; i++) statuses.push((await call('POST', '/submissions', { recipeId: '1', score: 4 })).status)
+    expect(statuses).toContain(429)
+  })
 })

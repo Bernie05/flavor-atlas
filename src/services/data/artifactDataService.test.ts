@@ -112,6 +112,47 @@ describe('artifact data service', () => {
     expect(fake.docs.has('cuisines/thai')).toBe(false) // created here, so removed outright, no deletion marker
   })
 
+  it('queues a visitor review out of sight until the admin approves it, keeping its date', async () => {
+    const fake = fakeDb()
+    const service = serviceOver(fake.db)
+    const before = (await service.getRecipe('1')).ratings.length
+    await service.submitReview({ recipeId: '1', score: 5, comment: '  So good.  ' })
+    expect((await service.getRecipe('1')).ratings).toHaveLength(before) // not public yet
+    const [queued] = await service.listSubmissions()
+    expect(queued).toMatchObject({ recipeId: '1', score: 5, comment: 'So good.' })
+
+    const rating = await service.approveSubmission(queued!.id)
+    expect(rating.createdAt).toBe(queued!.createdAt)
+    const reloaded = serviceOver(fake.db)
+    expect((await reloaded.getRecipe('1')).ratings).toHaveLength(before + 1)
+    expect(await reloaded.listSubmissions()).toEqual([])
+    await expect(service.approveSubmission(queued!.id)).rejects.toThrow('already handled')
+  })
+
+  it('rejects a queued review without publishing it', async () => {
+    const service = serviceOver(fakeDb().db)
+    await service.submitReview({ recipeId: '1', score: 1, comment: 'spam' })
+    const [queued] = await service.listSubmissions()
+    await service.rejectSubmission(queued!.id)
+    expect(await service.listSubmissions()).toEqual([])
+    await expect(service.submitReview({ recipeId: 'nope', score: 3, comment: '' })).rejects.toThrow()
+  })
+
+  it('still shows the atlas to a visitor who may not read the review queue', async () => {
+    const fake = fakeDb()
+    const db = {
+      ...fake.db,
+      collection: (path: string) =>
+        path === 'submissions'
+          ? { get: async () => Promise.reject({ code: 'permission_denied', message: 'owner only' }) }
+          : fake.db.collection(path),
+    }
+    await serviceOver(fake.db).updateCuisine('korean', { ...(await serviceOver(fake.db).getCuisine('korean')), name: 'Korean (edited)', countryCode: 'kr' })
+    const visitor = serviceOver(db)
+    expect((await visitor.getCuisine('korean')).name).toBe('Korean (edited)') // saved changes, not the bare seed
+    expect(await visitor.listSubmissions()).toEqual([])
+  })
+
   it('stores "to taste" ingredients as plain JSON', async () => {
     const fake = fakeDb()
     const service = serviceOver(fake.db)

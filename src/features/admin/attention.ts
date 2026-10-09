@@ -1,6 +1,7 @@
 import type { Cuisine } from '@/features/cuisines/schema'
 import type { Dish } from '@/features/dishes/schema'
 import { summarizeRatings } from '@/features/ratings/summary'
+import type { Submission } from '@/features/ratings/schema'
 import type { RecipeWithRatings } from '@/features/recipes/schema'
 
 /** One thing to fix, with where to fix it. */
@@ -14,6 +15,7 @@ export interface AttentionItem {
 }
 
 export type AttentionKind =
+  | 'pending-reviews'
   | 'photo-credit'
   | 'empty-cuisine'
   | 'regional-note'
@@ -35,6 +37,8 @@ export interface AttentionGroup {
 export const LOW_RATING = 3
 
 interface Sources {
+  /** Visitor reviews waiting for approval; leave out while they load. */
+  submissions?: Pick<Submission, 'id' | 'recipeId' | 'score'>[]
   cuisines: Pick<Cuisine, 'id' | 'name'>[]
   dishes: Pick<Dish, 'id' | 'name' | 'cuisineId'>[]
   recipes: RecipeWithRatings[]
@@ -46,7 +50,7 @@ interface Sources {
  * unfinished. Groups with nothing in them are left out, so an empty result
  * means all clear.
  */
-export function findAttention({ cuisines, dishes, recipes }: Sources): AttentionGroup[] {
+export function findAttention({ submissions = [], cuisines, dishes, recipes }: Sources): AttentionGroup[] {
   const cuisineName = new Map(cuisines.map((c) => [c.id, c.name]))
   const byTitle = (a: RecipeWithRatings, b: RecipeWithRatings) => a.title.localeCompare(b.title)
   const sorted = recipes.toSorted(byTitle)
@@ -61,7 +65,20 @@ export function findAttention({ cuisines, dishes, recipes }: Sources): Attention
   const usedCuisines = used('cuisineId')
   const usedDishes = used('dishId')
 
+  const recipeTitle = new Map(recipes.map((r) => [r.id, r.title]))
   const groups: AttentionGroup[] = [
+    {
+      kind: 'pending-reviews',
+      title: 'Reviews waiting for approval',
+      why: 'Visitors sent these; they appear once you approve them.',
+      items: submissions.map((s) => ({
+        id: s.id,
+        label: recipeTitle.get(s.recipeId) ?? 'A deleted recipe',
+        detail: `${s.score} ${s.score === 1 ? 'star' : 'stars'}`,
+        to: '/admin/reviews',
+        action: 'Review',
+      })),
+    },
     {
       kind: 'photo-credit',
       title: 'Photo without a credit',

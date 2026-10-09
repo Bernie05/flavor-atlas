@@ -1,6 +1,6 @@
 import type { Cuisine, CuisineInput, CuisineUpdate } from '@/features/cuisines/schema'
 import type { Dish, DishInput, Region } from '@/features/dishes/schema'
-import type { Rating, RatingInput } from '@/features/ratings/schema'
+import type { Rating, RatingInput, Submission } from '@/features/ratings/schema'
 import type { Recipe, RecipeInput, RecipeWithRatings } from '@/features/recipes/schema'
 
 export interface RecipeFilters {
@@ -37,4 +37,11 @@ export interface DataService {
   deleteRecipe(id: string): Promise<void>
   createRating(input: RatingInput): Promise<Rating>
   deleteRating(id: string): Promise<void>
+  /** A visitor's review, queued for the admin. The one write the public may make. */
+  submitReview(input: RatingInput): Promise<void>
+  /** The review queue, newest first. Admin only. */
+  listSubmissions(): Promise<Submission[]>
+  /** Publishes a queued review as a rating (keeping its date) and removes it from the queue. */
+  approveSubmission(id: string): Promise<Rating>
+  rejectSubmission(id: string): Promise<void>
 }

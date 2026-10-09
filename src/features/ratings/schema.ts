@@ -18,9 +18,16 @@ export const ratingSchema = ratingInputSchema.extend({
   createdAt: z.iso.datetime(),
 })
 
+/**
+ * A visitor's review waiting for the admin. Same shape as a rating, kept
+ * apart (only the admin can read the queue) until approved.
+ */
+export const submissionSchema = ratingSchema
+
 /** The rating form doesn't ask for recipeId: the page already knows it. */
 export const ratingFormSchema = ratingInputSchema.omit({ recipeId: true })
 
 export type RatingInput = z.infer<typeof ratingInputSchema>
 export type RatingFormValues = z.infer<typeof ratingFormSchema>
 export type Rating = z.infer<typeof ratingSchema>
+export type Submission = z.infer<typeof submissionSchema>

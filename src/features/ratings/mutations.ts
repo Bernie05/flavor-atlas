@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { recipeQueries } from '@/features/recipes/queries'
 import { refreshRecipes } from '@/features/recipes/mutations'
 import { dataService } from '@/services/data'
+import { submissionQueries } from './queries'
 import type { RatingInput } from './schema'
 
 /** Delete a review, then refresh every recipe query so averages update everywhere. */
@@ -51,4 +52,25 @@ export function useAddRating(recipeId: string) {
 
     onSettled: () => refreshRecipes(queryClient),
   })
+}
+
+/** A visitor sends a review; it waits in the admin's queue, so nothing on the page changes. */
+export function useSubmitReview() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (input: RatingInput) => dataService.submitReview(input),
+    // Only the admin's queue changes (when the admin is the one viewing).
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: submissionQueries.all() }),
+  })
+}
+
+/** Approve or reject a queued review: the queue changes, and approving changes the recipe's ratings. */
+export function useModerateSubmission() {
+  const queryClient = useQueryClient()
+  const refresh = () =>
+    Promise.all([queryClient.invalidateQueries({ queryKey: submissionQueries.all(), refetchType: 'all' }), refreshRecipes(queryClient)])
+  return {
+    approve: useMutation({ mutationFn: (id: string) => dataService.approveSubmission(id), onSuccess: refresh }),
+    reject: useMutation({ mutationFn: (id: string) => dataService.rejectSubmission(id), onSuccess: refresh }),
+  }
 }

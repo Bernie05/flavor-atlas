@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { cuisineSchema } from '@/features/cuisines/schema'
 import { dishSchema, regionSchema } from '@/features/dishes/schema'
-import { ratingSchema } from '@/features/ratings/schema'
+import { ratingSchema, submissionSchema } from '@/features/ratings/schema'
 import { recipeSchema, recipeWithRatingsSchema } from '@/features/recipes/schema'
 import { config } from '@/lib/config'
 import type { DataService } from './DataService'
@@ -19,6 +19,10 @@ async function request(method: Method, path: string, body?: unknown): Promise<Re
   })
 
   if (response.status === 401) throw new UnauthorizedError()
+  if (response.status === 429) {
+    const body = (await response.json().catch(() => null)) as { message?: unknown } | null
+    throw new ApiError(429, typeof body?.message === 'string' ? body.message : 'Too many requests. Try again in a few minutes.')
+  }
   if (response.status === 404) {
     throw new NotFoundError("We couldn't find what you were looking for.")
   }
@@ -124,6 +128,30 @@ export const httpDataService: DataService = {
   async deleteRecipe(id) {
     // _dependent cascades the delete to ratings with this recipeId.
     await request('DELETE', `${recipePath(id)}?_dependent=ratings`)
+  },
+
+  async submitReview(input) {
+    // The server checks it, sets its id and date, and keeps it out of sight until approved.
+    await request('POST', '/submissions', input)
+  },
+
+  async listSubmissions() {
+    const queue = await requestJson('GET', '/submissions', z.array(submissionSchema))
+    return queue.toSorted((a, b) => b.createdAt.localeCompare(a.createdAt))
+  },
+
+  async approveSubmission(id) {
+    const path = `/submissions/${encodeURIComponent(id)}`
+    const submission = await requestJson('GET', path, submissionSchema)
+    const { recipeId, score, comment, createdAt } = submission
+    // The rating first: if the delete fails, the review is published and merely still queued.
+    const rating = await requestJson('POST', '/ratings', ratingSchema, { recipeId, score, comment, createdAt })
+    await request('DELETE', path)
+    return rating
+  },
+
+  async rejectSubmission(id) {
+    await request('DELETE', `/submissions/${encodeURIComponent(id)}`)
   },
 
   async deleteRating(id) {

@@ -9,6 +9,7 @@ import { StatTile } from '@/features/admin/components/StatTile'
 import { computeStats, listReviews } from '@/features/admin/stats'
 import { cuisineQueries } from '@/features/cuisines/queries'
 import { dishQueries } from '@/features/dishes/queries'
+import { submissionQueries } from '@/features/ratings/queries'
 import { formatRelativeDate } from '@/features/ratings/utils'
 import { recipeQueries } from '@/features/recipes/queries'
 
@@ -16,6 +17,8 @@ export function AdminDashboardPage() {
   const recipes = useQuery(recipeQueries.list())
   const cuisines = useQuery(cuisineQueries.list())
   const dishes = useQuery(dishQueries.list())
+  // Optional: the panel shows everything else while the queue loads (or if it can't).
+  const submissions = useQuery(submissionQueries.list()).data
 
   if (recipes.isPending || cuisines.isPending || dishes.isPending) return <CardGridSkeleton count={4} />
   if (recipes.isError || cuisines.isError || dishes.isError) {
@@ -32,7 +35,7 @@ export function AdminDashboardPage() {
   }
 
   const stats = computeStats(recipes.data, cuisines.data.length)
-  const attention = findAttention({ cuisines: cuisines.data, dishes: dishes.data, recipes: recipes.data })
+  const attention = findAttention({ submissions, cuisines: cuisines.data, dishes: dishes.data, recipes: recipes.data })
   const latestReviews = listReviews(recipes.data).slice(0, 5)
 
   return (

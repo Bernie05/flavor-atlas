@@ -9,7 +9,7 @@ Concept: **an atlas of dishes, set like a food magazine.** Each cuisine is a col
 
 ## Two sides
 
-- **Public site** (`RootLayout`): read-only. No create, edit, delete or rating controls, ever. The only way in to admin is the quiet "Admin" link in the footer.
+- **Public site** (`RootLayout`): nothing a visitor writes appears until the admin approves it. No create, edit or delete controls; the one exception is "Write a review" on a recipe, which sends the review to the admin's queue (and loads its form lazily). The only way in to admin is the quiet "Admin" link in the footer.
 - **Admin** (`/admin`, `AdminLayout`): every change happens here. Plainer and task-focused, same tokens and fonts. Tables on wide screens, row lists on phones. All admin pages are lazy routes.
 
 ## Colors: always tokens, never literals

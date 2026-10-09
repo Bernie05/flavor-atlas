@@ -8,6 +8,7 @@ import { inputClass } from '@/components/ui/formStyles'
 import { StarRating } from '@/components/ui/StarRating'
 import { listReviews, type ReviewRow } from '@/features/admin/stats'
 import { RatingForm } from '@/features/ratings/components/RatingForm'
+import { ReviewQueue } from '@/features/ratings/components/ReviewQueue'
 import { useDeleteRating } from '@/features/ratings/mutations'
 import { formatRelativeDate } from '@/features/ratings/utils'
 import { recipeQueries } from '@/features/recipes/queries'
@@ -49,6 +50,8 @@ export function AdminReviewsPage() {
         <h1 className="text-5xl">Reviews</h1>
         <p className="label-mono mt-1 text-ink-subtle tabular-nums">{reviews.length} in total</p>
       </header>
+
+      <ReviewQueue recipes={recipes.data} />
 
       <div className="grid gap-8 lg:grid-cols-[minmax(0,24rem)_1fr]">
         <section aria-labelledby="add-review-heading" className="space-y-4 lg:sticky lg:top-32 lg:self-start">

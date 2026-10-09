@@ -36,8 +36,10 @@ describe('findAttention', () => {
       recipe('4', 'Disliked', { ratings: [rating(2), rating(1)] }),
       recipe('5', 'Unrated', { ratings: [] }),
     ]
-    const groups = findAttention({ cuisines, dishes, recipes })
+    const submissions = [{ id: 's1', recipeId: '2', score: 4 }]
+    const groups = findAttention({ submissions, cuisines, dishes, recipes })
     expect(groups.map((g) => [g.kind, g.items.map((i) => i.label)])).toEqual([
+      ['pending-reviews', ['Regional']],
       ['photo-credit', ['Uncredited']],
       ['empty-cuisine', ['Thai']],
       ['regional-note', ['Regional']],
@@ -53,6 +55,7 @@ describe('findAttention', () => {
     expect(find('empty-dish')).toMatchObject({ to: '/admin/recipes/new?dish=sisig', detail: 'Filipino' })
     expect(find('low-rating')).toMatchObject({ to: '/admin/reviews?recipe=4', action: 'Read reviews', detail: '1.5 stars from 2 reviews' })
     expect(find('unrated')).toMatchObject({ to: '/admin/reviews?recipe=5', action: 'Add review' })
+    expect(find('pending-reviews')).toMatchObject({ to: '/admin/reviews', action: 'Review', detail: '4 stars' })
   })
 
   it('says nothing when all is well', () => {

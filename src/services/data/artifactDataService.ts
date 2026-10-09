@@ -72,7 +72,14 @@ export function createArtifactStore(
   let cached: { at: number; writes: number; promise: Promise<Db> } | undefined
 
   const fetchDb = async (artifactDb: ArtifactDb): Promise<Db> => {
-    const snapshots = await Promise.all(WRITABLE_COLLECTIONS.map((c) => artifactDb.collection(c).get()))
+    const snapshots = await Promise.all(
+      WRITABLE_COLLECTIONS.map((c) => {
+        const get = artifactDb.collection(c).get()
+        // Only the owner may read the review queue (the database's rules); for everyone
+        // else that read is refused, which means "no queue here", not "no database".
+        return c === 'submissions' ? get.catch(() => ({ docs: [] })) : get
+      }),
+    )
     const changes = Object.fromEntries(
       WRITABLE_COLLECTIONS.map((c, i) => [c, snapshots[i]!.docs.map((doc): ChangeDoc => ({ id: doc.id, body: doc.data() }))]),
     )

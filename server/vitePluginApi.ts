@@ -24,7 +24,7 @@ interface AuthModule {
   handleSession(cookie: string | undefined, config: AuthConfig): AuthResponse
 }
 interface AccessModule {
-  requiresAdmin(method: string | undefined): boolean
+  requiresAdmin(method: string | undefined, path?: string): boolean
 }
 interface AiModule {
   handleAiRequest(body: unknown, generate: unknown): Promise<{ status: number; body: unknown }>
@@ -93,7 +93,7 @@ export function apiPlugin(env: ApiEnv): Plugin {
       server.middlewares.use('/api/data', (req, res, next) =>
         guarded(server, res, async () => {
           const { requiresAdmin } = await load<AccessModule>('/server/auth/access.ts')
-          if (requiresAdmin(req.method) && !(await isAdmin(req))) {
+          if (requiresAdmin(req.method, req.url) && !(await isAdmin(req))) {
             return send(res, 401, { error: 'unauthorized', message: 'Log in as the admin to make changes.' })
           }
           ;(await getDataHandler())(req, res, next)

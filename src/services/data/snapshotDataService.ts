@@ -2,7 +2,7 @@ import { z } from 'zod'
 import { cuisineSchema, type Cuisine } from '@/features/cuisines/schema'
 import { cuisineIdFor, cuisineUsage } from '@/features/cuisines/utils'
 import { dishSchema, regionSchema, type Dish, type Region } from '@/features/dishes/schema'
-import { ratingSchema, type Rating } from '@/features/ratings/schema'
+import { ratingSchema, submissionSchema, type Rating, type Submission } from '@/features/ratings/schema'
 import { recipeSchema, type Recipe } from '@/features/recipes/schema'
 import type { DataService } from './DataService'
 import { cuisineExists, cuisineInUse, cuisineNameInvalid, NotFoundError } from './errors'
@@ -13,12 +13,14 @@ export const dbSchema = z.object({
   regions: z.array(regionSchema),
   recipes: z.array(recipeSchema),
   ratings: z.array(ratingSchema),
+  /** Visitor reviews waiting for the admin; older seeds have none. */
+  submissions: z.array(submissionSchema).default([]),
 })
 
 export type Db = z.infer<typeof dbSchema>
 
 /** The collections the app can change. Cuisines and regions are fixed. */
-export type WritableCollection = 'cuisines' | 'dishes' | 'regions' | 'recipes' | 'ratings'
+export type WritableCollection = 'cuisines' | 'dishes' | 'regions' | 'recipes' | 'ratings' | 'submissions'
 
 export interface WritableRecords {
   cuisines: Cuisine
@@ -26,6 +28,7 @@ export interface WritableRecords {
   dishes: Dish
   recipes: Recipe
   ratings: Rating
+  submissions: Submission
 }
 
 /**
@@ -148,6 +151,32 @@ export function createSnapshotDataService(store: SnapshotStore): DataService {
       await store.put('recipes', id, null)
     },
 
+    async submitReview(input) {
+      const db = await store.read()
+      if (!db.recipes.some((recipe) => recipe.id === input.recipeId)) throw new NotFoundError("We couldn't find that recipe.")
+      const submission: Submission = { ...input, comment: input.comment.trim(), id: crypto.randomUUID(), createdAt: new Date().toISOString() }
+      await store.put('submissions', submission.id, submission)
+    },
+
+    async listSubmissions() {
+      return structuredClone((await store.read()).submissions).toSorted((a, b) => b.createdAt.localeCompare(a.createdAt))
+    },
+
+    async approveSubmission(id) {
+      const submission = (await store.read()).submissions.find((s) => s.id === id)
+      if (!submission) throw new NotFoundError('That review was already handled.')
+      // The rating first: if the second write fails, the review is published and merely still queued.
+      const rating: Rating = { ...submission, id: crypto.randomUUID() }
+      await store.put('ratings', rating.id, rating)
+      await store.put('submissions', id, null)
+      return structuredClone(rating)
+    },
+
+    async rejectSubmission(id) {
+      if (!(await store.read()).submissions.some((s) => s.id === id)) throw new NotFoundError('That review was already handled.')
+      await store.put('submissions', id, null)
+    },
+
     async deleteRating(id) {
       if (!(await store.read()).ratings.some((rating) => rating.id === id)) {
         throw new NotFoundError("We couldn't find that review.")
@@ -186,6 +215,8 @@ export function applyPut<C extends WritableCollection>(db: Db, collection: C, id
       return { ...db, recipes: putRecord(db.recipes, id, record as Recipe | null) }
     case 'ratings':
       return { ...db, ratings: putRecord(db.ratings, id, record as Rating | null) }
+    case 'submissions':
+      return { ...db, submissions: putRecord(db.submissions, id, record as Submission | null) }
   }
   throw new Error(`Unknown collection: ${String(collection)}`)
 }

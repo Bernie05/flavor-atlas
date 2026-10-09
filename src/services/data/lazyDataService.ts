@@ -18,6 +18,10 @@ const METHODS = {
   deleteRecipe: true,
   createRating: true,
   deleteRating: true,
+  submitReview: true,
+  listSubmissions: true,
+  approveSubmission: true,
+  rejectSubmission: true,
 } satisfies Record<keyof DataService, true>
 
 /**

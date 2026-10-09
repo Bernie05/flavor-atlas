@@ -62,8 +62,19 @@ describe('rate limiter', () => {
 
 describe('access rules', () => {
   it('lets anyone read and only the admin write', () => {
-    expect(['GET', 'HEAD', 'OPTIONS', 'get'].map(requiresAdmin)).toEqual([false, false, false, false])
-    expect(['POST', 'PUT', 'PATCH', 'DELETE'].map(requiresAdmin)).toEqual([true, true, true, true])
+    expect(['GET', 'HEAD', 'OPTIONS', 'get'].map((m) => requiresAdmin(m))).toEqual([false, false, false, false])
+    expect(['POST', 'PUT', 'PATCH', 'DELETE'].map((m) => requiresAdmin(m))).toEqual([true, true, true, true])
+  })
+
+  it('lets anyone send a review for moderation, but only the admin see or change the queue', () => {
+    expect(requiresAdmin('POST', '/submissions')).toBe(false)
+    expect(requiresAdmin('GET', '/submissions')).toBe(true)
+    expect(requiresAdmin('GET', '/submissions/abc')).toBe(true)
+    expect(requiresAdmin('DELETE', '/submissions/abc')).toBe(true)
+    expect(requiresAdmin('PUT', '/submissions/abc')).toBe(true)
+    expect(requiresAdmin('POST', '/submissions/abc')).toBe(true)
+    expect(requiresAdmin('POST', '/ratings')).toBe(true) // approved reviews are still admin-only
+    expect(requiresAdmin('GET', '/recipes/1?_embed=ratings')).toBe(false)
   })
 })
 

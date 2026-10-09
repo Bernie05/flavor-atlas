@@ -281,7 +281,7 @@ function RecipeView({ recipe }: { recipe: RecipeWithRatings }) {
       )}
 
       <hr className="border-line" />
-      <RatingsSection ratings={recipe.ratings} />
+      <RatingsSection ratings={recipe.ratings} recipeId={recipe.id} />
     </article>
   )
 }
