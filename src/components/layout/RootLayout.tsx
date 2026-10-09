@@ -33,8 +33,18 @@ export function RootLayout() {
             <NavLink to="/" end className={(state) => `${navLinkClass(state)} max-sm:hidden`}>
               Home
             </NavLink>
+            <NavLink to="/search" className={navLinkClass} aria-label="Search">
+              <svg aria-hidden viewBox="0 0 24 24" className="size-5 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
+                <circle cx="11" cy="11" r="6.5" />
+                <path d="m16 16 4.5 4.5" />
+              </svg>
+              {/* The icon alone on phones; the aria-label names it either way. */}
+              <span className="ml-1.5 max-sm:hidden">Search</span>
+            </NavLink>
             <NavLink to="/recipes" className={navLinkClass}>
-              All recipes
+              {/* "Recipes" on phones so the header fits at 320px. */}
+              <span className="max-sm:hidden">All recipes</span>
+              <span className="sm:hidden">Recipes</span>
             </NavLink>
             <NavLink to="/saved" className={navLinkClass}>
               Saved

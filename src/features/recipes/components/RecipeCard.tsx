@@ -17,10 +17,12 @@ interface RecipeCardProps {
   showCuisineLabel?: boolean
   /** Show the version note ("Turmeric instead of soy sauce…") under the title. */
   showVariantNote?: boolean
+  /** A short line under the title, e.g. why a search found it: "Uses garlic". */
+  note?: string
 }
 
 /** Editorial card: the picture carries the card, text sits below it on the page. */
-export function RecipeCard({ recipe, cuisine, showCuisineLabel = true, showVariantNote = false }: RecipeCardProps) {
+export function RecipeCard({ recipe, cuisine, showCuisineLabel = true, showVariantNote = false, note }: RecipeCardProps) {
   const rating = summarizeRatings(recipe.ratings)
   // Regions rarely change and stay cached, so every card can look its own up.
   const region = useQuery(regionQueries.list()).data?.find((r) => r.id === recipe.regionId)
@@ -50,6 +52,7 @@ export function RecipeCard({ recipe, cuisine, showCuisineLabel = true, showVaria
             {recipe.title}
           </h3>
           {showVariantNote && recipe.variantNote && <p className="text-sm text-ink-muted">{recipe.variantNote}</p>}
+          {note && <p className="text-sm text-ink-muted">{note}</p>}
           <p className="label-mono text-ink-muted tabular-nums">
             {formatDuration(totalMinutes(recipe))} · {DIFFICULTY_LABELS[recipe.difficulty]} · Serves {recipe.servings}
           </p>
