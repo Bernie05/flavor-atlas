@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { BOUNDS, MAP_HEIGHT, MAP_WIDTH } from './landPath'
-import { isOnMap, labelSide, projectPoint } from './utils'
+import { BASE_VIEW_WIDTH, isOnMap, labelSide, mapView, projectPoint } from './utils'
 
 describe('projectPoint', () => {
   it('maps the corners of BOUNDS to the corners of the map', () => {
@@ -30,7 +30,46 @@ describe('isOnMap', () => {
 
 describe('labelSide', () => {
   it('moves a label below its pin near the east edge', () => {
-    expect(labelSide({ x: 100, y: 0 }, 60)).toBe('right')
-    expect(labelSide({ x: MAP_WIDTH - 40, y: 0 }, 60)).toBe('below')
+    const view = { x: 200, width: 360 }
+    expect(labelSide({ x: 300, y: 0 }, 60, view)).toBe('right')
+    expect(labelSide({ x: 520, y: 0 }, 60, view)).toBe('below')
+  })
+})
+
+const place = (latitude: number, longitude: number) => projectPoint({ latitude, longitude })
+const manila = place(14.6, 120.98)
+const beijing = place(39.9, 116.41)
+const tokyo = place(35.68, 139.69)
+const bangkok = place(13.75, 100.5)
+const delhi = place(28.61, 77.21)
+const inView = (view: ReturnType<typeof mapView>, p: { x: number; y: number }) =>
+  p.x >= view.x && p.x <= view.x + view.width && p.y >= view.y && p.y <= view.y + view.height
+
+describe('mapView', () => {
+  it('shows the whole map when there is nothing to fit', () => {
+    expect(mapView([])).toEqual({ x: 0, y: 0, width: MAP_WIDTH, height: MAP_HEIGHT })
+  })
+
+  it('zooms to East Asia when the cuisines are all there', () => {
+    const view = mapView([manila, beijing, tokyo])
+    expect(view.width).toBeCloseTo(BASE_VIEW_WIDTH)
+    expect(view.height / view.width).toBeGreaterThanOrEqual(0.75 - 1e-9)
+    for (const p of [manila, beijing, tokyo]) expect(inView(view, p)).toBe(true)
+    expect(inView(view, delhi)).toBe(false)
+  })
+
+  it('widens to take in a new cuisine, with room around its pin', () => {
+    const view = mapView([manila, beijing, tokyo, bangkok])
+    expect(inView(view, bangkok)).toBe(true)
+    expect(bangkok.x - view.x).toBeGreaterThanOrEqual(30) // not on the edge
+    expect(mapView([manila, beijing, tokyo, bangkok, delhi]).width).toBeGreaterThan(view.width)
+  })
+
+  it('stays inside the drawn map and keeps a card-like shape', () => {
+    const corner = mapView([place(BOUNDS.north, BOUNDS.west), place(BOUNDS.south, BOUNDS.east)])
+    expect(corner).toEqual({ x: 0, y: 0, width: MAP_WIDTH, height: MAP_HEIGHT })
+    const tall = mapView([place(50, 120), place(-8, 120)])
+    expect(tall.height / tall.width).toBeLessThanOrEqual(1.1 + 1e-9)
+    expect(tall.x).toBeGreaterThanOrEqual(0)
   })
 })

@@ -1,11 +1,4 @@
-// SVG flags from flag-icons (MIT). Imported one by one so only the flags we use
-// end up in the bundle; Vite turns each import into a URL (inlined when small).
-import cn from 'flag-icons/flags/4x3/cn.svg'
-import jp from 'flag-icons/flags/4x3/jp.svg'
-import kr from 'flag-icons/flags/4x3/kr.svg'
-import ph from 'flag-icons/flags/4x3/ph.svg'
-
-const FLAGS: Record<string, string> = { cn, jp, kr, ph }
+import { flagSrc } from '../flags'
 
 const SIZES = {
   sm: 'h-3 w-4 rounded-[2px]',
@@ -26,7 +19,7 @@ interface CuisineFlagProps {
  * Renders nothing for a country we don't ship a flag for.
  */
 export function CuisineFlag({ countryCode, size = 'md', className = '' }: CuisineFlagProps) {
-  const src = FLAGS[countryCode]
+  const src = flagSrc(countryCode)
   if (!src) return null
   return (
     <img

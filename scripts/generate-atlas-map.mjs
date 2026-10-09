@@ -1,5 +1,5 @@
 // Generates src/features/atlas/landPath.ts: the atlas map's coastlines as one SVG path.
-// Run it only when BOUNDS change (e.g. a cuisine from outside East Asia). Its map
+// Run it only when BOUNDS change (a cuisine outside them fails seed.test.ts). Its map
 // libraries stay out of the app's dependencies, so install them in a temp folder:
 //
 //   mkdir /tmp/atlas-map && cd /tmp/atlas-map && npm init -y
@@ -18,9 +18,12 @@ const MIN_WEIGHT = Number(process.env.MIN_WEIGHT ?? 0.01)
 const simplified = simplify(presimplify(land50), MIN_WEIGHT)
 const land = feature(simplified, simplified.objects.land)
 
-// The part of the world the atlas covers: northern Japan to Mindanao, Sichuan to the Pacific.
-const BOUNDS = { west: 100, east: 147, south: 4, north: 47 }
-const WIDTH = 360
+// The coastlines drawn: Pakistan to the Pacific, Java to Mongolia, so a new Asian cuisine
+// (Thai, Indian, Indonesian…) only needs its seed entry. The map zooms to the cuisines it
+// shows (mapView() in src/features/atlas/utils.ts), so a wide area costs bytes, not detail.
+const BOUNDS = { west: 60, east: 155, south: -12, north: 55 }
+// About 7.6 map units per degree, as before, so coastline detail looks the same when zoomed in.
+const WIDTH = 720
 
 const rad = (deg) => (deg * Math.PI) / 180
 const mercY = (lat) => Math.log(Math.tan(Math.PI / 4 + rad(lat) / 2))

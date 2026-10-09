@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import seed from '../../../db.seed.json'
+import { isOnMap, projectPoint } from '@/features/atlas/utils'
+import { flagSrc } from '@/features/cuisines/flags'
 import { dbSchema } from './mockDataService'
 
 // The seed is hand-written data with many cross-references. These checks catch
@@ -18,6 +20,20 @@ describe('db.seed.json', () => {
     for (const items of [db.cuisines, db.dishes, db.regions, db.recipes, db.ratings]) {
       const ids = items.map((item) => item.id)
       expect(new Set(ids).size).toBe(ids.length)
+    }
+  })
+
+  // A new cuisine needs two things outside the seed. These fail loudly instead of
+  // the pin or the flag quietly not showing.
+  it('puts every cuisine and region inside the drawn atlas map', () => {
+    for (const place of [...db.cuisines, ...db.regions]) {
+      expect(isOnMap(projectPoint(place)), `${place.name}: widen BOUNDS in scripts/generate-atlas-map.mjs`).toBe(true)
+    }
+  })
+
+  it('ships a flag for every cuisine', () => {
+    for (const cuisine of db.cuisines) {
+      expect(flagSrc(cuisine.countryCode), `${cuisine.name}: import its flag in src/features/cuisines/flags.ts`).toBeDefined()
     }
   })
 

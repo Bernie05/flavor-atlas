@@ -22,6 +22,7 @@ npm run auth:hash     # admin password hash + session secret for .env
 - `src/pages/`: route-level components; `src/pages/admin/` for the admin area. `src/app/router.tsx` defines routes once for both browser and memory routers.
 - **Two sides:** the public site (`RootLayout`) is read-only. Every create, edit, delete and rating control lives under `/admin` (`AdminLayout` + `RequireAdmin`), whose pages are lazy routes. Never add controls that write shared data to public pages. Per-visitor conveniences kept in the visitor's own browser are fine (saved recipes, `features/saved/`): they change nothing anyone else sees.
 - `src/lib/config.ts` is the only file that reads `import.meta.env`.
+- **Keep the first download small.** Pages and parts a visitor reaches later load on demand: lazy routes in `router.tsx`, `React.lazy` for the map and cook mode, and the data service itself (`lazyDataService.ts`), so the json-server build never ships the seed. Library chunks are named in `vite.config.ts`; check `npm run build` output when adding a dependency.
 
 ## Rules
 
@@ -39,6 +40,13 @@ npm run auth:hash     # admin password hash + session secret for .env
 - Imports use the `@/` alias for anything outside the current feature folder.
 - **Photos are credited and bundled.** Seed photos live in `public/photos/` as WebP (`/photos/<slug>.webp`), only from freely licensed sources, with `imageCredit` ("Photo: Author, License") and `imageSourceUrl`; `seed.test.ts` enforces both. Render photos through `RecipeCover` (resolves the path with `photoSrc`, falls back to the emoji on error) or `usePhoto` for background photos; never a bare `<img>`.
 - Keep runtime data out of git: `db.json` is ignored; edit `db.seed.json` instead.
+
+## Adding a cuisine
+
+Seed entry in `db.seed.json` (with `countryCode`, capital `latitude`/`longitude`), then:
+1. Its flag in `src/features/cuisines/flags.ts`. `seed.test.ts` fails without it.
+2. If its capital is outside the drawn map (Pakistan to the Pacific, Java to Mongolia), widen `BOUNDS` and rerun `scripts/generate-atlas-map.mjs`. `seed.test.ts` fails until you do. The map zooms to fit its cuisines by itself.
+3. Optional (falls back gracefully): colors `--c-<id>`, `-soft`, `-ink` in `src/index.css` (otherwise the accent green), and a cloth pattern in `CuisineCloth.tsx` (otherwise atlas dots).
 
 ## Gotchas
 
