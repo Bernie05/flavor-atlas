@@ -161,3 +161,34 @@ export function searchAtlas(query: string, { cuisines, dishes, regions, recipes 
     total: cuisineHits.length + dishHits.length + recipeHits.length,
   }
 }
+
+/**
+ * Searches to offer before the visitor types: the dishes with the most
+ * versions, then the most common main ingredients. Taken from the data, so
+ * every suggestion finds something.
+ */
+export function suggestedSearches(
+  dishes: Pick<Dish, 'id' | 'name'>[],
+  recipes: Pick<RecipeWithRatings, 'dishId' | 'mainIngredient'>[],
+  { dishCount = 6, ingredientCount = 2 } = {},
+): string[] {
+  const byCount = (counts: Map<string, number>) => (a: string, b: string) =>
+    (counts.get(b) ?? 0) - (counts.get(a) ?? 0) || a.localeCompare(b)
+
+  const versions = new Map<string, number>()
+  const mains = new Map<string, number>()
+  for (const recipe of recipes) {
+    versions.set(recipe.dishId, (versions.get(recipe.dishId) ?? 0) + 1)
+    const main = recipe.mainIngredient.trim().toLowerCase()
+    if (main) mains.set(main, (mains.get(main) ?? 0) + 1)
+  }
+  const dishName = new Map(dishes.map((dish) => [dish.id, dish.name]))
+
+  const popularDishes = [...versions.keys()]
+    .filter((id) => dishName.has(id))
+    .toSorted((a, b) => byCount(versions)(a, b) || dishName.get(a)!.localeCompare(dishName.get(b)!))
+    .slice(0, dishCount)
+    .map((id) => dishName.get(id)!)
+  const commonMains = [...mains.keys()].toSorted(byCount(mains)).slice(0, ingredientCount)
+  return [...popularDishes, ...commonMains]
+}

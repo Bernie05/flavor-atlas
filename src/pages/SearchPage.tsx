@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Link, useLocation, useNavigationType, useSearchParams } from 'react-router'
 import { CardGridSkeleton } from '@/components/feedback/CardGridSkeleton'
 import { EmptyState } from '@/components/feedback/EmptyState'
@@ -10,12 +10,11 @@ import type { Cuisine } from '@/features/cuisines/schema'
 import { cuisineTint } from '@/features/cuisines/utils'
 import { DishCard } from '@/features/dishes/components/DishCard'
 import { dishQueries, regionQueries } from '@/features/dishes/queries'
-import type { Dish } from '@/features/dishes/schema'
-import { countVersions } from '@/features/dishes/utils'
 import { RecipeCard } from '@/features/recipes/components/RecipeCard'
 import { recipeQueries } from '@/features/recipes/queries'
 import type { RecipeWithRatings } from '@/features/recipes/schema'
-import { searchAtlas, type SearchResults } from '@/features/search/utils'
+import { searchAtlas, suggestedSearches, type SearchResults } from '@/features/search/utils'
+import { useDebouncedValue } from '@/lib/useDebouncedValue'
 
 /**
  * One search across the atlas. The query is React state (instant while
@@ -25,6 +24,7 @@ import { searchAtlas, type SearchResults } from '@/features/search/utils'
 export function SearchPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const [query, setQuery] = useState(() => searchParams.get('q') ?? '')
+  const inputRef = useRef<HTMLInputElement>(null)
   // The header's Search link and Back change the URL without remounting this
   // page. Those are PUSH or POP navigations; typing only REPLACEs, and its URL
   // lags a keystroke behind, so only the others may overwrite the field.
@@ -53,6 +53,12 @@ export function SearchPage() {
       ? searchAtlas(query, { cuisines: cuisines.data, dishes: dishes.data, regions: regions.data, recipes: recipes.data })
       : undefined
   const searching = query.trim() !== ''
+  // Results update on every keystroke; the count is spoken once typing pauses,
+  // so screen readers don't talk over the letters being typed.
+  const announcement = useDebouncedValue(
+    results && searching ? (results.total === 0 ? 'No matches' : results.total === 1 ? '1 result' : `${results.total} results`) : '',
+    600,
+  )
 
   return (
     <div className="space-y-8">
@@ -71,8 +77,10 @@ export function SearchPage() {
             type="search"
             value={query}
             onChange={(event) => search(event.target.value)}
-            // The visitor came here to type, so the field is ready for them.
-            autoFocus
+            ref={inputRef}
+            // Arriving to search, the field is ready to type in. Coming back to
+            // results (Back, a shared link), the phone keyboard stays closed.
+            autoFocus={!searchParams.get('q')}
             enterKeyHint="search"
             autoComplete="off"
             placeholder="A dish, an ingredient, a place…"
@@ -81,12 +89,13 @@ export function SearchPage() {
         </form>
         {/* Always in the page so screen readers hear each new count. */}
         <p role="status" className="label-mono min-h-5 text-ink-subtle tabular-nums">
-          {results && searching && (results.total === 1 ? '1 result' : `${results.total} results`)}
+          {announcement}
         </p>
       </header>
 
       {sources.some((source) => source.isPending) ? (
-        <div role="status" aria-label="Loading the atlas">
+        <div role="status">
+          <span className="sr-only">Loading the atlas…</span>
           <CardGridSkeleton />
         </div>
       ) : sources.some((source) => source.isError) ? (
@@ -95,7 +104,14 @@ export function SearchPage() {
           onRetry={() => sources.forEach((source) => source.isError && void source.refetch())}
         />
       ) : !results ? null : !searching ? (
-        <Suggestions recipes={recipes.data ?? []} dishes={dishes.data ?? []} onPick={search} />
+        <Suggestions
+          terms={suggestedSearches(dishes.data ?? [], recipes.data ?? [])}
+          onPick={(term) => {
+            search(term)
+            // The chips are replaced by results, so focus goes back to the field instead of the page.
+            inputRef.current?.focus()
+          }}
+        />
       ) : results.total === 0 ? (
         <EmptyState
           title="Nothing in the atlas matches that"
@@ -113,29 +129,15 @@ export function SearchPage() {
   )
 }
 
-/** Before typing: the dishes with the most versions, one tap from a search. */
-function Suggestions({
-  recipes,
-  dishes,
-  onPick,
-}: {
-  recipes: RecipeWithRatings[]
-  dishes: Dish[]
-  onPick: (query: string) => void
-}) {
-  const counts = countVersions(recipes)
-  const popular = dishes
-    .filter((dish) => counts.has(dish.id))
-    .toSorted((a, b) => (counts.get(b.id) ?? 0) - (counts.get(a.id) ?? 0) || a.name.localeCompare(b.name))
-    .slice(0, 6)
-
+/** Before typing: searches that are sure to find something, one tap away. */
+function Suggestions({ terms, onPick }: { terms: string[]; onPick: (query: string) => void }) {
   return (
     <section aria-labelledby="try-heading" className="space-y-3">
       <h2 id="try-heading" className="label-mono text-ink-subtle">
         Try
       </h2>
       <ul className="flex flex-wrap gap-2">
-        {[...popular.map((dish) => dish.name), 'garlic', 'coconut milk'].map((term) => (
+        {terms.map((term) => (
           <li key={term}>
             <button
               type="button"

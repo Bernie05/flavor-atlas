@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import type { Cuisine } from '@/features/cuisines/schema'
 import type { Dish, Region } from '@/features/dishes/schema'
 import type { RecipeWithRatings } from '@/features/recipes/schema'
-import { normalize, searchAtlas, searchTerms, type SearchSources } from './utils'
+import { normalize, searchAtlas, searchTerms, suggestedSearches, type SearchSources } from './utils'
 
 const cuisine = (id: string, name: string, origin: string) => ({ id, name, origin, description: '' }) as Cuisine
 const dish = (id: string, cuisineId: string, name: string, description = '') => ({ id, cuisineId, name, description }) as Dish
@@ -108,5 +108,29 @@ describe('searchAtlas', () => {
   it('counts versions on dish hits and skips dishes with no recipes yet', () => {
     const withEmptyDish = { ...sources, dishes: [...sources.dishes, dish('adobo-rice', 'filipino', 'Adobo Rice')] }
     expect(searchAtlas('adobo', withEmptyDish).dishes).toEqual([{ dish: sources.dishes[0], versions: 2 }])
+  })
+})
+
+describe('suggestedSearches', () => {
+  it('offers the dishes with the most versions, then the commonest main ingredients', () => {
+    const recipes = [
+      { dishId: 'pho', mainIngredient: 'Beef' },
+      { dishId: 'adobo', mainIngredient: 'chicken' },
+      { dishId: 'adobo', mainIngredient: 'pork' },
+      { dishId: 'adobo', mainIngredient: 'Chicken ' },
+      { dishId: 'gone', mainIngredient: '' },
+    ]
+    expect(suggestedSearches(sources.dishes, recipes, { dishCount: 2, ingredientCount: 2 })).toEqual([
+      'Adobo',
+      'Phở',
+      'chicken',
+      'beef',
+    ])
+  })
+
+  it('every suggestion finds something', () => {
+    for (const term of suggestedSearches(sources.dishes, sources.recipes)) {
+      expect(searchAtlas(term, sources).total).toBeGreaterThan(0)
+    }
   })
 })
