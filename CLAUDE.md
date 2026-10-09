@@ -55,6 +55,9 @@ A cuisine is data: `countryCode`, capital `latitude`/`longitude` and a `hue` (0-
 - Page background and font are set outside `@layer` in `src/index.css` on purpose, so a host page's body reset can't override them.
 - Never run json-server's own CLI: this version ignores `--host`, listens on all interfaces and sends `Access-Control-Allow-Origin: *`. It runs in-process (`server/data/jsonServerApp.ts`) so the gateway is the only way in.
 - Mount checks and handlers on the same path with the same matcher. A proxy keyed on a raw prefix once let `/api/dataratings` skip a gateway mounted at `/api/data`.
+- json-server ignores the id you POST and assigns a random one. Cuisines need their slug id (page address, CSS color names), so `server/data/slugCreate.ts` creates them instead; add any other collection whose id matters to `SLUG_COLLECTIONS`.
+- Deleting a record in json-server sets every reference to it to `null` (a recipe's `cuisineId: null`), which fails the schema and breaks the whole list. `server/data/integrity.ts` refuses deletes a recipe still depends on; use `_dependent=` to delete children with their parent.
+- Test data changes against the real API too, not only the phone demo: the snapshot services keep ids and never null references, so they hide both problems above.
 - json-server treats numeric-looking query values as numbers: `/ratings?recipeId=8` matches nothing because ids are strings ("8"). Use `_embed` (as the app does) or non-numeric values when filtering.
 - React Hook Form's `valueAsNumber` / `setValueAs` don't apply to radio buttons; they return strings. Use `useController` for numeric radio groups (see `StarInput.tsx`).
 - The Anthropic SDK throws a plain `Error` (not an SDK error class) when it finds no credentials; `server/ai/handler.ts` checks credential sources up front instead of matching the message.
