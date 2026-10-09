@@ -18,8 +18,11 @@ export function AtlasCaption({ regionalKitchens }: AtlasCaptionProps) {
         {/* While regions load, an invisible stand-in holds the line's place. */}
         {regionalKitchens !== 0 && (
           <span className={`inline-flex items-center gap-1.5 ${regionalKitchens === undefined ? 'invisible' : ''}`}>
-            <span aria-hidden className="size-1.5 rounded-full bg-ink-muted" />
-            {regionalKitchens ?? 10} regional kitchens: zoom in to open them
+            {/* The ringed dot of a kitchen you can tap, as drawn on the map. */}
+            <span aria-hidden className="grid size-3 place-items-center rounded-full border border-ink-muted">
+              <span className="size-1.5 rounded-full bg-ink-muted" />
+            </span>
+            {regionalKitchens ?? 10} regional kitchens · tap to open
           </span>
         )}
       </span>

@@ -10,11 +10,12 @@ export function RegionTag({ region, className = '', linked = false }: { region: 
   const content = (
     <>
       <span aria-hidden>📍 </span>
-      {region.name} · {formatCoordinates(region)}
+      {region.name} · <span className="whitespace-nowrap">{formatCoordinates(region)}</span>
     </>
   )
   return linked ? (
-    <Link to={`/regions/${region.id}`} className={`label-mono inline-flex min-h-10 items-center tabular-nums hover:underline ${className}`}>
+    <Link to={`/regions/${region.id}`} // Underlined always: touch users never see a hover, and this must read as a link.
+      className={`label-mono inline-flex min-h-10 items-center tabular-nums underline decoration-current/40 underline-offset-4 hover:decoration-current ${className}`}>
       {content}
     </Link>
   ) : (

@@ -19,15 +19,18 @@ interface RecipeCardProps {
   showVariantNote?: boolean
   /** A short line under the title, e.g. why a search found it: "Uses garlic". */
   note?: string
+  /** Hide the 📍 region badge when the page is that region's. */
+  showRegion?: boolean
 }
 
 /** Editorial card: the picture carries the card, text sits below it on the page. */
-export function RecipeCard({ recipe, cuisine, showCuisineLabel = true, showVariantNote = false, note }: RecipeCardProps) {
+export function RecipeCard({ recipe, cuisine, showCuisineLabel = true, showVariantNote = false, note, showRegion = true }: RecipeCardProps) {
   const rating = summarizeRatings(recipe.ratings)
   // Regions rarely change and stay cached, so every card can look its own up.
   const region = useQuery(regionQueries.list()).data?.find((r) => r.id === recipe.regionId)
   // The badge names the place: the region for a regional version, else the cuisine.
-  const badge = region?.name ?? (showCuisineLabel ? cuisine?.name : undefined)
+  const shownRegion = showRegion ? region : undefined
+  const badge = shownRegion?.name ?? (showCuisineLabel ? cuisine?.name : undefined)
 
   return (
     // The heart is a sibling of the link, not inside it: a button inside a link is invalid HTML
@@ -42,7 +45,7 @@ export function RecipeCard({ recipe, cuisine, showCuisineLabel = true, showVaria
           />
           {badge && (
             <span className="label-mono absolute top-3 left-3 rounded-full bg-surface/90 px-2.5 py-1 text-tint-ink backdrop-blur">
-              {region && <span aria-hidden>📍 </span>}
+              {shownRegion && <span aria-hidden>📍 </span>}
               {badge}
             </span>
           )}

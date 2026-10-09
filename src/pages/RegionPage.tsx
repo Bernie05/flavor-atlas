@@ -43,13 +43,20 @@ export function RegionPage() {
             <span className="label-mono inline-flex min-h-10 items-center text-tint-ink">Regional kitchen</span>
           )}
         </nav>
-        <h1 className="text-6xl sm:text-7xl">
-          <em>{region?.name ?? 'Loading…'}</em>
+        {/* Smaller on the narrowest phones: "Tuguegarao, Cagayan" is one long word plus one. */}
+        <h1 className="text-5xl break-words min-[360px]:text-6xl sm:text-7xl">
+          {region ? (
+            <em>{region.name}</em>
+          ) : regions.isError ? (
+            'Regional kitchen'
+          ) : (
+            <span aria-hidden className="inline-block h-[0.8em] w-56 max-w-full animate-pulse rounded-lg bg-surface/60 motion-reduce:animate-none" />
+          )}
         </h1>
         {region && (
           <p className="label-mono text-tint-ink tabular-nums">
             <span aria-hidden>📍 </span>
-            Regional kitchen · {formatCoordinates(region)}
+            Regional kitchen · <span className="whitespace-nowrap">{formatCoordinates(region)}</span>
           </p>
         )}
       </header>
@@ -74,7 +81,7 @@ export function RegionPage() {
           <ul className="grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
             {here.map((recipe) => (
               <li key={recipe.id}>
-                <RecipeCard recipe={recipe} cuisine={cuisine} showCuisineLabel={false} showVariantNote />
+                <RecipeCard recipe={recipe} cuisine={cuisine} showCuisineLabel={false} showRegion={false} showVariantNote />
               </li>
             ))}
           </ul>

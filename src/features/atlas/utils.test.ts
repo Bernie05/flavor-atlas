@@ -266,6 +266,13 @@ describe('tappableDots', () => {
     expect(tappableDots(dots, pins, zoomed).has('malabon')).toBe(false) // 7 km from the Manila pin
   })
 
+  it('leaves out a dot whose target a label would cover', () => {
+    const zoomed = zoomView(home, 3, manila, viewLimits(home))
+    const bicol = dots.find((d) => d.id === 'bicol')!.point
+    const label = { left: bicol.x - 2, right: bicol.x + 40, top: bicol.y - 2, bottom: bicol.y + 2 }
+    expect(tappableDots(dots, pins, zoomed, [label]).has('bicol')).toBe(false)
+  })
+
   it('leaves out dots outside the view', () => {
     const zoomed = zoomView(home, 3, tokyo, viewLimits(home))
     expect(tappableDots(dots, pins, zoomed).size).toBe(0)

@@ -291,7 +291,13 @@ export const viewCenter = (view: MapView): MapPoint => ({ x: view.x + view.width
  * links one by one. A dot right on a pin (Malabon, Tokyo) never does: its
  * region page is linked from its recipes instead.
  */
-export function tappableDots(dots: { id: string; point: MapPoint }[], pins: MapPoint[], view: MapView): Set<string> {
+export function tappableDots(
+  dots: { id: string; point: MapPoint }[],
+  pins: MapPoint[],
+  view: MapView,
+  /** Other things drawn on top that would take the tap, like pin labels. */
+  obstacles: Box[] = [],
+): Set<string> {
   const k = pinScale(view)
   const reach = PIN.dotHitRadius * k
   const pinReach = PIN.hitRadius * k
@@ -305,6 +311,7 @@ export function tappableDots(dots: { id: string; point: MapPoint }[], pins: MapP
       .filter(({ id, point }) =>
         inView(point) &&
         !underButtons(point) &&
+        !obstacles.some((box) => overlaps({ left: point.x - reach, right: point.x + reach, top: point.y - reach, bottom: point.y + reach }, box)) &&
         pins.every((pin) => apart(point, pin, reach + pinReach)) &&
         dots.every((other) => other.id === id || apart(point, other.point, 2 * reach)),
       )
