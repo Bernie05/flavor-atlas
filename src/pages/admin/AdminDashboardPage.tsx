@@ -2,30 +2,38 @@ import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router'
 import { CardGridSkeleton } from '@/components/feedback/CardGridSkeleton'
 import { ErrorState } from '@/components/feedback/ErrorState'
-import { FoodEmoji } from '@/components/ui/FoodEmoji'
 import { StarRating } from '@/components/ui/StarRating'
+import { findAttention } from '@/features/admin/attention'
+import { NeedsAttention } from '@/features/admin/components/NeedsAttention'
 import { StatTile } from '@/features/admin/components/StatTile'
 import { computeStats, listReviews } from '@/features/admin/stats'
 import { cuisineQueries } from '@/features/cuisines/queries'
+import { dishQueries } from '@/features/dishes/queries'
 import { formatRelativeDate } from '@/features/ratings/utils'
 import { recipeQueries } from '@/features/recipes/queries'
 
 export function AdminDashboardPage() {
   const recipes = useQuery(recipeQueries.list())
   const cuisines = useQuery(cuisineQueries.list())
+  const dishes = useQuery(dishQueries.list())
 
-  if (recipes.isPending || cuisines.isPending) return <CardGridSkeleton count={4} />
-  if (recipes.isError || cuisines.isError) {
-    return <ErrorState error={recipes.error ?? cuisines.error} onRetry={() => {
-            if (recipes.isError) void recipes.refetch()
-            if (cuisines.isError) void cuisines.refetch()
-          }} />
+  if (recipes.isPending || cuisines.isPending || dishes.isPending) return <CardGridSkeleton count={4} />
+  if (recipes.isError || cuisines.isError || dishes.isError) {
+    return (
+      <ErrorState
+        error={recipes.error ?? cuisines.error ?? dishes.error}
+        onRetry={() => {
+          if (recipes.isError) void recipes.refetch()
+          if (cuisines.isError) void cuisines.refetch()
+          if (dishes.isError) void dishes.refetch()
+        }}
+      />
+    )
   }
 
   const stats = computeStats(recipes.data, cuisines.data.length)
-  const unrated = recipes.data.filter((recipe) => recipe.ratings.length === 0)
+  const attention = findAttention({ cuisines: cuisines.data, dishes: dishes.data, recipes: recipes.data })
   const latestReviews = listReviews(recipes.data).slice(0, 5)
-  const cuisineEmoji = new Map(cuisines.data.map((c) => [c.id, c.emoji]))
 
   return (
     <div className="space-y-10">
@@ -68,29 +76,7 @@ export function AdminDashboardPage() {
       </section>
 
       <div className="grid gap-8 lg:grid-cols-2">
-        <section aria-labelledby="unrated-heading" className="space-y-4">
-          <h2 id="unrated-heading" className="text-3xl">
-            Needs a review
-          </h2>
-          {unrated.length === 0 ? (
-            <p className="text-ink-muted">Every recipe has at least one review.</p>
-          ) : (
-            <ul className="divide-y divide-line rounded-2xl bg-surface ring-1 ring-line">
-              {unrated.map((recipe) => (
-                <li key={recipe.id} className="flex items-center gap-3 px-4 py-3">
-                  <FoodEmoji emoji={recipe.emoji || cuisineEmoji.get(recipe.cuisineId) || '🍽️'} size="sm" />
-                  <span className="min-w-0 flex-1 truncate font-semibold">{recipe.title}</span>
-                  <Link
-                    to={`/admin/reviews?recipe=${recipe.id}`}
-                    className="inline-flex min-h-10 items-center rounded-full px-3 text-sm font-semibold text-accent hover:bg-accent-soft"
-                  >
-                    Add review
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+        <NeedsAttention groups={attention} />
 
         <section aria-labelledby="latest-heading" className="space-y-4">
           <div className="flex items-end justify-between">
