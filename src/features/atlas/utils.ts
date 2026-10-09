@@ -51,6 +51,12 @@ export const PIN = {
   labelSize: 13,
   /** Gap from the pin to a label on its right. */
   labelGap: 13,
+  /**
+   * A regional dot's tap target: 24px across on a 320px phone, the WCAG 2.5.8
+   * minimum for dense targets (pins keep 41px+). Dots only become tappable
+   * when these circles overlap nothing else, which is that rule's spacing test.
+   */
+  dotHitRadius: 15,
 } as const
 
 /** How much bigger pins are drawn in this view than in a BASE_VIEW_WIDTH one. */
@@ -276,3 +282,32 @@ export const pinMargins = (view: MapView, labelText = 'Japanese'): Margins => {
 }
 
 export const viewCenter = (view: MapView): MapPoint => ({ x: view.x + view.width / 2, y: view.y + view.height / 2 })
+
+/**
+ * The regional dots that can be links in this view. A dot becomes tappable
+ * only when its 24px target overlaps no pin's target, no other dot's and not
+ * the zoom buttons. At the home view the dots around Manila are a few pixels
+ * apart, so they stay texture; zooming in spreads them and they turn into
+ * links one by one. A dot right on a pin (Malabon, Tokyo) never does: its
+ * region page is linked from its recipes instead.
+ */
+export function tappableDots(dots: { id: string; point: MapPoint }[], pins: MapPoint[], view: MapView): Set<string> {
+  const k = pinScale(view)
+  const reach = PIN.dotHitRadius * k
+  const pinReach = PIN.hitRadius * k
+  const apart = (a: MapPoint, b: MapPoint, distance: number) => Math.hypot(a.x - b.x, a.y - b.y) >= distance
+  const buttons = controlsBox(view)
+  const inView = ({ x, y }: MapPoint) =>
+    x - reach >= view.x && x + reach <= view.x + view.width && y - reach >= view.y && y + reach <= view.y + view.height
+  const underButtons = ({ x, y }: MapPoint) => x + reach > buttons.left && y - reach < buttons.bottom
+  return new Set(
+    dots
+      .filter(({ id, point }) =>
+        inView(point) &&
+        !underButtons(point) &&
+        pins.every((pin) => apart(point, pin, reach + pinReach)) &&
+        dots.every((other) => other.id === id || apart(point, other.point, 2 * reach)),
+      )
+      .map(({ id }) => id),
+  )
+}

@@ -46,6 +46,8 @@ export function HomePage() {
   const mapRatio = `${view.width} / ${view.height}`
   const regionalKitchens = regions.data?.filter((region) => isOnMap(projectPoint(region))).length
   const recipeCounts = new Map(cuisines.data?.map((cuisine) => [cuisine.id, countFor(cuisine.id)]))
+  const regionCounts = new Map<string, number>()
+  for (const recipe of all) if (recipe.regionId) regionCounts.set(recipe.regionId, (regionCounts.get(recipe.regionId) ?? 0) + 1)
 
   return (
     <div className="space-y-20">
@@ -103,7 +105,7 @@ export function HomePage() {
               <MapPlaceholder ratio={mapRatio} regionalKitchens={regionalKitchens} />
             ) : (
               <Suspense fallback={<MapPlaceholder ratio={mapRatio} regionalKitchens={regionalKitchens} />}>
-                <AtlasMap cuisines={cuisines.data} regions={regions.data ?? []} recipeCounts={recipeCounts} />
+                <AtlasMap cuisines={cuisines.data} regions={regions.data ?? []} recipeCounts={recipeCounts} regionCounts={regionCounts} />
               </Suspense>
             )}
             <div className="grid grid-cols-2 gap-3">

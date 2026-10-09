@@ -23,6 +23,7 @@ const routes: RouteObject[] = [
       { path: 'recipes/:recipeId', element: <RecipeDetailPage /> },
       { path: 'cuisines/:cuisineId', element: <CuisinePage /> },
       { path: 'dishes/:dishId', element: <DishPage /> },
+      { path: 'regions/:regionId', lazy: () => import('@/pages/RegionPage').then((m) => ({ Component: m.RegionPage })) },
       // Pages a visitor reaches later load on demand, keeping the first download small.
       { path: 'search', lazy: () => import('@/pages/SearchPage').then((m) => ({ Component: m.SearchPage })) },
       { path: 'saved', lazy: () => import('@/pages/SavedPage').then((m) => ({ Component: m.SavedPage })) },

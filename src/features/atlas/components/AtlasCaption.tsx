@@ -19,7 +19,7 @@ export function AtlasCaption({ regionalKitchens }: AtlasCaptionProps) {
         {regionalKitchens !== 0 && (
           <span className={`inline-flex items-center gap-1.5 ${regionalKitchens === undefined ? 'invisible' : ''}`}>
             <span aria-hidden className="size-1.5 rounded-full bg-ink-muted" />
-            {regionalKitchens ?? 10} regional kitchens
+            {regionalKitchens ?? 10} regional kitchens: zoom in to open them
           </span>
         )}
       </span>

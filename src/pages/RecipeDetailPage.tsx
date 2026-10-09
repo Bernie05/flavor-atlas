@@ -144,7 +144,7 @@ function RecipeView({ recipe }: { recipe: RecipeWithRatings }) {
           <h1 className="text-6xl sm:text-7xl">{recipe.title}</h1>
           {(region || recipe.variantNote) && (
             <p className="space-y-1">
-              {region && <RegionTag region={region} className="block text-tint-ink" />}
+              {region && <RegionTag region={region} linked className="text-tint-ink" />}
               {recipe.variantNote && <span className="block font-display text-2xl italic">{recipe.variantNote}</span>}
             </p>
           )}

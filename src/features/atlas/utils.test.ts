@@ -17,6 +17,7 @@ import {
   projectPoint,
   pinMargins,
   revealPoint,
+  tappableDots,
   unprojectPoint,
   viewCenter,
   viewLimits,
@@ -231,5 +232,42 @@ describe('placeLabels', () => {
           expect(hits(box, dot), `${pins[i]!.text} over ${pin.text}`).toBe(false)
         }
     }
+  })
+})
+
+describe('tappableDots', () => {
+  const region = (id: string, latitude: number, longitude: number) => ({ id, point: place(latitude, longitude) })
+  // The Philippine kitchens from the seed, around the Manila pin.
+  const dots = [
+    region('batangas', 13.76, 121.06),
+    region('bicol', 13.62, 123.19),
+    region('pampanga', 15.03, 120.69),
+    region('malabon', 14.66, 120.96),
+    region('lucban', 14.11, 121.56),
+    region('tuguegarao', 17.61, 121.73),
+  ]
+  const pins = [manila, beijing, tokyo]
+  const home = mapView([...pins, ...dots.map((d) => d.point)])
+
+  it('keeps crowded dots as texture at the home view', () => {
+    const tappable = tappableDots(dots, pins, home)
+    for (const crowded of ['batangas', 'pampanga', 'malabon', 'lucban', 'bicol']) expect(tappable.has(crowded)).toBe(false)
+  })
+
+  it('turns dots into links as zooming in spreads them apart', () => {
+    const zoomed = zoomView(home, 3, manila, viewLimits(home))
+    const tappable = tappableDots(dots, pins, zoomed)
+    expect([...tappable].toSorted()).toEqual(['bicol', 'tuguegarao'])
+    expect(tappableDots(dots, pins, home).size).toBeLessThan(tappable.size)
+  })
+
+  it('never makes a dot sitting on a pin tappable, at any zoom', () => {
+    const zoomed = zoomView(home, 3, manila, viewLimits(home))
+    expect(tappableDots(dots, pins, zoomed).has('malabon')).toBe(false) // 7 km from the Manila pin
+  })
+
+  it('leaves out dots outside the view', () => {
+    const zoomed = zoomView(home, 3, tokyo, viewLimits(home))
+    expect(tappableDots(dots, pins, zoomed).size).toBe(0)
   })
 })

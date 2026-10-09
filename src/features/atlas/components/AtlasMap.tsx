@@ -5,13 +5,15 @@ import type { Region } from '@/features/dishes/schema'
 import { LAND_PATH } from '../landPath'
 import { AtlasCaption } from './AtlasCaption'
 import { useMapViewport } from '../useMapViewport'
-import { isOnMap, mapView, PIN, pinScale, placeLabels, projectPoint } from '../utils'
+import { isOnMap, mapView, PIN, pinScale, placeLabels, projectPoint, tappableDots } from '../utils'
 
 interface AtlasMapProps {
   cuisines: Cuisine[]
   regions: Region[]
   /** Recipes per cuisine id, for each pin's accessible name. */
   recipeCounts: Map<string, number>
+  /** Recipes per region id: a dot with recipes can open its region's page once it's tappable. */
+  regionCounts: Map<string, number>
 }
 
 /**
@@ -19,10 +21,11 @@ interface AtlasMapProps {
  * each cuisine's capital (a link to the cuisine) and a small dot for each
  * regional kitchen. The view starts fitted to them (mapView), so a new cuisine
  * appears without code changes, and visitors can zoom and drag from there
- * (useMapViewport). The dots are texture, not targets: several sit a few
- * pixels from Manila on a phone, too close to tap apart.
+ * (useMapViewport). The regional dots are texture at the home view, where
+ * several sit a few pixels from Manila; zooming in spreads them, and each
+ * becomes a link to its region once its tap target is clear (tappableDots).
  */
-export function AtlasMap({ cuisines, regions, recipeCounts }: AtlasMapProps) {
+export function AtlasMap({ cuisines, regions, recipeCounts, regionCounts }: AtlasMapProps) {
   const pins = cuisines.map((cuisine) => ({ cuisine, point: projectPoint(cuisine) })).filter(({ point }) => isOnMap(point))
   const dots = regions.map((region) => ({ region, point: projectPoint(region) })).filter(({ point }) => isOnMap(point))
   const home = mapView([...pins, ...dots].map(({ point }) => point))
@@ -32,6 +35,13 @@ export function AtlasMap({ cuisines, regions, recipeCounts }: AtlasMapProps) {
   const k = pinScale(view)
   const sides = placeLabels(pins.map(({ point, cuisine }) => ({ point, text: cuisine.name })), view)
   const placed = pins.map((pin, i) => ({ ...pin, side: sides[i] ?? 'below' }))
+  // Dots far enough apart in this view (and with recipes) become links to their region.
+  const tappable = tappableDots(
+    dots.filter(({ region }) => (regionCounts.get(region.id) ?? 0) > 0).map(({ region, point }) => ({ id: region.id, point })),
+    pins.map(({ point }) => point),
+    view,
+  )
+  const cuisineName = new Map(cuisines.map((cuisine) => [cuisine.id, cuisine.name]))
 
   return (
     <figure className="space-y-2">
@@ -51,9 +61,48 @@ export function AtlasMap({ cuisines, regions, recipeCounts }: AtlasMapProps) {
         >
           <path d={LAND_PATH} aria-hidden fill="var(--surface)" stroke="var(--line-strong)" strokeWidth={0.6 * k} strokeLinejoin="round" />
 
-          {dots.map(({ region, point }) => (
-            <circle key={region.id} aria-hidden cx={point.x} cy={point.y} r={2.5 * k} style={cuisineTint(region.cuisineId)} fill="var(--tint)" />
-          ))}
+          {dots.map(({ region, point }) => {
+            if (!tappable.has(region.id)) {
+              return <circle key={region.id} aria-hidden cx={point.x} cy={point.y} r={2.5 * k} style={cuisineTint(region.cuisineId)} fill="var(--tint)" />
+            }
+            const count = regionCounts.get(region.id) ?? 0
+            const name = `${region.name}: ${count} regional ${count === 1 ? 'recipe' : 'recipes'}, ${cuisineName.get(region.cuisineId) ?? ''}`
+            return (
+              <Link
+                key={region.id}
+                to={`/regions/${region.id}`}
+                aria-label={name}
+                style={cuisineTint(region.cuisineId)}
+                className="group outline-none"
+                data-pin-x={point.x}
+                data-pin-y={point.y}
+                data-pin-label={region.name}
+              >
+                {/* A tooltip for mouse users; the aria-label names it for everyone else. */}
+                <title>{region.name}</title>
+                <circle cx={point.x} cy={point.y} r={PIN.dotHitRadius * k} fill="transparent" />
+                <circle
+                  cx={point.x}
+                  cy={point.y}
+                  r={9 * k}
+                  fill="none"
+                  stroke="var(--accent)"
+                  strokeWidth={2 * k}
+                  className="opacity-0 group-focus-visible:opacity-100"
+                />
+                {/* Bigger than a texture dot, with a ring: this one opens something. */}
+                <circle
+                  cx={point.x}
+                  cy={point.y}
+                  r={4.5 * k}
+                  fill="var(--tint)"
+                  stroke="var(--surface)"
+                  strokeWidth={1.5 * k}
+                  className="origin-center transition-transform [transform-box:fill-box] group-hover:scale-125 motion-reduce:transition-none"
+                />
+              </Link>
+            )
+          })}
 
           {/* Pass 1: the pins, each a link with an invisible tap circle. */}
           {placed.map(({ cuisine, point }) => {
