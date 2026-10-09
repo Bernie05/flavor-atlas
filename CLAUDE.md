@@ -43,10 +43,11 @@ npm run auth:hash     # admin password hash + session secret for .env
 
 ## Adding a cuisine
 
-Seed entry in `db.seed.json` (with `countryCode`, capital `latitude`/`longitude`), then:
-1. Its flag in `src/features/cuisines/flags.ts`. `seed.test.ts` fails without it.
-2. If its capital is outside the drawn map (Pakistan to the Pacific, Java to Mongolia), widen `BOUNDS` and rerun `scripts/generate-atlas-map.mjs`. `seed.test.ts` fails until you do. The map zooms to fit its cuisines by itself.
-3. Optional (falls back gracefully): colors `--c-<id>`, `-soft`, `-ink` in `src/index.css` (otherwise the accent green), and a cloth pattern in `CuisineCloth.tsx` (otherwise atlas dots).
+A cuisine is data: `countryCode`, capital `latitude`/`longitude` and a `hue` (0-360). With those:
+- **Colors** come from the hue (`features/cuisines/palette.ts`, published by `CuisinePalettes` in both layouts). `palette.test.ts` proves text and pin contrast for every hue in both themes. The four seed cuisines keep hand-tuned palettes in `index.css`; a cuisine with neither falls back to the accent.
+- **Flags** ship for every country on the map (`MAP_COUNTRIES` in `features/cuisines/flags.ts`, separate files in the build). A country outside the list needs adding there; `seed.test.ts` fails without it.
+- **The pin** places itself; the map zooms to fit. A capital outside the drawn map (Pakistan to the Pacific, Java to Mongolia) needs a wider `BOUNDS` and a rerun of `scripts/generate-atlas-map.mjs`; `seed.test.ts` fails until then.
+- Cuisine ids name CSS variables, so `cuisineSchema` only accepts slugs. Optional: a cloth pattern in `CuisineCloth.tsx` (otherwise atlas dots).
 
 ## Gotchas
 

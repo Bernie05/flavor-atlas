@@ -24,6 +24,10 @@ export default defineConfig(({ mode }) => {
       mode === 'demo' && viteSingleFile(),
     ],
     build: {
+      // Flags stay separate files (fetched only when shown) instead of being inlined into
+      // the bundle; the single-file demo inlines everything, so it keeps the default.
+      assetsInlineLimit:
+        mode === 'demo' ? undefined : (file: string) => (file.includes('flag-icons') ? false : undefined),
       rolldownOptions: {
         output: {
           // Libraries get chunks named after what they hold, instead of after whichever
@@ -53,6 +57,9 @@ export default defineConfig(({ mode }) => {
     },
     test: {
       environment: 'node',
+      // Vitest skips CSS by default, which would hand palette.test.ts an empty
+      // index.css?raw. It reads the theme tokens from it to check contrast.
+      css: { include: [/src[\\/]index\.css/] },
     },
   }
 })

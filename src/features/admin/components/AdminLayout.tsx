@@ -1,5 +1,6 @@
 import { Link, NavLink, Outlet, ScrollRestoration, useNavigate } from 'react-router'
 import { AtlasMark } from '@/components/layout/AtlasMark'
+import { CuisinePalettes } from '@/features/cuisines/components/CuisinePalettes'
 import { useLogout, useSession } from '@/features/auth/queries'
 
 const tabClass = ({ isActive }: { isActive: boolean }) =>
@@ -15,6 +16,8 @@ export function AdminLayout() {
 
   return (
     <div className="flex min-h-dvh flex-col">
+      {/* Colors for cuisines added from the admin; a stable slot, so pages never remount. */}
+      <CuisinePalettes />
       <header className="sticky top-[env(safe-area-inset-top,0px)] z-20 border-b border-line bg-surface">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-4 pt-2.5">
           <Link to="/admin" aria-label="Flavor Atlas admin dashboard" className="flex items-center gap-2 whitespace-nowrap">

@@ -34,7 +34,7 @@ Rules:
 
 ## Cuisine tint
 
-Wrap anything that belongs to a cuisine with `style={cuisineTint(cuisineId)}` from `src/features/cuisines/utils.ts`. It points `--tint*` at `--c-<cuisineId>*`, falling back to the accent for cuisines without a palette. To give a new cuisine its own colors, add `--c-<id>`, `--c-<id>-soft` and `--c-<id>-ink` in all three token blocks and check contrast (ink on soft ≥ 4.5:1).
+Wrap anything that belongs to a cuisine with `style={cuisineTint(cuisineId)}` from `src/features/cuisines/utils.ts`. It points `--tint*` at `--c-<cuisineId>*`, falling back to the accent for cuisines without a palette. A new cuisine gets its colors from its `hue` (generated in `features/cuisines/palette.ts`, contrast proven by `palette.test.ts`); never hand-write CSS for it. Only the four seed cuisines have hand-tuned `--c-<id>` palettes in `index.css`.
 
 ## Typography
 

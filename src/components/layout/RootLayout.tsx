@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link, NavLink, Outlet, ScrollRestoration } from 'react-router'
 import { useSession } from '@/features/auth/queries'
+import { CuisinePalettes } from '@/features/cuisines/components/CuisinePalettes'
 import { CuisineStrip } from '@/features/cuisines/components/CuisineStrip'
 import { cuisineQueries } from '@/features/cuisines/queries'
 import { useSavedRecipeIds } from '@/features/saved/useSavedRecipes'
@@ -21,6 +22,8 @@ export function RootLayout() {
 
   return (
     <div className="flex min-h-dvh flex-col">
+      {/* Colors for cuisines added from the admin; a stable slot, so pages never remount. */}
+      <CuisinePalettes />
       <header className="sticky top-[env(safe-area-inset-top,0px)] z-20 border-b border-line bg-canvas/85 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-4 py-2.5">
           <Link to="/" className="flex min-h-10 min-w-10 items-center justify-center gap-2 whitespace-nowrap">
