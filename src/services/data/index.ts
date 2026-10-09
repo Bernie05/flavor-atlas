@@ -1,16 +1,18 @@
 import { config } from '@/lib/config'
 import type { DataService } from './DataService'
-import { artifactDataService } from './artifactDataService'
-import { httpDataService } from './httpDataService'
-import { mockDataService } from './mockDataService'
+import { lazyDataService } from './lazyDataService'
 
-/** The one place that decides which backend the app talks to. */
-export const dataService: DataService =
+/**
+ * The one place that decides which backend the app talks to. Each one is a
+ * dynamic import, so the bundle only carries the one this build uses.
+ */
+export const dataService: DataService = lazyDataService(() =>
   config.dataSource === 'artifact'
-    ? artifactDataService
+    ? import('./artifactDataService').then((m) => m.artifactDataService)
     : config.dataSource === 'mock'
-      ? mockDataService
-      : httpDataService
+      ? import('./mockDataService').then((m) => m.mockDataService)
+      : import('./httpDataService').then((m) => m.httpDataService),
+)
 
 export type { DataService, RecipeFilters } from './DataService'
 export { ApiError, NotFoundError, UnauthorizedError, describeError, isRetryable } from './errors'

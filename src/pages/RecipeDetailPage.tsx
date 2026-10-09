@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { useRef, useState } from 'react'
+import { lazy, Suspense, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { ErrorState } from '@/components/feedback/ErrorState'
 import { FoodEmoji } from '@/components/ui/FoodEmoji'
@@ -12,7 +12,6 @@ import { dishQueries, regionQueries } from '@/features/dishes/queries'
 import { otherVersions } from '@/features/dishes/utils'
 import { RatingsSection } from '@/features/ratings/components/RatingsSection'
 import { summarizeRatings } from '@/features/ratings/summary'
-import { CookMode } from '@/features/recipes/components/CookMode'
 import { IngredientChecklist } from '@/features/recipes/components/IngredientChecklist'
 import { PhotoCredit } from '@/features/recipes/components/PhotoCredit'
 import { RecipeRow } from '@/features/recipes/components/RecipeRow'
@@ -23,6 +22,9 @@ import { usePhoto } from '@/features/recipes/usePhoto'
 import { DIFFICULTY_LABELS, formatDuration, highlightIngredients, totalMinutes } from '@/features/recipes/utils'
 import { NotFoundError } from '@/services/data'
 import { NotFoundPage } from './NotFoundPage'
+
+// Cook mode loads on first use: most visits read the recipe and never open it.
+const CookMode = lazy(() => import('@/features/recipes/components/CookMode').then((m) => ({ default: m.CookMode })))
 
 export function RecipeDetailPage() {
   const { recipeId = '' } = useParams()
@@ -56,6 +58,12 @@ function RecipeView({ recipe }: { recipe: RecipeWithRatings }) {
   const [panel, setPanel] = useState<Panel>('ingredients')
   const toggleRef = useRef<HTMLDivElement>(null)
   const [cooking, setCooking] = useState(false)
+  // Mounted from the first open on, so its step and timers survive closing and reopening.
+  const [cookModeUsed, setCookModeUsed] = useState(false)
+  const startCooking = () => {
+    setCookModeUsed(true)
+    setCooking(true)
+  }
   // Lifted here from the checklist so cook mode shows the same scaled amounts.
   const [people, setPeople] = useState(recipe.servings)
 
@@ -187,7 +195,7 @@ function RecipeView({ recipe }: { recipe: RecipeWithRatings }) {
               Steps
             </button>
           </div>
-          <button type="button" onClick={() => setCooking(true)} className="min-h-12 shrink-0 rounded-full bg-tint-soft px-4 text-sm font-semibold text-tint-ink ring-1 ring-tint/30 hover:ring-tint">
+          <button type="button" onClick={startCooking} className="min-h-12 shrink-0 rounded-full bg-tint-soft px-4 text-sm font-semibold text-tint-ink ring-1 ring-tint/30 hover:ring-tint">
             Cook
           </button>
         </div>
@@ -217,7 +225,7 @@ function RecipeView({ recipe }: { recipe: RecipeWithRatings }) {
             </h2>
             <button
               type="button"
-              onClick={() => setCooking(true)}
+              onClick={startCooking}
               className="min-h-10 rounded-full bg-ink px-4 text-sm font-semibold text-canvas hover:bg-accent"
             >
               Start cooking
@@ -263,7 +271,11 @@ function RecipeView({ recipe }: { recipe: RecipeWithRatings }) {
         />
       )}
 
-      <CookMode recipe={recipe} people={people} open={cooking} onClose={() => setCooking(false)} />
+      {cookModeUsed && (
+        <Suspense fallback={null}>
+          <CookMode recipe={recipe} people={people} open={cooking} onClose={() => setCooking(false)} />
+        </Suspense>
+      )}
 
       <hr className="border-line" />
       <RatingsSection ratings={recipe.ratings} />

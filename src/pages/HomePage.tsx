@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
+import { lazy, Suspense } from 'react'
 import { Link } from 'react-router'
 import { CardGridSkeleton } from '@/components/feedback/CardGridSkeleton'
 import { ErrorState } from '@/components/feedback/ErrorState'
-import { AtlasMap } from '@/features/atlas/components/AtlasMap'
 import { CuisineCard } from '@/features/cuisines/components/CuisineCard'
 import { cuisineQueries } from '@/features/cuisines/queries'
 import { regionQueries } from '@/features/dishes/queries'
@@ -12,6 +12,14 @@ import { recipeQueries } from '@/features/recipes/queries'
 import { coverRecipe, quickRecipes, sortRecipes } from '@/features/recipes/utils'
 
 const ROW_SIZE = 3
+
+// The map and its coastlines (about 40 KB) load in their own chunk, only on the home page.
+const AtlasMap = lazy(() => import('@/features/atlas/components/AtlasMap').then((m) => ({ default: m.AtlasMap })))
+
+/** The map's shape while it loads, so the layout doesn't jump when it arrives. */
+const mapPlaceholder = (
+  <div aria-hidden className="aspect-[360/378] max-w-full animate-pulse rounded-3xl bg-surface-sunken motion-reduce:animate-none" />
+)
 
 export function HomePage() {
   const cuisines = useQuery(cuisineQueries.list())
@@ -69,14 +77,16 @@ export function HomePage() {
         {cuisines.isPending ? (
           // The map's shape while loading, so the layout doesn't jump when it arrives.
           <div className="grid items-start gap-6 lg:grid-cols-[1fr_1.2fr] lg:gap-8">
-            <div aria-hidden className="aspect-[360/378] max-w-full animate-pulse rounded-3xl bg-surface-sunken motion-reduce:animate-none" />
+            {mapPlaceholder}
             <CardGridSkeleton count={4} />
           </div>
         ) : cuisines.isError ? (
           <ErrorState error={cuisines.error} onRetry={() => cuisines.refetch()} />
         ) : (
           <div className="grid items-start gap-6 lg:grid-cols-[1fr_1.2fr] lg:gap-8">
-            <AtlasMap cuisines={cuisines.data} regions={regions.data ?? []} recipeCounts={recipeCounts} />
+            <Suspense fallback={mapPlaceholder}>
+              <AtlasMap cuisines={cuisines.data} regions={regions.data ?? []} recipeCounts={recipeCounts} />
+            </Suspense>
             <div className="grid grid-cols-2 gap-3">
               {cuisines.data.map((cuisine) => (
                 <CuisineCard

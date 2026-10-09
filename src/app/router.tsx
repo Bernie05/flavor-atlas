@@ -10,9 +10,6 @@ import { HomePage } from '@/pages/HomePage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
 import { RecipeDetailPage } from '@/pages/RecipeDetailPage'
 import { RouteErrorPage } from '@/pages/RouteErrorPage'
-import { SavedPage } from '@/pages/SavedPage'
-import { SearchPage } from '@/pages/SearchPage'
-import { ShoppingListPage } from '@/pages/ShoppingListPage'
 
 const routes: RouteObject[] = [
   {
@@ -26,9 +23,10 @@ const routes: RouteObject[] = [
       { path: 'recipes/:recipeId', element: <RecipeDetailPage /> },
       { path: 'cuisines/:cuisineId', element: <CuisinePage /> },
       { path: 'dishes/:dishId', element: <DishPage /> },
-      { path: 'search', element: <SearchPage /> },
-      { path: 'saved', element: <SavedPage /> },
-      { path: 'shopping', element: <ShoppingListPage /> },
+      // Pages a visitor reaches later load on demand, keeping the first download small.
+      { path: 'search', lazy: () => import('@/pages/SearchPage').then((m) => ({ Component: m.SearchPage })) },
+      { path: 'saved', lazy: () => import('@/pages/SavedPage').then((m) => ({ Component: m.SavedPage })) },
+      { path: 'shopping', lazy: () => import('@/pages/ShoppingListPage').then((m) => ({ Component: m.ShoppingListPage })) },
       { path: 'login', element: <Navigate to="/admin/login" replace /> },
       { path: '*', element: <NotFoundPage /> },
     ],
