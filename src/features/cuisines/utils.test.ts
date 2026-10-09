@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { cuisineInputSchema } from './schema'
-import { cuisineIdFor, cuisineTint, formatCoordinates } from './utils'
+import { cuisineIdFor, cuisineTint, formatCoordinates, hueName } from './utils'
 
 describe('formatCoordinates', () => {
   it('formats north/east coordinates with two decimals', () => {
@@ -53,5 +53,13 @@ describe('cuisineInputSchema', () => {
 
   it('refuses a name that makes no web address', () => {
     expect(cuisineInputSchema.safeParse({ ...vietnamese, name: 'ไทย' }).error?.issues[0]?.path).toEqual(['name'])
+  })
+})
+
+describe('hueName', () => {
+  it('names the color a hue looks like in OKLCH', () => {
+    expect([25, 60, 90, 150, 200, 260, 300, 350, 0, 360].map(hueName)).toEqual([
+      'Red', 'Orange', 'Yellow', 'Green', 'Teal', 'Blue', 'Purple', 'Pink', 'Pink', 'Pink',
+    ])
   })
 })

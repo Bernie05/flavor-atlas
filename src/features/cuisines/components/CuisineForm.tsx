@@ -10,7 +10,7 @@ import { describeError } from '@/services/data'
 import { countryName, MAP_COUNTRIES } from '../flags'
 import { cuisinePaletteCss } from '../palette'
 import { cuisineInputSchema, type Cuisine, type CuisineInput } from '../schema'
-import { cuisineIdFor, cuisineTint, formatCoordinates } from '../utils'
+import { cuisineIdFor, cuisineTint, formatCoordinates, hueName } from '../utils'
 import { CuisineFlag } from './CuisineFlag'
 
 interface CuisineFormProps {
@@ -38,6 +38,8 @@ export function CuisineForm({ cuisines, isSubmitting, submitError, onSubmit }: C
     control,
     handleSubmit,
     setValue,
+    setError,
+    setFocus,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(cuisineInputSchema),
@@ -56,7 +58,17 @@ export function CuisineForm({ cuisines, isSubmitting, submitError, onSubmit }: C
   const errorCount = countFieldErrors(errors)
 
   return (
-    <form noValidate onSubmit={handleSubmit(onSubmit)} style={cuisineTint(PREVIEW_ID)} className="space-y-10">
+    <form
+      noValidate
+      onSubmit={handleSubmit((input) => {
+        // The list already says the name is taken: say it as a field error and stay, instead of a round trip to fail.
+        if (taken) {
+          setError('name', { message: `Already in the atlas as ${taken.name}. Pick another name.` })
+          setFocus('name')
+          return
+        }
+        onSubmit(input)
+      })} style={cuisineTint(PREVIEW_ID)} className="space-y-10">
       {/* The preview's palette, regenerated as the hue slider moves. */}
       <style>{cuisinePaletteCss([{ id: PREVIEW_ID, hue: Number(hue) || 0 }])}</style>
 
@@ -65,7 +77,7 @@ export function CuisineForm({ cuisines, isSubmitting, submitError, onSubmit }: C
         <Field
           label="Name"
           htmlFor="name"
-          error={errors.name?.message ?? (taken ? `Already in the atlas as ${taken.name}.` : undefined)}
+          error={errors.name?.message ?? (taken ? `Already in the atlas as ${taken.name}. Pick another name.` : undefined)}
           hint={id ? `Its page: /cuisines/${id}` : 'As a menu would say it: Vietnamese, Thai…'}
         >
           <input
@@ -112,7 +124,7 @@ export function CuisineForm({ cuisines, isSubmitting, submitError, onSubmit }: C
               setValue('longitude', picked.longitude, { shouldValidate: true, shouldDirty: true })
             }}
           />
-          <p className="text-sm text-ink-muted">Click the map at the capital, or type its coordinates.</p>
+          <p className="text-sm text-ink-muted">Tap or click the map near the capital, then fine-tune the coordinates.</p>
         </div>
         <div className="grid content-start gap-4">
           <Field label="Capital or city" htmlFor="origin" error={errors.origin?.message} hint="The place the pin marks.">
@@ -156,15 +168,16 @@ export function CuisineForm({ cuisines, isSubmitting, submitError, onSubmit }: C
             min={0}
             max={359}
             {...register('hue', numberField)}
-            aria-valuetext={`Hue ${hue}`}
+            {...describedBy('hue', errors.hue?.message, true)}
+            aria-valuetext={`${hueName(Number(hue) || 0)}, ${hue}°`}
             className="h-10 w-full cursor-pointer accent-[var(--tint)]"
           />
         </Field>
         {/* How the cuisine will look: its header colors, flag and pin. */}
-        <div aria-hidden className="atlas-dots flex min-w-64 items-center gap-4 rounded-3xl bg-tint-soft p-5">
+        <div aria-hidden className="atlas-dots flex items-center gap-4 rounded-3xl bg-tint-soft p-5 sm:min-w-72">
           <FoodEmoji emoji={emoji || '🍽️'} size="md" />
           <div className="min-w-0 space-y-1">
-            <p className="truncate font-display text-3xl text-tint-ink">
+            <p className="font-display text-2xl break-words text-tint-ink sm:text-3xl">
               <em>{name || 'New cuisine'}</em>
             </p>
             <p className="label-mono flex items-center gap-2 text-tint-ink tabular-nums">
@@ -172,7 +185,7 @@ export function CuisineForm({ cuisines, isSubmitting, submitError, onSubmit }: C
               {[origin, place && formatCoordinates(place)].filter(Boolean).join(' · ') || 'Capital · coordinates'}
             </p>
           </div>
-          <svg viewBox="0 0 24 24" className="ml-auto size-8 shrink-0">
+          <svg viewBox="0 0 24 24" className="ml-auto size-8 shrink-0 max-sm:hidden">
             <circle cx={12} cy={12} r={8} fill="var(--tint-soft)" stroke="var(--tint)" strokeWidth={1.5} />
             <circle cx={12} cy={12} r={3.5} fill="var(--tint)" />
           </svg>

@@ -53,7 +53,7 @@ export function LocationPicker({ value, onPick, cuisines }: LocationPickerProps)
           // Near the east edge the label goes on the left of its dot, so it isn't cut off.
           const left = point.x + labelWidth(cuisine.name) * (11 / PIN.labelSize) * k + 8 * k > MAP_WIDTH
           return (
-            <g key={cuisine.id} style={cuisineTint(cuisine.id)} opacity={0.75} className="pointer-events-none">
+            <g key={cuisine.id} style={cuisineTint(cuisine.id)} className="pointer-events-none">
               <circle cx={point.x} cy={point.y} r={4 * k} fill="var(--tint)" />
               <text
                 x={left ? point.x - 8 * k : point.x + 8 * k}

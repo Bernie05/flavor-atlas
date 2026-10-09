@@ -1,6 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router'
-import { CardGridSkeleton } from '@/components/feedback/CardGridSkeleton'
 import { EmptyState } from '@/components/feedback/EmptyState'
 import { ErrorState } from '@/components/feedback/ErrorState'
 import { FlashMessage } from '@/features/admin/components/FlashMessage'
@@ -32,7 +31,15 @@ export function AdminCuisinesPage() {
       <FlashMessage />
 
       {cuisines.isPending || recipes.isPending ? (
-        <CardGridSkeleton count={4} />
+        <div role="status" className="divide-y divide-line rounded-2xl bg-surface ring-1 ring-line">
+          <span className="sr-only">Loading cuisines…</span>
+          {Array.from({ length: 4 }, (_, i) => (
+            <div key={i} aria-hidden className="flex items-center gap-4 p-4">
+              <div className="size-11 animate-pulse rounded-xl bg-surface-sunken motion-reduce:animate-none" />
+              <div className="h-10 flex-1 animate-pulse rounded-lg bg-surface-sunken motion-reduce:animate-none" />
+            </div>
+          ))}
+        </div>
       ) : cuisines.isError || recipes.isError ? (
         <ErrorState
           error={cuisines.error ?? recipes.error}
@@ -48,18 +55,19 @@ export function AdminCuisinesPage() {
           {cuisines.data.map((cuisine) => {
             const count = recipes.data.filter((recipe) => recipe.cuisineId === cuisine.id).length
             return (
-              <li key={cuisine.id} style={cuisineTint(cuisine.id)} className="flex flex-wrap items-center gap-x-4 gap-y-2 p-4">
+              <li key={cuisine.id} style={cuisineTint(cuisine.id)} className="grid grid-cols-[auto_1fr] items-center gap-x-4 gap-y-2 p-4 sm:grid-cols-[auto_1fr_auto]">
                 <span aria-hidden className="grid size-11 shrink-0 place-items-center rounded-xl bg-tint-soft">
                   <CuisineFlag countryCode={cuisine.countryCode} size="md" />
                 </span>
-                <div className="min-w-0 flex-1">
+                <div className="min-w-0">
                   <p className="font-display text-2xl leading-tight">{cuisine.name}</p>
                   <p className="label-mono text-ink-subtle tabular-nums">
                     {countryName(cuisine.countryCode)} · {cuisine.origin} · {formatCoordinates(cuisine)} · {count}{' '}
                     {count === 1 ? 'recipe' : 'recipes'}
                   </p>
                 </div>
-                <div className="flex gap-1">
+                {/* Under the text on phones, beside it from sm up. */}
+                <div className="col-start-2 flex gap-1 sm:col-start-auto">
                   <Link to={`/cuisines/${cuisine.id}`} className={`${actionClass} text-ink-muted`}>
                     View<span className="sr-only"> {cuisine.name}</span>
                   </Link>

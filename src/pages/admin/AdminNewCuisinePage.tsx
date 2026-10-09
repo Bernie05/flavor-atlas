@@ -14,7 +14,7 @@ export function AdminNewCuisinePage() {
     <div className="space-y-6">
       <title>New cuisine · Flavor Atlas admin</title>
       <header>
-        <Link to="/admin/cuisines" className="label-mono inline-block py-1 text-accent-ink hover:underline">
+        <Link to="/admin/cuisines" className="label-mono inline-flex min-h-10 items-center text-accent-ink hover:underline">
           Cuisines
         </Link>
         <h1 className="mt-1 text-5xl">
