@@ -51,7 +51,7 @@ describe('findAttention', () => {
     expect(find('photo-credit')).toMatchObject({ to: '/admin/recipes/1/edit', action: 'Edit', detail: 'Filipino' })
     expect(find('empty-cuisine')).toMatchObject({ to: '/admin/recipes/new?cuisine=thai', action: 'Add recipe' })
     expect(find('empty-dish')).toMatchObject({ to: '/admin/recipes/new?dish=sisig', detail: 'Filipino' })
-    expect(find('low-rating')).toMatchObject({ to: '/recipes/4', detail: '1.5 stars from 2 reviews' })
+    expect(find('low-rating')).toMatchObject({ to: '/admin/reviews?recipe=4', action: 'Read reviews', detail: '1.5 stars from 2 reviews' })
     expect(find('unrated')).toMatchObject({ to: '/admin/reviews?recipe=5', action: 'Add review' })
   })
 

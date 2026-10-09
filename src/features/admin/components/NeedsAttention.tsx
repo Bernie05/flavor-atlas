@@ -16,20 +16,21 @@ export function NeedsAttention({ groups }: { groups: AttentionGroup[] }) {
   return (
     // min-w-0: as a grid item it would otherwise grow to its content and overflow a phone.
     <section aria-labelledby="attention-heading" className="min-w-0 space-y-4">
-      <div className="flex items-baseline gap-3">
+      <div className="flex min-h-10 items-end gap-3">
         <h2 id="attention-heading" className="text-3xl">
           Needs attention
         </h2>
         {total > 0 && (
           <span className="rounded-full bg-accent-soft px-2 font-mono text-sm leading-6 text-accent-ink tabular-nums">
             {total}
+            <span className="sr-only"> {total === 1 ? 'thing' : 'things'} to fix</span>
           </span>
         )}
       </div>
 
       {groups.length === 0 ? (
         <p className="rounded-2xl bg-surface px-4 py-6 text-ink-muted ring-1 ring-line">
-          All clear: every recipe has a photo, credit, description and review, and every cuisine has recipes.
+          All clear: nothing needs fixing right now.
         </p>
       ) : (
         <ul className="space-y-3">
@@ -46,6 +47,9 @@ export function NeedsAttention({ groups }: { groups: AttentionGroup[] }) {
 
 function AttentionDetails({ group, open }: { group: AttentionGroup; open: boolean }) {
   const [showAll, setShowAll] = useState(false)
+  // Only the first render decides: after a refetch the groups reorder, and one shouldn't
+  // pop open or snap shut on its own while the owner is working through it.
+  const [initiallyOpen] = useState(open)
   // "Show more" disappears once clicked, so focus moves to the first item it revealed.
   const firstRevealed = useRef<HTMLAnchorElement>(null)
   const shown = showAll ? group.items : group.items.slice(0, PREVIEW)
@@ -53,12 +57,12 @@ function AttentionDetails({ group, open }: { group: AttentionGroup; open: boolea
 
   return (
     // The two most important groups start open.
-    <details open={open} className="group rounded-2xl bg-surface ring-1 ring-line">
-      <summary className="flex min-h-12 cursor-pointer list-none items-center gap-3 rounded-2xl px-4 py-3 hover:bg-surface-sunken [&::-webkit-details-marker]:hidden">
+    <details open={initiallyOpen} className="group rounded-2xl bg-surface ring-1 ring-line">
+      <summary className="flex min-h-12 cursor-pointer list-none items-start gap-3 rounded-2xl px-4 py-3 hover:bg-surface-sunken [&::-webkit-details-marker]:hidden">
         <svg
           aria-hidden
           viewBox="0 0 24 24"
-          className="size-4 shrink-0 text-ink-subtle transition-transform group-open:rotate-90 motion-reduce:transition-none"
+          className="mt-1 size-4 shrink-0 text-ink-subtle transition-transform group-open:rotate-90 motion-reduce:transition-none"
           fill="none"
           stroke="currentColor"
           strokeWidth={2.5}
@@ -69,7 +73,7 @@ function AttentionDetails({ group, open }: { group: AttentionGroup; open: boolea
         </svg>
         <span className="min-w-0 flex-1">
           <span className="block font-semibold">
-            {group.title} <span className="font-mono text-ink-subtle tabular-nums">({group.items.length})</span>
+            {group.title} <span className="font-mono whitespace-nowrap text-ink-subtle tabular-nums">({group.items.length})</span>
           </span>
           <span className="block text-sm text-ink-muted">{group.why}</span>
         </span>
@@ -78,7 +82,7 @@ function AttentionDetails({ group, open }: { group: AttentionGroup; open: boolea
         {shown.map((item, i) => (
           <li key={item.id} className="flex items-center gap-3 px-4 py-2">
             <span className="min-w-0 flex-1">
-              <span className="block truncate">{item.label}</span>
+              <span className="line-clamp-2 break-words">{item.label}</span>
               {item.detail && <span className="label-mono block truncate text-ink-subtle">{item.detail}</span>}
             </span>
             <Link

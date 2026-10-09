@@ -78,8 +78,8 @@ export function findAttention({ cuisines, dishes, recipes }: Sources): Attention
     },
     {
       kind: 'regional-note',
-      title: 'Regional version without its note',
-      why: 'The note says what makes this version different.',
+      title: 'Regional version without “what makes it different”',
+      why: "Visitors can't tell it apart from the classic.",
       items: sorted.filter((r) => r.regionId && !r.variantNote.trim()).map(edit),
     },
     {
@@ -106,7 +106,7 @@ export function findAttention({ cuisines, dishes, recipes }: Sources): Attention
     {
       kind: 'low-rating',
       title: `Rated below ${LOW_RATING} stars`,
-      why: 'Worth a look: a fix to the recipe may help.',
+      why: 'Worth a look: the reviews may say what to fix.',
       items: recipes
         .map((recipe) => ({ recipe, rating: summarizeRatings(recipe.ratings) }))
         .filter(({ rating }) => rating.count > 0 && rating.average < LOW_RATING)
@@ -115,8 +115,8 @@ export function findAttention({ cuisines, dishes, recipes }: Sources): Attention
           id: recipe.id,
           label: recipe.title,
           detail: `${rating.average.toFixed(1)} stars from ${rating.count} ${rating.count === 1 ? 'review' : 'reviews'}`,
-          to: `/recipes/${recipe.id}`,
-          action: 'View',
+          to: `/admin/reviews?recipe=${recipe.id}`,
+          action: 'Read reviews',
         })),
     },
     {
