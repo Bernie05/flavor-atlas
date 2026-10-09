@@ -1,6 +1,7 @@
 import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query'
 import { dataService } from '@/services/data'
-import type { CuisineInput } from './schema'
+import { dishQueries, regionQueries } from '@/features/dishes/queries'
+import type { CuisineInput, CuisineUpdate } from './schema'
 
 // Query factory: one place that owns the cache keys and fetchers for cuisines.
 // Components call useQuery(cuisineQueries.list()), and mutations can
@@ -27,5 +28,27 @@ export function useCreateCuisine() {
   return useMutation({
     mutationFn: (input: CuisineInput) => dataService.createCuisine(input),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: cuisineQueries.all(), refetchType: 'all' }),
+  })
+}
+
+export function useUpdateCuisine(id: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (input: CuisineUpdate) => dataService.updateCuisine(id, input),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: cuisineQueries.all(), refetchType: 'all' }),
+  })
+}
+
+/** Deleting a cuisine also removes its empty dishes and its regions, so those lists refresh too. */
+export function useDeleteCuisine() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => dataService.deleteCuisine(id),
+    onSuccess: () =>
+      Promise.all(
+        [cuisineQueries.all(), dishQueries.all(), regionQueries.all()].map((queryKey) =>
+          queryClient.invalidateQueries({ queryKey, refetchType: 'all' }),
+        ),
+      ),
   })
 }

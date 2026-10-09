@@ -47,3 +47,12 @@ export const hueName = (hue: number) => {
   const name = HUE_NAMES.find(([upTo]) => ((hue % 360) + 360) % 360 < upTo)?.[1] ?? 'pink'
   return name[0]!.toUpperCase() + name.slice(1)
 }
+
+/** What still belongs to a cuisine, to decide whether it can be deleted. */
+export function cuisineUsage(
+  cuisineId: string,
+  { recipes, dishes, regions }: { recipes: { cuisineId: string }[]; dishes: { cuisineId: string }[]; regions: { cuisineId: string }[] },
+) {
+  const count = (items: { cuisineId: string }[]) => items.filter((item) => item.cuisineId === cuisineId).length
+  return { recipes: count(recipes), dishes: count(dishes), regions: count(regions) }
+}

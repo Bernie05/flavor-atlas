@@ -9,10 +9,11 @@ export const dishQueries = {
     queryOptions({ queryKey: [...dishQueries.all(), 'detail', id], queryFn: () => dataService.getDish(id) }),
 }
 
-// Regions never change from the app, so they can stay cached for the whole visit.
+// Regions only change when the admin deletes a cuisine (which invalidates them), so they stay cached.
 export const regionQueries = {
+  all: () => ['regions'] as const,
   list: () =>
-    queryOptions({ queryKey: ['regions', 'list'], queryFn: () => dataService.listRegions(), staleTime: Infinity }),
+    queryOptions({ queryKey: [...regionQueries.all(), 'list'], queryFn: () => dataService.listRegions(), staleTime: Infinity }),
 }
 
 export function useCreateDish() {

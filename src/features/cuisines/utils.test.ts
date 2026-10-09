@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { cuisineInputSchema } from './schema'
-import { cuisineIdFor, cuisineTint, formatCoordinates, hueName } from './utils'
+import { cuisineIdFor, cuisineTint, cuisineUsage, formatCoordinates, hueName } from './utils'
 
 describe('formatCoordinates', () => {
   it('formats north/east coordinates with two decimals', () => {
@@ -61,5 +61,16 @@ describe('hueName', () => {
     expect([25, 60, 90, 150, 200, 260, 300, 350, 0, 360].map(hueName)).toEqual([
       'Red', 'Orange', 'Yellow', 'Green', 'Teal', 'Blue', 'Purple', 'Pink', 'Pink', 'Pink',
     ])
+  })
+})
+
+describe('cuisineUsage', () => {
+  it('counts what still belongs to a cuisine', () => {
+    const of = (...ids: string[]) => ids.map((cuisineId) => ({ cuisineId }))
+    expect(cuisineUsage('thai', { recipes: of('thai', 'filipino'), dishes: of('thai', 'thai'), regions: of() })).toEqual({
+      recipes: 1,
+      dishes: 2,
+      regions: 0,
+    })
   })
 })

@@ -55,3 +55,7 @@ export const cuisineExists = (name: string) =>
 
 /** A cuisine name that makes no id (no Latin letters or digits). The form checks first; this is the backstop. */
 export const cuisineNameInvalid = () => new ApiError(400, 'Use Latin letters in the cuisine name.')
+
+/** A cuisine still has recipes, so deleting it would leave them pointing at nothing (409). */
+export const cuisineInUse = (recipes: number) =>
+  new ApiError(409, `${recipes} ${recipes === 1 ? 'recipe still uses' : 'recipes still use'} this cuisine. Delete or move ${recipes === 1 ? 'it' : 'them'} first.`)

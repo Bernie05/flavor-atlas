@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 
 interface ConfirmDialogProps {
   open: boolean
@@ -10,6 +10,12 @@ interface ConfirmDialogProps {
   error?: string
   onConfirm: () => void
   onCancel: () => void
+  /**
+   * False when the action can't happen yet (a cuisine that still has recipes):
+   * the dialog explains why, shows `children` (e.g. a link to fix it) and offers only Close.
+   */
+  canConfirm?: boolean
+  children?: ReactNode
 }
 
 /**
@@ -27,6 +33,8 @@ export function ConfirmDialog({
   error,
   onConfirm,
   onCancel,
+  canConfirm = true,
+  children,
 }: ConfirmDialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null)
 
@@ -58,6 +66,7 @@ export function ConfirmDialog({
           {error}
         </p>
       )}
+      {children && <div className="mt-3">{children}</div>}
       <div className="mt-6 flex flex-wrap justify-end gap-2">
         <button
           type="button"
@@ -65,16 +74,18 @@ export function ConfirmDialog({
           autoFocus
           className="min-h-10 rounded-full px-4 font-semibold text-ink-muted hover:bg-surface-sunken"
         >
-          Cancel
+          {canConfirm ? 'Cancel' : 'Close'}
         </button>
-        <button
-          type="button"
-          onClick={onConfirm}
-          disabled={isPending}
-          className="min-h-10 rounded-full bg-danger px-4 font-semibold text-on-danger disabled:opacity-60"
-        >
-          {isPending ? pendingLabel : confirmLabel}
-        </button>
+        {canConfirm && (
+          <button
+            type="button"
+            onClick={onConfirm}
+            disabled={isPending}
+            className="min-h-10 rounded-full bg-danger px-4 font-semibold text-on-danger disabled:opacity-60"
+          >
+            {isPending ? pendingLabel : confirmLabel}
+          </button>
+        )}
       </div>
     </dialog>
   )

@@ -59,6 +59,10 @@ const routes: RouteObject[] = [
             path: 'cuisines/new',
             lazy: () => import('@/pages/admin/AdminNewCuisinePage').then((m) => ({ Component: m.AdminNewCuisinePage })),
           },
+          {
+            path: 'cuisines/:cuisineId/edit',
+            lazy: () => import('@/pages/admin/AdminEditCuisinePage').then((m) => ({ Component: m.AdminEditCuisinePage })),
+          },
           { path: 'reviews', lazy: () => import('@/pages/admin/AdminReviewsPage').then((m) => ({ Component: m.AdminReviewsPage })) },
           { path: '*', element: <NotFoundPage /> },
         ],

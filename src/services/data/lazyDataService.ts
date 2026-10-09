@@ -5,6 +5,8 @@ const METHODS = {
   listCuisines: true,
   getCuisine: true,
   createCuisine: true,
+  updateCuisine: true,
+  deleteCuisine: true,
   listDishes: true,
   getDish: true,
   createDish: true,

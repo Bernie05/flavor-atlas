@@ -1,5 +1,5 @@
 import { cuisineSchema } from '@/features/cuisines/schema'
-import { dishSchema } from '@/features/dishes/schema'
+import { dishSchema, regionSchema } from '@/features/dishes/schema'
 import { ratingSchema } from '@/features/ratings/schema'
 import { recipeSchema } from '@/features/recipes/schema'
 import { applyPut, type Db, type WritableCollection, type WritableRecords } from './snapshotDataService'
@@ -18,9 +18,9 @@ export interface ChangeDoc {
   body: unknown
 }
 
-export const WRITABLE_COLLECTIONS: readonly WritableCollection[] = ['cuisines', 'dishes', 'recipes', 'ratings']
+export const WRITABLE_COLLECTIONS: readonly WritableCollection[] = ['cuisines', 'dishes', 'regions', 'recipes', 'ratings']
 
-const schemas = { cuisines: cuisineSchema, dishes: dishSchema, recipes: recipeSchema, ratings: ratingSchema }
+const schemas = { cuisines: cuisineSchema, dishes: dishSchema, regions: regionSchema, recipes: recipeSchema, ratings: ratingSchema }
 
 /**
  * Validate a record before it's stored: what fails here would be skipped on

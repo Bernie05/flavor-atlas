@@ -1,20 +1,39 @@
 import { useQuery } from '@tanstack/react-query'
-import { Link } from 'react-router'
+import { useState } from 'react'
+import { Link, useNavigate } from 'react-router'
 import { EmptyState } from '@/components/feedback/EmptyState'
 import { ErrorState } from '@/components/feedback/ErrorState'
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { FlashMessage } from '@/features/admin/components/FlashMessage'
 import { CuisineFlag } from '@/features/cuisines/components/CuisineFlag'
 import { countryName } from '@/features/cuisines/flags'
-import { cuisineQueries } from '@/features/cuisines/queries'
-import { cuisineTint, formatCoordinates } from '@/features/cuisines/utils'
+import { cuisineQueries, useDeleteCuisine } from '@/features/cuisines/queries'
+import type { Cuisine } from '@/features/cuisines/schema'
+import { cuisineTint, cuisineUsage, formatCoordinates } from '@/features/cuisines/utils'
+import { dishQueries, regionQueries } from '@/features/dishes/queries'
 import { recipeQueries } from '@/features/recipes/queries'
+import { describeError } from '@/services/data'
 
 const actionClass = 'inline-flex min-h-10 items-center rounded-full px-3 text-sm font-semibold hover:bg-surface-sunken'
 
-/** Every cuisine on the atlas, with a way to add one and to add a recipe to each. */
+const plural = (count: number, word: string) => `${count} ${word}${count === 1 ? '' : 's'}`
+
+/** Every cuisine on the atlas: add one, edit one, add a recipe to one, or delete an unused one. */
 export function AdminCuisinesPage() {
   const cuisines = useQuery(cuisineQueries.list())
   const recipes = useQuery(recipeQueries.list())
+  // Only for the delete dialog's "what goes with it" line; the page works without them.
+  const dishes = useQuery(dishQueries.list()).data ?? []
+  const regions = useQuery(regionQueries.list()).data ?? []
+  const deleteCuisine = useDeleteCuisine()
+  const navigate = useNavigate()
+  const [toDelete, setToDelete] = useState<Cuisine | null>(null)
+  const usage = toDelete ? cuisineUsage(toDelete.id, { recipes: recipes.data ?? [], dishes, regions }) : undefined
+  const blocked = (usage?.recipes ?? 0) > 0
+  const closeDialog = () => {
+    setToDelete(null)
+    deleteCuisine.reset()
+  }
 
   return (
     <div className="space-y-6">
@@ -29,6 +48,42 @@ export function AdminCuisinesPage() {
         </Link>
       </header>
       <FlashMessage />
+      <ConfirmDialog
+        open={toDelete !== null}
+        title={blocked ? `${toDelete?.name} still has recipes` : `Delete ${toDelete?.name ?? 'cuisine'}?`}
+        description={
+          blocked
+            ? `${plural(usage!.recipes, 'recipe')} still ${usage!.recipes === 1 ? 'uses' : 'use'} this cuisine. Delete them or give them another cuisine first, so none is left without one.`
+            : [
+                `${toDelete?.name ?? 'The cuisine'} will be removed from the map and the site`,
+                usage && (usage.dishes > 0 || usage.regions > 0)
+                  ? `, with its ${[usage.dishes > 0 && plural(usage.dishes, 'empty dish'), usage.regions > 0 && plural(usage.regions, 'regional kitchen')].filter(Boolean).join(' and ')}`
+                  : '',
+                ". This can't be undone.",
+              ].join('')
+        }
+        canConfirm={!blocked}
+        confirmLabel="Delete cuisine"
+        pendingLabel="Deleting…"
+        isPending={deleteCuisine.isPending}
+        error={deleteCuisine.isError ? describeError(deleteCuisine.error) : undefined}
+        onCancel={closeDialog}
+        onConfirm={() => {
+          if (!toDelete) return
+          deleteCuisine.mutate(toDelete.id, {
+            onSuccess: () => {
+              navigate('.', { replace: true, state: { flash: `Deleted ${toDelete.name}.` } })
+              setToDelete(null)
+            },
+          })
+        }}
+      >
+        {blocked && toDelete && (
+          <Link to={`/admin/recipes?cuisine=${toDelete.id}`} className="inline-flex min-h-10 items-center font-semibold text-accent hover:text-accent-hover">
+            See its recipes
+          </Link>
+        )}
+      </ConfirmDialog>
 
       {cuisines.isPending || recipes.isPending ? (
         <div role="status" className="divide-y divide-line rounded-2xl bg-surface ring-1 ring-line">
@@ -67,13 +122,19 @@ export function AdminCuisinesPage() {
                   </p>
                 </div>
                 {/* Under the text on phones, beside it from sm up. */}
-                <div className="col-start-2 flex gap-1 sm:col-start-auto">
+                <div className="col-start-2 flex flex-wrap gap-1 sm:col-start-auto">
                   <Link to={`/cuisines/${cuisine.id}`} className={`${actionClass} text-ink-muted`}>
                     View<span className="sr-only"> {cuisine.name}</span>
+                  </Link>
+                  <Link to={`/admin/cuisines/${cuisine.id}/edit`} className={actionClass}>
+                    Edit<span className="sr-only"> {cuisine.name}</span>
                   </Link>
                   <Link to={`/admin/recipes/new?cuisine=${cuisine.id}`} className={actionClass}>
                     Add recipe<span className="sr-only"> to {cuisine.name}</span>
                   </Link>
+                  <button type="button" onClick={() => setToDelete(cuisine)} className={`${actionClass} text-danger`}>
+                    Delete<span className="sr-only"> {cuisine.name}</span>
+                  </button>
                 </div>
               </li>
             )

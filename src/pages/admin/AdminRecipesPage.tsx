@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router'
+import { Link, useNavigate, useSearchParams } from 'react-router'
 import { CardGridSkeleton } from '@/components/feedback/CardGridSkeleton'
 import { EmptyState } from '@/components/feedback/EmptyState'
 import { ErrorState } from '@/components/feedback/ErrorState'
@@ -33,7 +33,9 @@ export function AdminRecipesPage() {
   const deleteRecipe = useDeleteRecipe()
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
-  const [cuisineId, setCuisineId] = useState('')
+  // ?cuisine=filipino opens the list filtered, e.g. from a cuisine that can't be deleted yet.
+  const [searchParams] = useSearchParams()
+  const [cuisineId, setCuisineId] = useState(() => searchParams.get('cuisine') ?? '')
   const [toDelete, setToDelete] = useState<RecipeWithRatings | null>(null)
 
   if (recipes.isPending || cuisines.isPending) return <CardGridSkeleton />

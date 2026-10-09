@@ -8,7 +8,7 @@ import type { DataService } from './DataService'
 import { cuisineIdFor } from '@/features/cuisines/utils'
 import { ApiError, cuisineExists, cuisineNameInvalid, NotFoundError, UnauthorizedError } from './errors'
 
-type Method = 'GET' | 'POST' | 'PATCH' | 'DELETE'
+type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
 
 /** Send a request to json-server and turn HTTP failures into typed errors. */
 async function request(method: Method, path: string, body?: unknown): Promise<Response> {
@@ -21,6 +21,11 @@ async function request(method: Method, path: string, body?: unknown): Promise<Re
   if (response.status === 401) throw new UnauthorizedError()
   if (response.status === 404) {
     throw new NotFoundError("We couldn't find what you were looking for.")
+  }
+  // A refused change (409) carries the server's reason, written for people.
+  if (response.status === 409) {
+    const body = (await response.json().catch(() => null)) as { message?: unknown } | null
+    throw new ApiError(409, typeof body?.message === 'string' ? body.message : 'That change conflicts with other data.')
   }
   if (!response.ok) {
     throw new ApiError(response.status, `The recipe server responded with error ${response.status}.`)
@@ -63,6 +68,17 @@ export const httpDataService: DataService = {
     )
     if (taken) throw cuisineExists(input.name)
     return requestJson('POST', '/cuisines', cuisineSchema, { ...input, id })
+  },
+
+  updateCuisine(id, input) {
+    // PUT replaces the record: a seed cuisine that keeps its own colors sends no hue.
+    return requestJson('PUT', `/cuisines/${encodeURIComponent(id)}`, cuisineSchema, { ...input, id })
+  },
+
+  async deleteCuisine(id) {
+    // The server refuses (409) while a recipe uses the cuisine; _dependent removes its
+    // empty dishes and its regions with it, which json-server would otherwise null out.
+    await request('DELETE', `/cuisines/${encodeURIComponent(id)}?_dependent=dishes&_dependent=regions`)
   },
 
   listDishes() {

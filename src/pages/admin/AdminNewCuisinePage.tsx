@@ -4,6 +4,7 @@ import { ErrorState } from '@/components/feedback/ErrorState'
 import { FormSkeleton } from '@/components/feedback/FormSkeleton'
 import { CuisineForm } from '@/features/cuisines/components/CuisineForm'
 import { cuisineQueries, useCreateCuisine } from '@/features/cuisines/queries'
+import { cuisineInputSchema } from '@/features/cuisines/schema'
 
 export function AdminNewCuisinePage() {
   const navigate = useNavigate()
@@ -32,7 +33,8 @@ export function AdminNewCuisinePage() {
           isSubmitting={createCuisine.isPending}
           submitError={createCuisine.error}
           onSubmit={(input) =>
-            createCuisine.mutate(input, {
+            // The form ran the create rules already; parsing again gives TypeScript the stricter shape (a hue is required).
+            createCuisine.mutate(cuisineInputSchema.parse(input), {
               onSuccess: (cuisine) =>
                 navigate('/admin/cuisines', {
                   replace: true,

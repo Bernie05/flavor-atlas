@@ -1,11 +1,11 @@
 import { z } from 'zod'
 import { cuisineSchema, type Cuisine } from '@/features/cuisines/schema'
-import { cuisineIdFor } from '@/features/cuisines/utils'
-import { dishSchema, regionSchema, type Dish } from '@/features/dishes/schema'
+import { cuisineIdFor, cuisineUsage } from '@/features/cuisines/utils'
+import { dishSchema, regionSchema, type Dish, type Region } from '@/features/dishes/schema'
 import { ratingSchema, type Rating } from '@/features/ratings/schema'
 import { recipeSchema, type Recipe } from '@/features/recipes/schema'
 import type { DataService } from './DataService'
-import { cuisineExists, cuisineNameInvalid, NotFoundError } from './errors'
+import { cuisineExists, cuisineInUse, cuisineNameInvalid, NotFoundError } from './errors'
 
 export const dbSchema = z.object({
   cuisines: z.array(cuisineSchema),
@@ -18,10 +18,11 @@ export const dbSchema = z.object({
 export type Db = z.infer<typeof dbSchema>
 
 /** The collections the app can change. Cuisines and regions are fixed. */
-export type WritableCollection = 'cuisines' | 'dishes' | 'recipes' | 'ratings'
+export type WritableCollection = 'cuisines' | 'dishes' | 'regions' | 'recipes' | 'ratings'
 
 export interface WritableRecords {
   cuisines: Cuisine
+  regions: Region
   dishes: Dish
   recipes: Recipe
   ratings: Rating
@@ -72,6 +73,24 @@ export function createSnapshotDataService(store: SnapshotStore): DataService {
       if ((await store.read()).cuisines.some((c) => c.id === cuisine.id)) throw cuisineExists(input.name)
       await store.put('cuisines', cuisine.id, cuisine)
       return structuredClone(cuisine)
+    },
+
+    async updateCuisine(id, input) {
+      if (!(await store.read()).cuisines.some((c) => c.id === id)) throw new NotFoundError("We couldn't find that cuisine.")
+      const cuisine: Cuisine = { ...input, id }
+      await store.put('cuisines', id, cuisine)
+      return structuredClone(cuisine)
+    },
+
+    async deleteCuisine(id) {
+      const db = await store.read()
+      if (!db.cuisines.some((c) => c.id === id)) throw new NotFoundError("We couldn't find that cuisine.")
+      const usage = cuisineUsage(id, db)
+      if (usage.recipes > 0) throw cuisineInUse(usage.recipes)
+      // Dependents first: if a write fails midway, nothing is left pointing at a missing cuisine.
+      for (const dish of db.dishes.filter((d) => d.cuisineId === id)) await store.put('dishes', dish.id, null)
+      for (const region of db.regions.filter((r) => r.cuisineId === id)) await store.put('regions', region.id, null)
+      await store.put('cuisines', id, null)
     },
 
     async listDishes() {
@@ -161,6 +180,8 @@ export function applyPut<C extends WritableCollection>(db: Db, collection: C, id
       return { ...db, cuisines: putRecord(db.cuisines, id, record as Cuisine | null) }
     case 'dishes':
       return { ...db, dishes: putRecord(db.dishes, id, record as Dish | null) }
+    case 'regions':
+      return { ...db, regions: putRecord(db.regions, id, record as Region | null) }
     case 'recipes':
       return { ...db, recipes: putRecord(db.recipes, id, record as Recipe | null) }
     case 'ratings':

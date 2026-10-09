@@ -75,6 +75,43 @@ describe('artifact data service', () => {
     await expect(service.createCuisine({ ...input, name: 'Filipino' })).rejects.toBeInstanceOf(ApiError) // a seed cuisine
   })
 
+  it('edits a cuisine without changing its id, and a seed cuisine can keep its own colors', async () => {
+    const fake = fakeDb()
+    const service = serviceOver(fake.db)
+    const filipino = await service.getCuisine('filipino')
+    const updated = await service.updateCuisine('filipino', { ...filipino, name: 'Filipino home cooking', countryCode: 'ph' })
+    expect(updated).toMatchObject({ id: 'filipino', name: 'Filipino home cooking' })
+    expect(updated).not.toHaveProperty('hue')
+    expect((await serviceOver(fake.db).getCuisine('filipino')).name).toBe('Filipino home cooking')
+  })
+
+  it('refuses to delete a cuisine its recipes still use', async () => {
+    const service = serviceOver(fakeDb().db)
+    await expect(service.deleteCuisine('filipino')).rejects.toMatchObject({ status: 409 })
+    expect(await service.getCuisine('filipino')).toBeTruthy()
+  })
+
+  it('deletes an unused cuisine together with its empty dishes', async () => {
+    const fake = fakeDb()
+    const service = serviceOver(fake.db)
+    await service.createCuisine({
+      name: 'Thai',
+      countryCode: 'th',
+      emoji: '🍜',
+      description: 'Sweet, sour, salty and hot.',
+      origin: 'Bangkok',
+      latitude: 13.75,
+      longitude: 100.5,
+      hue: 60,
+    })
+    const dish = await service.createDish({ cuisineId: 'thai', name: 'Pad Thai', description: '' })
+    await service.deleteCuisine('thai')
+    const reloaded = serviceOver(fake.db)
+    await expect(reloaded.getCuisine('thai')).rejects.toThrow()
+    expect((await reloaded.listDishes()).some((d) => d.id === dish.id)).toBe(false)
+    expect(fake.docs.has('cuisines/thai')).toBe(false) // created here, so removed outright, no deletion marker
+  })
+
   it('stores "to taste" ingredients as plain JSON', async () => {
     const fake = fakeDb()
     const service = serviceOver(fake.db)

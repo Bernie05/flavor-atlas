@@ -9,15 +9,18 @@ import { countFieldErrors } from '@/features/recipes/form'
 import { describeError } from '@/services/data'
 import { countryName, MAP_COUNTRIES } from '../flags'
 import { cuisinePaletteCss } from '../palette'
-import { cuisineInputSchema, type Cuisine, type CuisineInput } from '../schema'
+import { cuisineInputSchema, cuisineUpdateSchema, type Cuisine, type CuisineUpdate } from '../schema'
 import { cuisineIdFor, cuisineTint, formatCoordinates, hueName } from '../utils'
 import { CuisineFlag } from './CuisineFlag'
 
 interface CuisineFormProps {
   cuisines: Cuisine[]
+  /** The cuisine being edited; without one, the form adds a new cuisine. */
+  cuisine?: Cuisine
   isSubmitting: boolean
   submitError: unknown
-  onSubmit: (input: CuisineInput) => void
+  /** A new cuisine always has a hue; an edited seed cuisine may keep its own colors (no hue). */
+  onSubmit: (input: CuisineUpdate) => void
 }
 
 /** The id the preview's colors are published under. A real cuisine named just "X" would share its colors here, harmlessly. */
@@ -28,11 +31,13 @@ const COUNTRIES = MAP_COUNTRIES.map((code) => ({ code, name: countryName(code) }
 )
 
 /**
- * Add a cuisine: name, country, capital (click the map or type the
+ * Add or edit a cuisine: name, country, capital (click the map or type the
  * coordinates) and a color. The pin, flag and palette all come from these,
  * so nothing else has to change for the cuisine to appear on the atlas.
+ * Editing keeps the id: it's the page address and names the CSS colors.
  */
-export function CuisineForm({ cuisines, isSubmitting, submitError, onSubmit }: CuisineFormProps) {
+export function CuisineForm({ cuisines, cuisine, isSubmitting, submitError, onSubmit }: CuisineFormProps) {
+  const editing = cuisine !== undefined
   const {
     register,
     control,
@@ -42,8 +47,11 @@ export function CuisineForm({ cuisines, isSubmitting, submitError, onSubmit }: C
     setFocus,
     formState: { errors },
   } = useForm({
-    resolver: zodResolver(cuisineInputSchema),
-    defaultValues: { name: '', emoji: '', description: '', origin: '', hue: 200 },
+    // Adding validates the stricter create rules; both produce a CuisineUpdate-shaped value.
+    resolver: zodResolver((editing ? cuisineUpdateSchema : cuisineInputSchema) as typeof cuisineUpdateSchema),
+    defaultValues: cuisine
+      ? { ...cuisine, countryCode: cuisine.countryCode as CuisineUpdate['countryCode'] }
+      : { name: '', emoji: '', description: '', origin: '', hue: 200 },
     mode: 'onTouched',
   })
   const [name, countryCode, origin, emoji, hue, latitude, longitude] = useWatch({
@@ -51,8 +59,14 @@ export function CuisineForm({ cuisines, isSubmitting, submitError, onSubmit }: C
     name: ['name', 'countryCode', 'origin', 'emoji', 'hue', 'latitude', 'longitude'],
   })
 
-  const id = cuisineIdFor(name ?? '')
-  const taken = cuisines.find((cuisine) => cuisine.id === id)
+  const id = cuisine?.id ?? cuisineIdFor(name ?? '')
+  // Another cuisine with this name (or, when adding, this page address). Editing never clashes with itself.
+  const others = cuisines.filter((other) => other.id !== cuisine?.id)
+  const typedName = (name ?? '').trim().toLowerCase()
+  const taken = others.find((other) => (!editing && other.id === id) || (typedName !== '' && other.name.toLowerCase() === typedName))
+  const hasHue = typeof hue === 'number' && Number.isFinite(hue)
+  // The preview shows the hue being picked, or a seed cuisine's own colors.
+  const previewId = hasHue || !cuisine ? PREVIEW_ID : cuisine.id
   const place = Number.isFinite(latitude) && Number.isFinite(longitude) ? { latitude: latitude!, longitude: longitude! } : undefined
   const numberField = { valueAsNumber: true } as const
   const errorCount = countFieldErrors(errors)
@@ -68,9 +82,12 @@ export function CuisineForm({ cuisines, isSubmitting, submitError, onSubmit }: C
           return
         }
         onSubmit(input)
-      })} style={cuisineTint(PREVIEW_ID)} className="space-y-10">
+      })}
+      style={cuisineTint(previewId)}
+      className="space-y-10"
+    >
       {/* The preview's palette, regenerated as the hue slider moves. */}
-      <style>{cuisinePaletteCss([{ id: PREVIEW_ID, hue: Number(hue) || 0 }])}</style>
+      {hasHue && <style>{cuisinePaletteCss([{ id: PREVIEW_ID, hue }])}</style>}
 
       <fieldset className="grid gap-5 sm:grid-cols-2">
         <legend className="mb-4 font-display text-4xl">The cuisine</legend>
@@ -78,7 +95,7 @@ export function CuisineForm({ cuisines, isSubmitting, submitError, onSubmit }: C
           label="Name"
           htmlFor="name"
           error={errors.name?.message ?? (taken ? `Already in the atlas as ${taken.name}. Pick another name.` : undefined)}
-          hint={id ? `Its page: /cuisines/${id}` : 'As a menu would say it: Vietnamese, Thai…'}
+          hint={editing ? `Its page stays /cuisines/${id}` : id ? `Its page: /cuisines/${id}` : 'As a menu would say it: Vietnamese, Thai…'}
         >
           <input
             id="name"
@@ -117,7 +134,7 @@ export function CuisineForm({ cuisines, isSubmitting, submitError, onSubmit }: C
         <legend className="mb-4 font-display text-4xl">On the map</legend>
         <div className="space-y-2">
           <LocationPicker
-            cuisines={cuisines}
+            cuisines={others}
             value={place}
             onPick={(picked) => {
               setValue('latitude', picked.latitude, { shouldValidate: true, shouldDirty: true })
@@ -161,18 +178,47 @@ export function CuisineForm({ cuisines, isSubmitting, submitError, onSubmit }: C
 
       <fieldset className="grid items-start gap-5 sm:grid-cols-[1fr_auto]">
         <legend className="mb-4 font-display text-4xl">Its color</legend>
-        <Field label="Hue" htmlFor="hue" error={errors.hue?.message} hint="Every hue is checked for readable text in light and dark mode.">
-          <input
-            id="hue"
-            type="range"
-            min={0}
-            max={359}
-            {...register('hue', numberField)}
-            {...describedBy('hue', errors.hue?.message, true)}
-            aria-valuetext={`${hueName(Number(hue) || 0)}, ${hue}°`}
-            className="h-10 w-full cursor-pointer accent-[var(--tint)]"
-          />
-        </Field>
+        {hasHue ? (
+          <div className="space-y-2">
+            <Field label="Hue" htmlFor="hue" error={errors.hue?.message} hint="Every hue is checked for readable text in light and dark mode.">
+              <input
+                id="hue"
+                type="range"
+                min={0}
+                max={359}
+                {...register('hue', numberField)}
+                {...describedBy('hue', errors.hue?.message, true)}
+                aria-valuetext={`${hueName(hue)}, ${hue}°`}
+                className="h-10 w-full cursor-pointer accent-[var(--tint)]"
+              />
+            </Field>
+            {cuisine && cuisine.hue === undefined && (
+              <button
+                type="button"
+                onClick={() => setValue('hue', undefined, { shouldDirty: true })}
+                className="min-h-10 rounded-full px-3 text-sm font-semibold text-accent-ink hover:bg-surface-sunken"
+              >
+                Keep its original colors
+              </button>
+            )}
+          </div>
+        ) : (
+          // A seed cuisine with hand-tuned colors: they stay unless a new hue is chosen.
+          <div className="space-y-2">
+            <p className="text-sm font-semibold">Original colors</p>
+            <p className="text-sm text-ink-muted">This cuisine keeps the colors it was designed with.</p>
+            <button
+              type="button"
+              onClick={() => {
+                setValue('hue', 200, { shouldDirty: true })
+                requestAnimationFrame(() => setFocus('hue'))
+              }}
+              className="min-h-10 rounded-full border border-line-strong px-4 text-sm font-semibold hover:bg-surface-sunken"
+            >
+              Choose a new color
+            </button>
+          </div>
+        )}
         {/* How the cuisine will look: its header colors, flag and pin. */}
         <div aria-hidden className="atlas-dots flex items-center gap-4 rounded-3xl bg-tint-soft p-5 sm:min-w-72">
           <FoodEmoji emoji={emoji || '🍽️'} size="md" />
@@ -208,7 +254,7 @@ export function CuisineForm({ cuisines, isSubmitting, submitError, onSubmit }: C
           disabled={isSubmitting}
           className="min-h-10 rounded-full bg-ink px-5 font-semibold text-canvas hover:bg-accent disabled:opacity-60"
         >
-          {isSubmitting ? 'Adding…' : 'Add cuisine'}
+          {isSubmitting ? (editing ? 'Saving…' : 'Adding…') : editing ? 'Save changes' : 'Add cuisine'}
         </button>
       </div>
     </form>
