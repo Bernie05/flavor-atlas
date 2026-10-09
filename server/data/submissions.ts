@@ -9,7 +9,7 @@
 export const MAX_COMMENT = 300
 
 /** The hidden field bots fill in. People never see it. */
-export const HONEYPOT = 'website'
+export const HONEYPOT = 'hp_field'
 
 export type SubmissionResult =
   | { status: 201; item: Record<string, unknown> | null }

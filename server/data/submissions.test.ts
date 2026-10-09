@@ -42,7 +42,7 @@ describe('createSubmission', () => {
 
   it('thanks a bot that filled the hidden field, and keeps nothing', () => {
     const data = fresh()
-    expect(createSubmission(data, { recipeId: '1', score: 5, website: 'http://spam.example' }, { now })).toEqual({ status: 201, item: null })
+    expect(createSubmission(data, { recipeId: '1', score: 5, hp_field: 'http://spam.example' }, { now })).toEqual({ status: 201, item: null })
     expect(data.submissions).toEqual([])
   })
 

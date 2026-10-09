@@ -43,7 +43,7 @@ export function describeError(error: unknown): string {
   }
   // fetch() rejects with a TypeError when the server can't be reached at all.
   if (error instanceof TypeError) {
-    return "Can't reach the recipe server. Start it with `npm run dev`, then try again."
+    return "Can't reach the recipe server. Check your connection, then try again."
   }
   if (error instanceof ZodError) return 'The server sent recipe data in an unexpected format.'
   return 'Something went wrong. Please try again.'

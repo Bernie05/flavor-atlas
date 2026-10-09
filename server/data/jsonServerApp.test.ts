@@ -107,7 +107,7 @@ describe('the data API (json-server behind our handler)', () => {
     const before = ((await call('GET', '/recipes/1?_embed=ratings')).body!.ratings as unknown[]).length
     expect(await call('POST', '/submissions', { recipeId: '1', score: 5, comment: 'Lovely' })).toMatchObject({ status: 201, body: { status: 'pending' } })
     expect((await call('POST', '/submissions', { recipeId: '1', score: 9 })).status).toBe(400)
-    expect((await call('POST', '/submissions', { recipeId: '1', score: 5, website: 'spam' })).status).toBe(201)
+    expect((await call('POST', '/submissions', { recipeId: '1', score: 5, hp_field: 'spam' })).status).toBe(201)
     const queue = (await call('GET', '/submissions')).body as unknown as { comment: string }[]
     expect(queue.map((s) => s.comment)).toEqual(['Lovely']) // the bot's review was dropped
     // Not public: the recipe's ratings are unchanged until the admin approves.

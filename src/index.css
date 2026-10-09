@@ -57,7 +57,7 @@
 
   /* Feedback */
   --star: #a86a00;
-  --star-empty: #d3d9d0;
+  --star-empty: #8a938c; /* 3:1 on surface and canvas: the star picker's empty stars are controls */
   --danger: #b42318;
   --on-danger: #ffffff;
 
@@ -96,7 +96,7 @@
     --plate-shadow: rgb(0 0 0 / 0.6);
     --glow: rgb(13 18 16 / 0.85);
     --star: #f4b42a;
-    --star-empty: #3a4540;
+    --star-empty: #66726c;
     --danger: #f97066;
     --on-danger: #2b0b08;
     color-scheme: dark;
@@ -134,7 +134,7 @@
   --plate-shadow: rgb(0 0 0 / 0.6);
     --glow: rgb(13 18 16 / 0.85);
   --star: #f4b42a;
-  --star-empty: #3a4540;
+  --star-empty: #66726c;
   --danger: #f97066;
   --on-danger: #2b0b08;
   color-scheme: dark;

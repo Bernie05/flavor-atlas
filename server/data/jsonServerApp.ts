@@ -48,7 +48,7 @@ export async function createDataHandler(file: string): Promise<DataHandler> {
     // A visitor's review, checked here and queued for the admin (server/data/submissions.ts).
     if (req.method === 'POST' && collection?.length === 1 && collection[0] === 'submissions') {
       if (!allowSubmission(req.socket.remoteAddress ?? 'unknown')) {
-        return send(res, 429, { error: 'rate_limited', message: 'Thanks! That is plenty of reviews for now; try again in a few minutes.' })
+        return send(res, 429, { error: 'rate_limited', message: "You've sent several reviews in a short time. Try again in a few minutes." })
       }
       void readJson(req).then(
         async (body) => {

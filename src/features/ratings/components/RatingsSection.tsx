@@ -1,4 +1,5 @@
-import { lazy, Suspense, useRef, useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
+import { LoadBoundary } from '@/components/feedback/LoadBoundary'
 import { StarRating } from '@/components/ui/StarRating'
 import type { Rating } from '../schema'
 import { summarizeRatings } from '../summary'
@@ -61,22 +62,12 @@ export function RatingsSection({ ratings, recipeId }: { ratings: Rating[]; recip
 
 function WriteReview({ recipeId }: { recipeId: string }) {
   const [open, setOpen] = useState(false)
-  const formArea = useRef<HTMLDivElement>(null)
 
   if (!open) {
     return (
       <button
         type="button"
-        onClick={() => {
-          setOpen(true)
-          // The button gives way to the form: focus its first star once it has loaded.
-          const focusStars = () => {
-            const first = formArea.current?.querySelector<HTMLInputElement>('input[type=radio]')
-            if (first) first.focus()
-            else requestAnimationFrame(focusStars)
-          }
-          requestAnimationFrame(focusStars)
-        }}
+        onClick={() => setOpen(true)}
         className="inline-flex min-h-11 items-center rounded-full border border-line-strong px-5 font-semibold hover:bg-surface-sunken"
       >
         Write a review
@@ -85,11 +76,14 @@ function WriteReview({ recipeId }: { recipeId: string }) {
   }
 
   return (
-    <div ref={formArea} className="max-w-xl space-y-2">
-      <p className="text-sm text-ink-muted">Reviews are read before they appear, usually within a day.</p>
-      <Suspense fallback={<div aria-hidden className="h-48 animate-pulse rounded-2xl bg-surface-sunken motion-reduce:animate-none" />}>
-        <RatingForm recipeId={recipeId} moderated />
-      </Suspense>
+    <div className="max-w-xl">
+      {/* If the form can't download (a flaky connection, an old tab after a deploy), say so
+          here instead of the error replacing the whole recipe page. */}
+      <LoadBoundary>
+        <Suspense fallback={<div aria-hidden className="h-56 animate-pulse rounded-2xl bg-surface-sunken motion-reduce:animate-none" />}>
+          <RatingForm recipeId={recipeId} moderated />
+        </Suspense>
+      </LoadBoundary>
     </div>
   )
 }
