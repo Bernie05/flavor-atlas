@@ -14,6 +14,7 @@
     "test:watch": "vitest",
     "typecheck": "tsc -b",
     "lint": "oxlint",
+    "prepare": "git config core.hooksPath .githooks || true",
     "preview": "vite preview"
   },
   "dependencies": {

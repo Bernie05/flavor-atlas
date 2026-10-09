@@ -10,6 +10,7 @@ npm run dev:mock     # Vite only, no API: seed data in memory (artifact data sou
 npm run db:reset     # restore db.json from db.seed.json, then restart dev (needed after seed shape changes)
 npm test             # Vitest unit tests
 npm run typecheck && npm run lint && npm test && npm run build   # run before every commit
+# .githooks/pre-commit runs typecheck, lint and tests on every commit (activated by npm install)
 npm run build:demo   # single-file build in dist-demo/ (seed + artifact db changes, memory router, viewer AI)
 npm run auth:hash     # admin password hash + session secret for .env
 # AI helpers need ANTHROPIC_API_KEY in .env (server only, no VITE_ prefix)

@@ -1,0 +1,21 @@
+#!/bin/sh
+# Runs before every commit (activated by `npm install`, see "prepare" in package.json).
+# The same checks as CI, so a broken commit never leaves your machine.
+# In an emergency, `git commit --no-verify` skips it; CI still runs them.
+set -e
+
+# Files that must never be committed (CLAUDE.md): secrets, runtime data, builds.
+blocked=$(git diff --cached --name-only --diff-filter=ACMR |
+  grep -E '(^|/)\.env$|^db\.json$|^dist(-demo)?/|^\.claude/settings\.local\.json$' || true)
+if [ -n "$blocked" ]; then
+  echo "pre-commit: these files must not be committed:"
+  echo "$blocked"
+  echo "Unstage them with: git restore --staged <file>"
+  exit 1
+fi
+
+echo "pre-commit: typecheck, lint, tests…"
+npm run -s typecheck
+npm run -s lint
+# Includes server/data/jsonServerApp.test.ts: the real json-server, not just the in-memory fakes.
+npm test --silent
