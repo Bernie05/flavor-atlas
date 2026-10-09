@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { EmptyState } from '@/components/feedback/EmptyState'
 import { ErrorState } from '@/components/feedback/ErrorState'
@@ -28,6 +28,7 @@ export function AdminCuisinesPage() {
   const deleteCuisine = useDeleteCuisine()
   const navigate = useNavigate()
   const [toDelete, setToDelete] = useState<Cuisine | null>(null)
+  const headingRef = useRef<HTMLHeadingElement>(null)
   const usage = toDelete ? cuisineUsage(toDelete.id, { recipes: recipes.data ?? [], dishes, regions }) : undefined
   const blocked = (usage?.recipes ?? 0) > 0
   const closeDialog = () => {
@@ -40,7 +41,9 @@ export function AdminCuisinesPage() {
       <title>Cuisines · Flavor Atlas admin</title>
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-5xl">Cuisines</h1>
+          <h1 ref={headingRef} tabIndex={-1} className="text-5xl outline-none">
+            Cuisines
+          </h1>
           {cuisines.data && <p className="label-mono mt-1 text-ink-subtle tabular-nums">{cuisines.data.length} on the map</p>}
         </div>
         <Link to="/admin/cuisines/new" className="inline-flex min-h-11 items-center rounded-full bg-ink px-4 font-semibold text-canvas hover:bg-accent">
@@ -74,6 +77,8 @@ export function AdminCuisinesPage() {
             onSuccess: () => {
               navigate('.', { replace: true, state: { flash: `Deleted ${toDelete.name}.` } })
               setToDelete(null)
+              // Its row (and the Delete button that had focus) is gone: start again from the top of the page.
+              requestAnimationFrame(() => headingRef.current?.focus())
             },
           })
         }}

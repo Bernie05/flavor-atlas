@@ -13,7 +13,9 @@ export function AdminEditCuisinePage() {
   const updateCuisine = useUpdateCuisine(cuisineId)
   const cuisine = cuisines.data?.find((c) => c.id === cuisineId)
 
-  if (cuisines.data && !cuisine) return <NotFoundPage message="That cuisine isn't in the atlas." />
+  if (cuisines.data && !cuisine) return (
+      <NotFoundPage message="That cuisine isn't in the atlas." backTo="/admin/cuisines" backLabel="Back to cuisines" />
+    )
 
   return (
     <div className="space-y-6">

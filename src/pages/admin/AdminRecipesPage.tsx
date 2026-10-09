@@ -34,8 +34,13 @@ export function AdminRecipesPage() {
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
   // ?cuisine=filipino opens the list filtered, e.g. from a cuisine that can't be deleted yet.
-  const [searchParams] = useSearchParams()
-  const [cuisineId, setCuisineId] = useState(() => searchParams.get('cuisine') ?? '')
+  // The filter is React state mirrored to the URL, so a reload keeps it (as on CuisinePage).
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [cuisineFilter, setCuisineFilter] = useState(() => searchParams.get('cuisine') ?? '')
+  const filterByCuisine = (id: string) => {
+    setCuisineFilter(id)
+    setSearchParams(id ? { cuisine: id } : {}, { replace: true })
+  }
   const [toDelete, setToDelete] = useState<RecipeWithRatings | null>(null)
 
   if (recipes.isPending || cuisines.isPending) return <CardGridSkeleton />
@@ -47,6 +52,8 @@ export function AdminRecipesPage() {
   }
 
   const cuisineById = new Map(cuisines.data.map((c) => [c.id, c]))
+  // An id that isn't a cuisine (a stale link) shows everything, matching what the select shows.
+  const cuisineId = cuisineById.has(cuisineFilter) ? cuisineFilter : ''
   const visible = applyRecipeFilters(recipes.data, { ...DEFAULT_FILTERS, query, cuisineId, sort: 'newest' })
 
   const rowActions = (recipe: RecipeWithRatings) => (
@@ -122,7 +129,7 @@ export function AdminRecipesPage() {
         <select
           id="admin-cuisine"
           value={cuisineId}
-          onChange={(event) => setCuisineId(event.target.value)}
+          onChange={(event) => filterByCuisine(event.target.value)}
           className="min-h-11 rounded-full border border-line-strong bg-surface px-4"
         >
           <option value="">All cuisines</option>

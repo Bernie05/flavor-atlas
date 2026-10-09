@@ -37,13 +37,19 @@ export function ConfirmDialog({
   children,
 }: ConfirmDialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null)
+  const cancelRef = useRef<HTMLButtonElement>(null)
 
   // Effects are for syncing React state with something outside React.
   // Here that's the dialog's imperative showModal()/close() API.
   useEffect(() => {
     const dialog = dialogRef.current
     if (!dialog) return
-    if (open && !dialog.open) dialog.showModal()
+    if (open && !dialog.open) {
+      dialog.showModal()
+      // The safe choice starts focused. showModal() would focus the first focusable
+      // element, which is a link when the dialog has one (children), not Cancel.
+      cancelRef.current?.focus()
+    }
     if (!open && dialog.open) dialog.close()
   }, [open])
 
@@ -70,8 +76,8 @@ export function ConfirmDialog({
       <div className="mt-6 flex flex-wrap justify-end gap-2">
         <button
           type="button"
+          ref={cancelRef}
           onClick={onCancel}
-          autoFocus
           className="min-h-10 rounded-full px-4 font-semibold text-ink-muted hover:bg-surface-sunken"
         >
           {canConfirm ? 'Cancel' : 'Close'}

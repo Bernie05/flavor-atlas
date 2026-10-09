@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Link } from 'react-router'
+import { useRef } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { Field } from '@/components/ui/form'
 import { describedBy, inputClass } from '@/components/ui/formStyles'
@@ -38,6 +39,7 @@ const COUNTRIES = MAP_COUNTRIES.map((code) => ({ code, name: countryName(code) }
  */
 export function CuisineForm({ cuisines, cuisine, isSubmitting, submitError, onSubmit }: CuisineFormProps) {
   const editing = cuisine !== undefined
+  const chooseColorRef = useRef<HTMLButtonElement>(null)
   const {
     register,
     control,
@@ -195,8 +197,12 @@ export function CuisineForm({ cuisines, cuisine, isSubmitting, submitError, onSu
             {cuisine && cuisine.hue === undefined && (
               <button
                 type="button"
-                onClick={() => setValue('hue', undefined, { shouldDirty: true })}
-                className="min-h-10 rounded-full px-3 text-sm font-semibold text-accent-ink hover:bg-surface-sunken"
+                onClick={() => {
+                  setValue('hue', undefined, { shouldDirty: true })
+                  // This button and the slider go away; focus moves to the one that replaces them.
+                  requestAnimationFrame(() => chooseColorRef.current?.focus())
+                }}
+                className="min-h-10 rounded-full border border-line-strong px-4 text-sm font-semibold hover:bg-surface-sunken"
               >
                 Keep its original colors
               </button>
@@ -208,6 +214,7 @@ export function CuisineForm({ cuisines, cuisine, isSubmitting, submitError, onSu
             <p className="text-sm font-semibold">Original colors</p>
             <p className="text-sm text-ink-muted">This cuisine keeps the colors it was designed with.</p>
             <button
+              ref={chooseColorRef}
               type="button"
               onClick={() => {
                 setValue('hue', 200, { shouldDirty: true })
