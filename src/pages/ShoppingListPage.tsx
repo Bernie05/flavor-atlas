@@ -10,8 +10,9 @@ import { shoppingActions, useShoppingState } from '@/features/shopping/useShoppi
 import { buildShoppingList, toShoppingText } from '@/features/shopping/utils'
 
 const MAX_SERVINGS = 24
+// aria-disabled, not disabled: a button that disables itself under the keyboard drops focus to <body>.
 const stepButton =
-  'grid size-10 place-items-center rounded-full border border-line-strong text-lg font-semibold hover:bg-surface-sunken disabled:opacity-40'
+  'grid size-10 place-items-center rounded-full border border-line-strong text-lg font-semibold hover:border-ink aria-disabled:cursor-not-allowed aria-disabled:opacity-40 aria-disabled:hover:border-line-strong'
 
 /** One list of everything to buy for the saved recipes, each at the servings you choose. */
 export function ShoppingListPage() {
@@ -19,6 +20,14 @@ export function ShoppingListPage() {
   const state = useShoppingState()
   const recipes = useQuery(recipeQueries.list())
   const [copyStatus, setCopyStatus] = useState('')
+  // Lines already ticked when the page opened sink to the bottom; lines ticked now stay put,
+  // so the checkbox under your finger (and keyboard focus) doesn't jump away mid-shop.
+  const [tickedOnArrival] = useState(() => new Set(state.checked))
+  // Any change to the list makes "Copied 12 items." out of date.
+  const change = (action: () => void) => () => {
+    action()
+    setCopyStatus('')
+  }
 
   const saved = pickSaved(savedIds, recipes.data ?? [])
   const peopleFor = (recipe: { id: string; servings: number }) => state.servings[recipe.id] ?? recipe.servings
@@ -27,8 +36,7 @@ export function ShoppingListPage() {
   )
   const checked = new Set(state.checked)
   const toBuy = lines.filter((line) => !checked.has(line.key))
-  // Ticked lines sink to the bottom, so what's left to find stays at the top.
-  const ordered = [...toBuy, ...lines.filter((line) => checked.has(line.key))]
+  const ordered = [...lines.filter((line) => !tickedOnArrival.has(line.key)), ...lines.filter((line) => tickedOnArrival.has(line.key))]
 
   const copy = async () => {
     try {
@@ -57,7 +65,9 @@ export function ShoppingListPage() {
       </header>
 
       {recipes.isPending ? (
-        <div aria-busy="true" aria-label="Loading" className="h-64 animate-pulse rounded-2xl bg-surface-sunken motion-reduce:animate-none" />
+        <div role="status" className="h-64 animate-pulse rounded-2xl bg-surface-sunken motion-reduce:animate-none">
+          <span className="sr-only">Loading shopping list</span>
+        </div>
       ) : recipes.isError ? (
         <ErrorState error={recipes.error} onRetry={() => void recipes.refetch()} />
       ) : saved.length === 0 ? (
@@ -72,7 +82,8 @@ export function ShoppingListPage() {
         />
       ) : (
         <div className="grid gap-12 md:grid-cols-[minmax(0,20rem)_1fr] lg:gap-16">
-          <section aria-labelledby="list-recipes-heading" className="space-y-4 md:self-start">
+          {/* Sticky on wide screens, so the servings stay in reach beside a long list. */}
+          <section aria-labelledby="list-recipes-heading" className="space-y-4 md:sticky md:top-24 md:self-start">
             <h2 id="list-recipes-heading" className="text-3xl">
               Recipes
             </h2>
@@ -86,7 +97,7 @@ export function ShoppingListPage() {
                       <input
                         type="checkbox"
                         checked={included}
-                        onChange={() => shoppingActions.toggleIncluded(recipe.id)}
+                        onChange={change(() => shoppingActions.toggleIncluded(recipe.id))}
                         className="size-4 shrink-0 accent-[var(--accent)]"
                       />
                       <span className={`font-display text-xl leading-tight ${included ? '' : 'text-ink-subtle line-through'}`}>
@@ -94,23 +105,23 @@ export function ShoppingListPage() {
                       </span>
                     </label>
                     {included && (
-                      <div className="flex items-center gap-3 pl-7">
+                      <div role="group" aria-label={`Servings for ${recipe.title}`} className="flex items-center gap-3 pl-7">
                         <button
                           type="button"
-                          onClick={() => shoppingActions.setServings(recipe.id, Math.max(1, people - 1))}
-                          disabled={people <= 1}
+                          onClick={change(() => people > 1 && shoppingActions.setServings(recipe.id, people - 1))}
+                          aria-disabled={people <= 1}
                           aria-label={`Fewer servings of ${recipe.title}`}
                           className={stepButton}
                         >
                           −
                         </button>
                         <p className="min-w-20 text-center text-sm font-semibold tabular-nums" aria-live="polite">
-                          Serves {people}
+                          <span className="sr-only">{recipe.title}: </span>Serves {people}
                         </p>
                         <button
                           type="button"
-                          onClick={() => shoppingActions.setServings(recipe.id, Math.min(MAX_SERVINGS, people + 1))}
-                          disabled={people >= MAX_SERVINGS}
+                          onClick={change(() => people < MAX_SERVINGS && shoppingActions.setServings(recipe.id, people + 1))}
+                          aria-disabled={people >= MAX_SERVINGS}
                           aria-label={`More servings of ${recipe.title}`}
                           className={stepButton}
                         >
@@ -135,7 +146,7 @@ export function ShoppingListPage() {
             </div>
 
             {lines.length === 0 ? (
-              <EmptyState title="Nothing to buy yet" description="Tick a recipe on the left to add its ingredients." />
+              <EmptyState title="Nothing to buy yet" description="Tick a recipe under Recipes to add its ingredients." />
             ) : (
               <>
                 <div className="flex flex-wrap items-center gap-2">
@@ -147,15 +158,15 @@ export function ShoppingListPage() {
                   >
                     Copy list
                   </button>
-                  {checked.size > 0 && (
-                    <button
-                      type="button"
-                      onClick={shoppingActions.clearChecked}
-                      className="inline-flex min-h-10 items-center px-2 text-sm font-medium text-accent hover:text-accent-hover"
-                    >
-                      Untick all
-                    </button>
-                  )}
+                  {/* Always rendered: a button that vanishes when clicked drops keyboard focus. */}
+                  <button
+                    type="button"
+                    onClick={change(() => checked.size > 0 && shoppingActions.clearChecked())}
+                    aria-disabled={checked.size === 0}
+                    className="inline-flex min-h-10 items-center px-2 text-sm font-medium text-accent hover:text-accent-hover aria-disabled:cursor-not-allowed aria-disabled:opacity-40"
+                  >
+                    Untick all
+                  </button>
                   <p className="text-sm text-ink-muted" aria-live="polite">
                     {copyStatus}
                   </p>
@@ -164,7 +175,8 @@ export function ShoppingListPage() {
                 <ul className="divide-y divide-line border-y border-line">
                   {ordered.map((line) => {
                     const isChecked = checked.has(line.key)
-                    const id = `buy-${line.key}`
+                    // ids can't hold spaces: aria-describedby reads a space-separated list of them.
+                    const id = `buy-${line.key.replace(/[^a-z0-9]+/gi, '-')}`
                     return (
                       <li key={line.key}>
                         <label htmlFor={id} className="flex cursor-pointer items-start gap-3 py-3">
@@ -172,14 +184,20 @@ export function ShoppingListPage() {
                             id={id}
                             type="checkbox"
                             checked={isChecked}
-                            onChange={() => shoppingActions.toggleChecked(line.key)}
+                            onChange={change(() => shoppingActions.toggleChecked(line.key))}
+                            // The item is the name; which recipes use it is a description, read after it.
+                            aria-label={[line.amount, line.name].filter(Boolean).join(' ')}
+                            aria-describedby={`${id}-from`}
                             className="mt-1 size-4 shrink-0 accent-[var(--accent)]"
                           />
-                          <span className={`flex min-w-0 flex-1 flex-wrap items-baseline gap-x-3 ${isChecked ? 'text-ink-subtle line-through' : ''}`}>
-                            <span className="min-w-24 shrink-0 font-mono text-sm font-semibold whitespace-nowrap tabular-nums">{line.amount}</span>
+                          {/* Stacked on phones, one aligned amount column from sm up. */}
+                          <span className={`grid min-w-0 flex-1 gap-x-3 sm:grid-cols-[8rem_minmax(0,1fr)] ${isChecked ? 'text-ink-subtle line-through' : ''}`}>
+                            <span className="font-mono text-sm font-semibold tabular-nums">{line.amount}</span>
                             <span className="min-w-0">
                               {line.name}
-                              <span className="block text-sm text-ink-subtle">{line.recipes.join(' · ')}</span>
+                              <span id={`${id}-from`} className="block text-sm text-ink-subtle">
+                                {line.recipes.join(' · ')}
+                              </span>
                             </span>
                           </span>
                         </label>
