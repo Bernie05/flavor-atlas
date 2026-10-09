@@ -4,7 +4,7 @@
 
 A recipe book organized by cuisine, in two parts:
 
-- **The site** (read-only): start from a map of East and Southeast Asia, or browse Filipino, Chinese, Korean and Japanese dishes and filter by time, difficulty and main ingredient. Each recipe scales from 1 to 24 servings (amounts stay readable: "1½ cups", "250 g", "6 onions"), has an ingredient checklist, a heart to **save** it to a list kept in your own browser, and a full-screen **cook mode** with one step at a time, tap-to-start timers and a screen that stays on. Each dish has a page with its everyday and regional versions (Adobong Dilaw from Batangas, Hakata ramen, Jeonju bibimbap…) and a comparison of what each version adds or leaves out.
+- **The site** (read-only): start from a map of East and Southeast Asia, or browse Filipino, Chinese, Korean and Japanese dishes and filter by time, difficulty and main ingredient. Each recipe scales from 1 to 24 servings (amounts stay readable: "1½ cups", "250 g", "6 onions"), has an ingredient checklist, a heart to **save** it to a list kept in your own browser (which turns into one combined **shopping list**, each recipe at the servings you choose), and a full-screen **cook mode** with one step at a time, tap-to-start timers and a screen that stays on. Each dish has a page with its everyday and regional versions (Adobong Dilaw from Batangas, Hakata ramen, Jeonju bibimbap…) and a comparison of what each version adds or leaves out.
 - **The admin** (`/admin`, password protected): a dashboard, a recipe table to add, edit and delete recipes (with AI help writing descriptions, ingredients and steps), and review management. In the claude.ai phone preview, the artifact's owner is the admin and edits are saved in the artifact's database.
 
 ## Design
@@ -207,6 +207,6 @@ This repo ships Claude Code configuration in `.claude/`:
 - [ ] **Next**
   - [ ] Search from every page
   - [x] Saved recipes, kept in the visitor's browser (no account, nothing shared)
-  - [ ] A shopping list from saved recipes
+  - [x] A shopping list from saved recipes: amounts added up across recipes, tick-offs, copy as text
   - [ ] "Needs attention" list on the admin dashboard
   - [ ] Bundle: a named vendor chunk, lazy-load the map

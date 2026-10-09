@@ -46,9 +46,14 @@ export function SavedPage() {
         />
       ) : (
         <>
-          <p className="label-mono text-ink-subtle tabular-nums" aria-live="polite">
-            {saved.length} {saved.length === 1 ? 'recipe' : 'recipes'}
-          </p>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="label-mono text-ink-subtle tabular-nums" aria-live="polite">
+              {saved.length} {saved.length === 1 ? 'recipe' : 'recipes'}
+            </p>
+            <Link to="/shopping" className="inline-flex min-h-10 items-center rounded-full bg-ink px-4 text-sm font-semibold text-canvas hover:bg-accent">
+              Make a shopping list
+            </Link>
+          </div>
           <ul className="grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
             {saved.map((recipe) => (
               <li key={recipe.id}>

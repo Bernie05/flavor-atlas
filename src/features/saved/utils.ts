@@ -1,4 +1,7 @@
+import { createPersistedStore, type KeyValueStorage } from '@/lib/persistedStore'
 import { MAX_SAVED, savedRecipeIdsSchema, type SavedRecipeIds } from './schema'
+
+export type { KeyValueStorage }
 
 /** The key the list is stored under in localStorage. */
 export const SAVED_KEY = 'flavor-atlas:saved-recipes'
@@ -25,50 +28,11 @@ export function pickSaved<T extends { id: string }>(ids: SavedRecipeIds, recipes
   return ids.flatMap((id) => byId.get(id) ?? [])
 }
 
-/** The part of the Web Storage API the store needs, so tests can pass an in-memory one. */
-export type KeyValueStorage = Pick<Storage, 'getItem' | 'setItem'>
-
 /**
- * A tiny external store for the saved list, shaped for React's
- * useSyncExternalStore: `get` returns the same array until the list changes,
- * and `subscribe` tells every listener (every heart on the page) when it does.
- * `storage` may be null (blocked storage, private windows): saving then lasts
- * for this visit only.
+ * The saved list as a store every heart can subscribe to (see
+ * createPersistedStore), plus the one action it needs.
  */
 export function createSavedStore(storage: KeyValueStorage | null) {
-  const read = () => {
-    try {
-      return parseSaved(storage?.getItem(SAVED_KEY) ?? null)
-    } catch {
-      return []
-    }
-  }
-  let ids = read()
-  const listeners = new Set<() => void>()
-  const notify = () => listeners.forEach((listener) => listener())
-
-  return {
-    get: () => ids,
-    subscribe(listener: () => void) {
-      listeners.add(listener)
-      return () => void listeners.delete(listener)
-    },
-    toggle(id: string) {
-      ids = toggleSaved(ids, id)
-      try {
-        storage?.setItem(SAVED_KEY, JSON.stringify(ids))
-      } catch {
-        // Quota or blocked storage: keep the change for this visit.
-      }
-      notify()
-    },
-    /** Re-read storage after another tab changed it. */
-    reload() {
-      const next = read()
-      if (next.join() !== ids.join()) {
-        ids = next
-        notify()
-      }
-    },
-  }
+  const store = createPersistedStore({ storage, key: SAVED_KEY, parse: parseSaved })
+  return { ...store, toggle: (id: string) => store.set(toggleSaved(store.get(), id)) }
 }

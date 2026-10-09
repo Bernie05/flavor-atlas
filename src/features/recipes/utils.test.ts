@@ -17,9 +17,11 @@ import {
   formatQuantity,
   hasActiveFilters,
   highlightIngredients,
+  ingredientBaseName,
   mainIngredients,
   quickRecipes,
   scaleQuantity,
+  singularUnit,
   sortRecipes,
 } from './utils'
 
@@ -366,5 +368,23 @@ describe('formatIngredient', () => {
     expect(scaled(6, 'okra', 4, 8)).toEqual({ amount: '12', name: 'okra' })
     expect(scaled(2, 'bok choy, chopped', 2, 1)).toEqual({ amount: '1', name: 'bok choy, chopped' })
     expect(formatIngredient({ quantity: 2, unit: 'cups', name: 'eggs' }, 2, 1)).toEqual({ amount: '1 cup', name: 'eggs' })
+  })
+})
+
+describe('ingredientBaseName', () => {
+  it('drops the preparation and makes the last word singular', () => {
+    expect(ingredientBaseName('Onions, sliced')).toBe('onion')
+    expect(ingredientBaseName('onion, quartered')).toBe('onion')
+    expect(ingredientBaseName('bay leaves')).toBe('bay leaf')
+    expect(ingredientBaseName('soy sauce')).toBe('soy sauce')
+    expect(ingredientBaseName('bok choy, chopped')).toBe('bok choy')
+  })
+})
+
+describe('singularUnit', () => {
+  it('names a unit in the singular', () => {
+    expect(singularUnit('cloves')).toBe('clove')
+    expect(singularUnit('cup')).toBe('cup')
+    expect(singularUnit('tbsp')).toBe('tbsp')
   })
 })

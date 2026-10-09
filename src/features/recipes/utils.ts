@@ -245,6 +245,25 @@ function nameForCount(name: string, quantity: number): string {
   return `${before}${inflected}${space}${rest}`
 }
 
+/** A unit's singular form ("cloves" → "clove"); units without a plural come back unchanged. */
+export function singularUnit(unit: string): string {
+  return COUNT_UNITS.find(([singular, plural]) => [singular, plural].includes(unit.toLowerCase()))?.[0] ?? unit
+}
+
+/**
+ * The ingredient itself, without preparation and in the singular, for telling
+ * whether two recipes call for the same thing: "Onions, sliced" and "onion,
+ * quartered" are both "onion".
+ */
+export function ingredientBaseName(name: string): string {
+  const head = name.split(',')[0]!.trim().toLowerCase()
+  if (NO_PLURAL.has(head)) return head
+  const match = /^(.*?)([a-z]+)$/.exec(head)
+  if (!match) return head
+  const base = singularize(match[2]!)
+  return NO_PLURAL.has(base) ? head : `${match[1]}${base}`
+}
+
 /**
  * An ingredient's amount and name for `to` servings, as a cook writes them:
  * "1½ cups", "1.2 kg", "6 onions, quartered". The amount is "" when the
