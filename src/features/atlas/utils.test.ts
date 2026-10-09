@@ -1,6 +1,22 @@
 import { describe, expect, it } from 'vitest'
 import { BOUNDS, MAP_HEIGHT, MAP_WIDTH } from './mapBounds'
-import { BASE_VIEW_WIDTH, isOnMap, labelSide, mapView, PIN, pinScale, placesView, projectPoint, unprojectPoint } from './utils'
+import {
+  BASE_VIEW_WIDTH,
+  clampView,
+  isOnMap,
+  labelSide,
+  mapView,
+  panView,
+  PIN,
+  pinScale,
+  placesView,
+  projectPoint,
+  revealPoint,
+  unprojectPoint,
+  viewCenter,
+  viewLimits,
+  zoomView,
+} from './utils'
 
 describe('projectPoint', () => {
   it('maps the corners of BOUNDS to the corners of the map', () => {
@@ -114,5 +130,48 @@ describe('labelSide', () => {
   it('moves a label below when it would cover another pin once the map zooms out', () => {
     const wide = mapView([manila, beijing, tokyo, seoul, delhi])
     expect(labelSide(beijing, 'Chinese', wide, [seoul])).toBe('below')
+  })
+})
+
+describe('zooming and panning', () => {
+  const home = mapView([manila, beijing, tokyo])
+  const limits = viewLimits(home)
+  const ratio = home.height / home.width
+
+  it('zooms in about the focus point, which stays put on screen', () => {
+    const zoomed = zoomView(home, 2, tokyo, limits)
+    expect(zoomed.width).toBeCloseTo(home.width / 2)
+    // Tokyo is the same fraction across the view before and after.
+    expect((tokyo.x - zoomed.x) / zoomed.width).toBeCloseTo((tokyo.x - home.x) / home.width)
+  })
+
+  it('keeps the home view shape at every zoom, so the map box never resizes', () => {
+    for (const factor of [3, 0.5, 0.1, 10]) {
+      const view = zoomView(home, factor, viewCenter(home), limits)
+      expect(view.height / view.width).toBeCloseTo(ratio)
+    }
+  })
+
+  it('stops at 3x in and at the whole map out', () => {
+    expect(zoomView(home, 100, viewCenter(home), limits).width).toBeCloseTo(BASE_VIEW_WIDTH / 3)
+    const out = zoomView(home, 0.01, viewCenter(home), limits)
+    expect(out.width).toBeCloseTo(limits.maxWidth)
+    expect(out.height).toBeLessThanOrEqual(MAP_HEIGHT + 1e-9)
+  })
+
+  it('pans within the drawn map only', () => {
+    expect(panView(home, -10_000, -10_000)).toMatchObject({ x: 0, y: 0 })
+    const far = panView(home, 10_000, 10_000)
+    expect(far.x + far.width).toBeCloseTo(MAP_WIDTH)
+    expect(far.y + far.height).toBeCloseTo(MAP_HEIGHT)
+    expect(clampView(home)).toEqual(home)
+  })
+
+  it('moves a zoomed view just enough to show a pin reached with Tab', () => {
+    const zoomed = zoomView(home, 3, tokyo, limits)
+    const shown = revealPoint(zoomed, manila, 20)
+    expect(manila.x).toBeGreaterThanOrEqual(shown.x + 20 - 1e-9)
+    expect(manila.y).toBeLessThanOrEqual(shown.y + shown.height - 20 + 1e-9)
+    expect(revealPoint(zoomed, tokyo, 20)).toEqual(zoomed) // already in view: no jump
   })
 })

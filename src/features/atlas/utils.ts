@@ -124,3 +124,55 @@ export function labelSide(point: MapPoint, text: string, view: MapView, others: 
   )
   return covers ? 'below' : 'right'
 }
+
+/** How far the map zooms: in until the view is a third of the home view's width, out to the whole drawn map. */
+export interface ViewLimits {
+  minWidth: number
+  maxWidth: number
+}
+
+const MAX_ZOOM = 3
+
+/**
+ * Zoom limits for a home view. The view keeps the home view's shape at every
+ * zoom, so the map's box on the page never changes size.
+ */
+export function viewLimits(home: MapView): ViewLimits {
+  const ratio = home.height / home.width
+  const maxWidth = Math.max(home.width, Math.min(MAP_WIDTH, MAP_HEIGHT / ratio))
+  return { minWidth: Math.min(home.width, BASE_VIEW_WIDTH) / MAX_ZOOM, maxWidth }
+}
+
+/** Slide a view back inside the drawn map. */
+export const clampView = (view: MapView): MapView => ({
+  ...view,
+  x: Math.min(Math.max(view.x, 0), Math.max(0, MAP_WIDTH - view.width)),
+  y: Math.min(Math.max(view.y, 0), Math.max(0, MAP_HEIGHT - view.height)),
+})
+
+/**
+ * Zoom by `factor` (2 = twice as close) keeping `focus` (a map point, such as
+ * the spot under the cursor) where it is on screen, within the limits.
+ */
+export function zoomView(view: MapView, factor: number, focus: MapPoint, limits: ViewLimits): MapView {
+  const width = Math.min(Math.max(view.width / factor, limits.minWidth), limits.maxWidth)
+  const scale = width / view.width
+  return clampView({
+    x: focus.x - (focus.x - view.x) * scale,
+    y: focus.y - (focus.y - view.y) * scale,
+    width,
+    height: view.height * scale,
+  })
+}
+
+/** Move the view by a distance in map units, staying inside the map. */
+export const panView = (view: MapView, dx: number, dy: number): MapView => clampView({ ...view, x: view.x + dx, y: view.y + dy })
+
+/** The view moved just enough that `point` sits at least `margin` inside it (for a pin reached with Tab). */
+export function revealPoint(view: MapView, point: MapPoint, margin: number): MapView {
+  const x = Math.min(Math.max(view.x, point.x + margin - view.width), point.x - margin)
+  const y = Math.min(Math.max(view.y, point.y + margin - view.height), point.y - margin)
+  return clampView({ ...view, x, y })
+}
+
+export const viewCenter = (view: MapView): MapPoint => ({ x: view.x + view.width / 2, y: view.y + view.height / 2 })

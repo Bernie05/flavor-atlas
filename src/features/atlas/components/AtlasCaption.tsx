@@ -23,7 +23,7 @@ export function AtlasCaption({ regionalKitchens }: AtlasCaptionProps) {
           </span>
         )}
       </span>
-      <span className="text-xs text-ink-subtle">Map: Natural Earth</span>
+      <span className="text-xs text-ink-subtle">Drag to explore · pinch or + − to zoom · Map: Natural Earth</span>
     </figcaption>
   )
 }
