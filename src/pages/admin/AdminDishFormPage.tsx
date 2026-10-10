@@ -103,7 +103,7 @@ function DishForm({ dish, cuisines, defaultCuisine }: { dish?: Dish; cuisines: {
         </Field>
       )}
       <Field label="Name" htmlFor="name" error={errors.name?.message} hint="The dish all its versions share, e.g. Adobo.">
-        <input id="name" {...register('name')} {...describedBy('name', errors.name?.message, true)} className={`${inputClass} font-display text-xl`} />
+        <input id="name" maxLength={60} {...register('name')} {...describedBy('name', errors.name?.message, true)} className={`${inputClass} font-display text-xl`} />
       </Field>
       <Field label="Description (optional)" htmlFor="description" error={errors.description?.message}>
         <textarea id="description" rows={3} {...register('description')} {...describedBy('description', errors.description?.message)} className={inputClass} />

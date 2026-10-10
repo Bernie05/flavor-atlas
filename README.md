@@ -5,7 +5,7 @@
 A recipe book organized by cuisine, in two parts:
 
 - **The site**: start from a map of Asia you can zoom and drag (each cuisine pinned at its capital, each regional kitchen a dot that opens its own page), **search** cuisines, dishes and recipes from any page, or browse Filipino, Chinese, Korean and Japanese dishes and filter by time, difficulty and main ingredient. Each recipe scales from 1 to 24 servings (amounts stay readable: "1½ cups", "250 g", "6 onions"), has an ingredient checklist, a heart to **save** it to a list kept in your own browser (which turns into one combined **shopping list**, each recipe at the servings you choose), and a full-screen **cook mode** with one step at a time, tap-to-start timers and a screen that stays on. Each dish has a page with its everyday and regional versions (Adobong Dilaw from Batangas, Hakata ramen, Jeonju bibimbap…) and a comparison of what each version adds or leaves out. Visitors can **write a review**; it appears once the admin approves it. Nothing else a visitor does changes what others see.
-- **The admin** (`/admin`, password protected): a dashboard with a **needs attention** list (reviews waiting for approval, photos without credits, cuisines without recipes…), a recipe table to add, edit and delete recipes (with AI help writing descriptions, ingredients and steps), **cuisines** to add (pick the capital on the map; colors come from one hue), edit and delete, and review moderation. In the claude.ai phone preview, the artifact's owner is the admin and edits are saved in the artifact's database.
+- **The admin** (`/admin`, password protected): a dashboard with a **needs attention** list (reviews waiting for approval, photos without credits, cuisines without recipes…), a recipe table to add, edit and delete recipes (with AI help writing descriptions, ingredients and steps), **cuisines** to add (pick the capital on the map; colors come from one hue), edit and delete, **dishes and regional kitchens** to manage, recipes to **move in bulk** to another dish or cuisine, and review moderation. In the claude.ai phone preview, the artifact's owner is the admin and edits are saved in the artifact's database.
 
 ## Design
 
@@ -222,6 +222,5 @@ This repo ships Claude Code configuration in `.claude/`:
   - [x] "Needs attention" on the admin dashboard
   - [x] Visitor reviews, published after the admin approves them
   - [x] Pre-commit hook, and tests against the real json-server
-- [ ] **Next**
-  - [ ] Editing and deleting dishes and regions in the admin
-  - [ ] Moving a recipe to another dish or cuisine in bulk
+  - [x] Dishes and regional kitchens in the admin: add, edit (regions placed on the map), delete once unused
+  - [x] Move recipes to another dish (and cuisine) in bulk, with the plan shown before saving

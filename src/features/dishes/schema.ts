@@ -8,8 +8,8 @@ import { isOnMap, projectPoint } from '@/features/atlas/utils'
  */
 export const dishInputSchema = z.object({
   cuisineId: z.string().min(1, 'Choose a cuisine'),
-  name: z.string().trim().min(2, 'Name the dish').max(60),
-  description: z.string().trim().max(300),
+  name: z.string().trim().min(2, 'Name the dish').max(60, 'Keep the name under 60 characters'),
+  description: z.string().trim().max(300, 'Keep the description under 300 characters'),
 })
 
 export const dishSchema = dishInputSchema.extend({ id: z.string() })
@@ -30,7 +30,7 @@ export const regionSchema = z.object({
 export const regionInputSchema = z
   .object({
     cuisineId: z.string().min(1, 'Choose a cuisine'),
-    name: z.string().trim().min(2, 'Name the place, e.g. Batangas').max(60),
+    name: z.string().trim().min(2, 'Name the place, e.g. Batangas').max(60, 'Keep the name under 60 characters'),
     latitude: z.number({ error: 'Enter a latitude' }).min(-90).max(90),
     longitude: z.number({ error: 'Enter a longitude' }).min(-180).max(180),
   })

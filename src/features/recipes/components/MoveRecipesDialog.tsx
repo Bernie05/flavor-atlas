@@ -45,6 +45,8 @@ export function MoveRecipesDialog({ open, recipes, cuisines, dishes, regions, on
       confirmLabel={plan ? `Move ${count(plan.updates.length)}` : 'Move'}
       pendingLabel="Moving…"
       confirmBlocked={!plan || plan.updates.length === 0}
+      blockedHint={plan ? 'They are all versions of that dish already.' : 'Choose a dish first.'}
+      onBlockedConfirm={() => document.getElementById('move-target')?.focus()}
       isPending={move.isPending}
       error={move.error ? `${move.error.message}${move.error.cause ? ` (${describeError(move.error.cause)})` : ''}` : undefined}
       onCancel={close}

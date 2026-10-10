@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from 'react'
+import { useEffect, useId, useRef, type ReactNode } from 'react'
 
 interface ConfirmDialogProps {
   open: boolean
@@ -20,6 +20,10 @@ interface ConfirmDialogProps {
   tone?: 'danger' | 'primary'
   /** Confirm stays visible and focusable but does nothing yet (e.g. until a choice is made). */
   confirmBlocked?: boolean
+  /** Why confirm is blocked, read with the button ("Choose a dish first."). */
+  blockedHint?: string
+  /** A press on a blocked confirm, e.g. to move focus to the choice it's waiting for. */
+  onBlockedConfirm?: () => void
 }
 
 /**
@@ -41,7 +45,12 @@ export function ConfirmDialog({
   children,
   tone = 'danger',
   confirmBlocked = false,
+  blockedHint,
+  onBlockedConfirm,
 }: ConfirmDialogProps) {
+  // Unique per dialog: a page can hold several (delete and move), and shared ids
+  // would give one dialog the other's name.
+  const id = useId()
   const dialogRef = useRef<HTMLDialogElement>(null)
   const cancelRef = useRef<HTMLButtonElement>(null)
 
@@ -63,14 +72,14 @@ export function ConfirmDialog({
     <dialog
       ref={dialogRef}
       onClose={onCancel}
-      aria-labelledby="confirm-title"
-      aria-describedby="confirm-description"
+      aria-labelledby={`${id}-title`}
+      aria-describedby={`${id}-description`}
       className="m-auto w-[min(26rem,calc(100%-2rem))] rounded-2xl bg-surface p-6 text-ink ring-1 ring-line backdrop:bg-ink/40 backdrop:backdrop-blur-sm"
     >
-      <h2 id="confirm-title" className="text-2xl">
+      <h2 id={`${id}-title`} className="text-2xl">
         {title}
       </h2>
-      <p id="confirm-description" className="mt-2 text-ink-muted">
+      <p id={`${id}-description`} className="mt-2 text-ink-muted">
         {description}
       </p>
       {error && (
@@ -79,6 +88,11 @@ export function ConfirmDialog({
         </p>
       )}
       {children && <div className="mt-3">{children}</div>}
+      {confirmBlocked && blockedHint && (
+        <p id={`${id}-blocked`} className="mt-3 text-sm text-ink-muted">
+          {blockedHint}
+        </p>
+      )}
       <div className="mt-6 flex flex-wrap justify-end gap-2">
         <button
           type="button"
@@ -91,11 +105,12 @@ export function ConfirmDialog({
         {canConfirm && (
           <button
             type="button"
-            onClick={() => !confirmBlocked && onConfirm()}
+            onClick={() => (confirmBlocked ? onBlockedConfirm?.() : onConfirm())}
             aria-disabled={confirmBlocked || undefined}
+            aria-describedby={confirmBlocked && blockedHint ? `${id}-blocked` : undefined}
             disabled={isPending}
             className={`min-h-10 rounded-full px-4 font-semibold disabled:opacity-60 aria-disabled:opacity-60 ${
-              tone === 'danger' ? 'bg-danger text-on-danger' : 'bg-ink text-canvas hover:bg-accent'
+              tone === 'danger' ? 'bg-danger text-on-danger' : 'bg-ink text-canvas hover:bg-accent aria-disabled:hover:bg-ink'
             }`}
           >
             {isPending ? pendingLabel : confirmLabel}

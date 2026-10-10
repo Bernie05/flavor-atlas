@@ -106,7 +106,7 @@ function RegionForm({ region, cuisines, defaultCuisine }: { region?: Region; cui
           </Field>
         )}
         <Field label="Name" htmlFor="name" error={errors.name?.message} hint="The town or province, e.g. Batangas.">
-          <input id="name" {...register('name')} {...describedBy('name', errors.name?.message, true)} className={`${inputClass} font-display text-xl`} />
+          <input id="name" maxLength={60} {...register('name')} {...describedBy('name', errors.name?.message, true)} className={`${inputClass} font-display text-xl`} />
         </Field>
       </div>
       <fieldset className="grid gap-5 lg:grid-cols-[1.4fr_1fr]">

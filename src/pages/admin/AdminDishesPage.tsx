@@ -175,12 +175,13 @@ function Group({ title, empty, addLabel, addTo, cuisineName, rows }: GroupProps)
       ) : (
         <ul className="divide-y divide-line rounded-2xl bg-surface ring-1 ring-line">
           {rows.map((row) => (
-            <li key={row.id} className="grid grid-cols-[1fr_auto] items-center gap-x-3 px-4 py-2">
+            // Phones: actions under the name, so long names ("Tuguegarao, Cagayan") keep their words.
+            <li key={row.id} className="grid items-center gap-x-3 gap-y-1 px-4 py-2 sm:grid-cols-[1fr_auto]">
               <span className="min-w-0">
                 <span className="block font-semibold break-words">{row.name}</span>
                 <span className="label-mono block text-ink-subtle tabular-nums">{row.detail}</span>
               </span>
-              <span className="flex gap-1">
+              <span className="-ml-3 flex gap-1 sm:ml-0">
                 <Link to={row.editTo} className={actionClass}>
                   Edit<span className="sr-only"> {row.name}</span>
                 </Link>

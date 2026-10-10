@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router'
 import { CardGridSkeleton } from '@/components/feedback/CardGridSkeleton'
 import { EmptyState } from '@/components/feedback/EmptyState'
@@ -43,8 +43,15 @@ export function AdminRecipesPage() {
   const [cuisineFilter, setCuisineFilter] = useState(() => searchParams.get('cuisine') ?? '')
   const filterByCuisine = (id: string) => {
     setCuisineFilter(id)
-    setSearchParams(id ? { cuisine: id } : {}, { replace: true })
+    // Change only the cuisine: a ?dish= or ?region= filter stays.
+    const next = new URLSearchParams(searchParams)
+    if (id) next.set('cuisine', id)
+    else next.delete('cuisine')
+    setSearchParams(next, { replace: true })
   }
+  const headingRef = useRef<HTMLHeadingElement>(null)
+  // The selection bar (and the button that had focus) goes away: start again from the heading.
+  const focusHeading = () => requestAnimationFrame(() => headingRef.current?.focus())
   const [toDelete, setToDelete] = useState<RecipeWithRatings | null>(null)
   // ?dish=… or ?region=… come from a dish or region that can't be deleted yet: its recipes, to move.
   const dishFilter = searchParams.get('dish')
@@ -86,14 +93,19 @@ export function AdminRecipesPage() {
       }
       return next
     })
+  // Selected recipes the current filters hide: Move would include them, so the bar says so.
+  const hiddenSelected = selected.size - visible.filter((recipe) => selected.has(recipe.id)).length
+  // The label around the 20px box makes a 40px target without moving the layout.
   const checkbox = (recipe: RecipeWithRatings) => (
-    <input
-      type="checkbox"
-      checked={selected.has(recipe.id)}
-      onChange={() => toggle(recipe.id)}
-      aria-label={`Select ${recipe.title}`}
-      className="size-5 shrink-0 accent-[var(--accent)]"
-    />
+    <label className="-m-2.5 inline-flex size-10 shrink-0 cursor-pointer items-center justify-center">
+      <input
+        type="checkbox"
+        checked={selected.has(recipe.id)}
+        onChange={() => toggle(recipe.id)}
+        aria-label={`Select ${recipe.title}`}
+        className="size-5 accent-[var(--accent)]"
+      />
+    </label>
   )
 
   const rowActions = (recipe: RecipeWithRatings) => (
@@ -145,6 +157,7 @@ export function AdminRecipesPage() {
         onClose={() => setMoving(false)}
         onMoved={(message) => {
           setSelected(new Set())
+          focusHeading()
           // The router's own address (in the phone preview it isn't the browser's).
           navigate(`.${location.search}`, { replace: true, state: { flash: message } })
         }}
@@ -152,7 +165,9 @@ export function AdminRecipesPage() {
 
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-5xl">Recipes</h1>
+          <h1 ref={headingRef} tabIndex={-1} className="text-5xl">
+            Recipes
+          </h1>
           <p className="label-mono mt-1 text-ink-subtle tabular-nums">{recipes.data.length} in the atlas</p>
         </div>
         <Link
@@ -216,13 +231,15 @@ export function AdminRecipesPage() {
               <thead className="border-b border-line bg-surface-sunken">
                 <tr className="label-mono text-ink-subtle">
                   <th scope="col" className="w-12 py-3 pl-4">
-                    <input
-                      type="checkbox"
-                      checked={allShownSelected}
-                      onChange={selectAllShown}
-                      aria-label={allShownSelected ? 'Deselect all shown' : 'Select all shown'}
-                      className="size-5 accent-[var(--accent)]"
-                    />
+                    <label className="-m-2.5 inline-flex size-10 cursor-pointer items-center justify-center">
+                      <input
+                        type="checkbox"
+                        checked={allShownSelected}
+                        onChange={selectAllShown}
+                        aria-label={allShownSelected ? 'Deselect all shown' : 'Select all shown'}
+                        className="size-5 accent-[var(--accent)]"
+                      />
+                    </label>
                   </th>
                   <th scope="col" className="px-4 py-3 font-medium">Recipe</th>
                   <th scope="col" className="px-4 py-3 font-medium">Cuisine</th>
@@ -238,8 +255,9 @@ export function AdminRecipesPage() {
                   const cuisine = cuisineById.get(recipe.cuisineId)
                   const rating = summarizeRatings(recipe.ratings)
                   return (
-                    <tr key={recipe.id} className={selected.has(recipe.id) ? 'bg-accent-soft/40' : undefined}>
-                      <td className="py-2 pl-4">{checkbox(recipe)}</td>
+                    <tr key={recipe.id}>
+                      {/* A selected row is marked by a strong accent edge (a pale tint was ~1.1:1). */}
+                      <td className={`border-l-4 py-2 pl-3 ${selected.has(recipe.id) ? 'border-accent' : 'border-transparent'}`}>{checkbox(recipe)}</td>
                       <th scope="row" className="px-4 py-2 text-left font-normal">
                         <span className="flex items-center gap-3">
                           <RecipeCover
@@ -269,13 +287,19 @@ export function AdminRecipesPage() {
             </table>
           </div>
 
+          {/* Phones have no table header, so select-all gets its own row. */}
+          <label className="flex min-h-10 cursor-pointer items-center gap-3 px-1 text-sm font-semibold lg:hidden">
+            <input type="checkbox" checked={allShownSelected} onChange={selectAllShown} className="size-5 accent-[var(--accent)]" />
+            Select all shown ({visible.length})
+          </label>
+
           {/* Phones: one row per recipe, actions underneath. */}
           <ul className="divide-y divide-line rounded-2xl bg-surface ring-1 ring-line lg:hidden">
             {visible.map((recipe) => {
               const cuisine = cuisineById.get(recipe.cuisineId)
               const rating = summarizeRatings(recipe.ratings)
               return (
-                <li key={recipe.id} className={`space-y-2 px-4 py-3 ${selected.has(recipe.id) ? 'bg-accent-soft/40' : ''}`}>
+                <li key={recipe.id} className={`space-y-2 border-l-4 py-3 pr-4 pl-3 ${selected.has(recipe.id) ? 'border-accent' : 'border-transparent'}`}>
                   <div className="flex items-center gap-3">
                     {checkbox(recipe)}
                     <RecipeCover
@@ -306,12 +330,21 @@ export function AdminRecipesPage() {
       {/* The selection's actions, in reach while scrolling a long list. */}
       {selected.size > 0 && (
         <div role="region" aria-label="Selected recipes" className="sticky bottom-4 z-10 flex flex-wrap items-center gap-2 rounded-full bg-ink py-2 pr-2 pl-5 text-canvas">
-          <span className="font-semibold tabular-nums">{selected.size} selected</span>
+          <span className="font-semibold tabular-nums">
+            {selected.size} selected{hiddenSelected > 0 && <span className="font-normal"> ({hiddenSelected} not shown)</span>}
+          </span>
           <span className="ml-auto flex gap-1">
             <button type="button" onClick={() => setMoving(true)} className="min-h-10 rounded-full bg-canvas px-4 text-sm font-semibold text-ink hover:bg-accent-soft">
               Move to a dish…
             </button>
-            <button type="button" onClick={() => setSelected(new Set())} className="min-h-10 rounded-full px-4 text-sm font-semibold hover:bg-canvas/15">
+            <button
+              type="button"
+              onClick={() => {
+                setSelected(new Set())
+                focusHeading()
+              }}
+              className="min-h-10 rounded-full px-4 text-sm font-semibold hover:bg-canvas/15"
+            >
               Clear
             </button>
           </span>
