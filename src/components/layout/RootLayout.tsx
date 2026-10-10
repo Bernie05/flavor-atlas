@@ -1,10 +1,12 @@
 import { useQuery } from '@tanstack/react-query'
+import { useRef } from 'react'
 import { Link, NavLink, Outlet, ScrollRestoration } from 'react-router'
 import { useSession } from '@/features/auth/queries'
 import { CuisinePalettes } from '@/features/cuisines/components/CuisinePalettes'
 import { CuisineStrip } from '@/features/cuisines/components/CuisineStrip'
 import { cuisineQueries } from '@/features/cuisines/queries'
 import { useSavedRecipeIds } from '@/features/saved/useSavedRecipes'
+import { useRouteFocus } from '@/lib/useRouteFocus'
 import { AtlasMark } from './AtlasMark'
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
@@ -17,6 +19,9 @@ export function RootLayout() {
   const session = useSession().data
   const cuisines = useQuery(cuisineQueries.list()).data
   const savedCount = useSavedRecipeIds().length
+  const mainRef = useRef<HTMLElement>(null)
+  // A screen reader hears the new page's heading after each navigation.
+  useRouteFocus(mainRef)
   // The admin link stays quiet in the footer. In the phone preview only the owner sees it.
   const showAdminLink = session?.mode === 'password' || session?.admin
 
@@ -65,7 +70,7 @@ export function RootLayout() {
 
       <CuisineStrip />
 
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 pt-6 pb-16 sm:pt-10">
+      <main ref={mainRef} className="mx-auto w-full max-w-6xl flex-1 px-4 pt-6 pb-16 sm:pt-10">
         <Outlet />
       </main>
 

@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router'
 import { CardGridSkeleton } from '@/components/feedback/CardGridSkeleton'
 import { ErrorState } from '@/components/feedback/ErrorState'
 import { CuisineFlag } from '@/features/cuisines/components/CuisineFlag'
+import { AdminEditLink } from '@/features/admin/components/AdminEditLink'
 import { cuisineQueries } from '@/features/cuisines/queries'
 import { cuisineTint, formatCoordinates } from '@/features/cuisines/utils'
 import { DishCard } from '@/features/dishes/components/DishCard'
@@ -39,11 +40,14 @@ function CuisineView({ cuisineId }: { cuisineId: string }) {
 
       <header className="-mx-4 grid items-center gap-6 bg-tint-soft px-4 py-8 sm:mx-0 sm:grid-cols-[1fr_auto] sm:rounded-3xl sm:py-8 sm:pr-8 sm:pl-10">
         <div className="min-w-0 space-y-3">
-          <nav aria-label="Breadcrumb">
-            <Link to="/recipes" className="label-mono inline-flex min-h-10 items-center text-tint-ink hover:underline">
-              All recipes
-            </Link>
-          </nav>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <nav aria-label="Breadcrumb">
+              <Link to="/recipes" className="label-mono inline-flex min-h-10 items-center text-tint-ink hover:underline">
+                All recipes
+              </Link>
+            </nav>
+            {cuisine.data && <AdminEditLink to={`/admin/cuisines/${cuisine.data.id}/edit`} label={cuisine.data.name} />}
+          </div>
           <h1 className="text-6xl sm:text-7xl">
             <em>{cuisine.data?.name ?? 'Loading…'}</em>
           </h1>

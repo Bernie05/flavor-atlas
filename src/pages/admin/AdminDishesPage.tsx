@@ -8,7 +8,9 @@ import { FlashMessage } from '@/features/admin/components/FlashMessage'
 import { CuisineFlag } from '@/features/cuisines/components/CuisineFlag'
 import { cuisineQueries } from '@/features/cuisines/queries'
 import { cuisineTint, formatCoordinates } from '@/features/cuisines/utils'
+import type { Dish } from '@/features/dishes/schema'
 import { dishQueries, regionQueries, useDeleteDish, useDeleteRegion } from '@/features/dishes/queries'
+import { MergeDishDialog } from '@/features/recipes/components/MergeDishDialog'
 import { recipeQueries } from '@/features/recipes/queries'
 import { describeError } from '@/services/data'
 
@@ -21,7 +23,8 @@ type Target = { kind: 'dish' | 'region'; id: string; name: string; recipes: numb
  * Every cuisine's dishes and regional kitchens: add, rename, move a region on
  * the map, or delete one no recipe uses. A dish or region with recipes can't
  * be deleted (the server refuses too); the dialog links to its recipes,
- * filtered, where they can be moved first.
+ * filtered, where they can be moved first. Two dishes that turn out to be one
+ * can be merged: the versions move over and the extra dish is deleted.
  */
 export function AdminDishesPage() {
   const cuisines = useQuery(cuisineQueries.list())
@@ -34,6 +37,7 @@ export function AdminDishesPage() {
   const navigate = useNavigate()
   const headingRef = useRef<HTMLHeadingElement>(null)
   const [toDelete, setToDelete] = useState<Target | null>(null)
+  const [toMerge, setToMerge] = useState<Dish | null>(null)
   const remove = toDelete?.kind === 'region' ? deleteRegion : deleteDish
 
   if (sources.some((s) => s.isPending)) return <CardGridSkeleton count={4} />
@@ -87,6 +91,18 @@ export function AdminDishesPage() {
         )}
       </ConfirmDialog>
 
+      <MergeDishDialog
+        source={toMerge}
+        dishes={dishes.data!}
+        recipes={recipes.data!}
+        regions={regions.data!}
+        onClose={() => setToMerge(null)}
+        onMerged={(message) => {
+          navigate('.', { replace: true, state: { flash: message } })
+          requestAnimationFrame(() => headingRef.current?.focus())
+        }}
+      />
+
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 ref={headingRef} tabIndex={-1} className="text-5xl">
@@ -122,6 +138,7 @@ export function AdminDishesPage() {
                     name: dish.name,
                     detail: plural(recipes, 'version'),
                     editTo: `/admin/dishes/${dish.id}/edit`,
+                    onMerge: () => setToMerge(dish),
                     onDelete: () => setToDelete({ kind: 'dish', id: dish.id, name: dish.name, recipes }),
                   }
                 })}
@@ -157,7 +174,7 @@ interface GroupProps {
   addLabel: string
   addTo: string
   cuisineName: string
-  rows: { id: string; name: string; detail: string; editTo: string; onDelete: () => void }[]
+  rows: { id: string; name: string; detail: string; editTo: string; onMerge?: () => void; onDelete: () => void }[]
 }
 
 function Group({ title, empty, addLabel, addTo, cuisineName, rows }: GroupProps) {
@@ -185,6 +202,11 @@ function Group({ title, empty, addLabel, addTo, cuisineName, rows }: GroupProps)
                 <Link to={row.editTo} className={actionClass}>
                   Edit<span className="sr-only"> {row.name}</span>
                 </Link>
+                {row.onMerge && (
+                  <button type="button" onClick={row.onMerge} className={actionClass}>
+                    Merge<span className="sr-only"> {row.name}</span>
+                  </button>
+                )}
                 <button type="button" onClick={row.onDelete} className={`${actionClass} text-danger`}>
                   Delete<span className="sr-only"> {row.name}</span>
                 </button>

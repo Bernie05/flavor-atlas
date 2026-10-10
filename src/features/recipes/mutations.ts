@@ -3,7 +3,7 @@ import { useRef } from 'react'
 import { dishQueries, useCreateDish } from '@/features/dishes/queries'
 import { dataService } from '@/services/data'
 import type { RecipeSubmission } from './form'
-import type { MovePlan } from './move'
+import type { MergePlan, MovePlan } from './move'
 import { recipeQueries } from './queries'
 import type { Recipe, RecipeInput, RecipeWithRatings } from './schema'
 
@@ -91,26 +91,54 @@ export function useSubmitRecipe(save: SaveMutation) {
  * transactions. If one fails, the error says how many were moved; each saved
  * recipe is whole, so running the move again for the rest is safe.
  */
+async function saveMoves(plan: MovePlan) {
+  let moved = 0
+  for (const { id, input } of plan.updates) {
+    try {
+      await dataService.updateRecipe(id, input)
+    } catch (error) {
+      throw new Error(
+        `Moved ${moved} of ${plan.updates.length}; “${plan.updates[moved]?.title}” couldn't be saved. Try the rest again.`,
+        { cause: error },
+      )
+    }
+    moved++
+  }
+  return moved
+}
+
+/** Recipes and dishes both change (a dish's versions); refresh either way, so a partial move shows. */
+const refreshAfterMove = (queryClient: QueryClient) =>
+  Promise.all([refreshRecipes(queryClient), queryClient.invalidateQueries({ queryKey: dishQueries.all(), refetchType: 'all' })])
+
 export function useMoveRecipes() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async (plan: MovePlan) => {
-      let moved = 0
-      for (const { id, input } of plan.updates) {
-        try {
-          await dataService.updateRecipe(id, input)
-        } catch (error) {
-          throw new Error(
-            `Moved ${moved} of ${plan.updates.length}; “${plan.updates[moved]?.title}” couldn't be saved. Try the rest again.`,
-            { cause: error },
-          )
-        }
-        moved++
+    mutationFn: saveMoves,
+    onSettled: () => refreshAfterMove(queryClient),
+  })
+}
+
+/**
+ * Merge two dishes (planMerge): move the source's versions, then delete it.
+ * The delete comes last, so a failed move leaves the source dish (and the
+ * recipes not yet moved) in place, and merging again picks up the rest.
+ * The server would refuse the delete anyway while a recipe still uses it.
+ */
+export function useMergeDishes() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ source, moves }: MergePlan) => {
+      const moved = await saveMoves(moves)
+      try {
+        await dataService.deleteDish(source.id)
+      } catch (error) {
+        throw new Error(`Moved every version, but ${source.name} itself couldn't be deleted. Delete it from the list.`, { cause: error })
       }
       return moved
     },
-    // Recipes and dishes both change (a dish's versions); refresh either way, so a partial move shows.
-    onSettled: () =>
-      Promise.all([refreshRecipes(queryClient), queryClient.invalidateQueries({ queryKey: dishQueries.all(), refetchType: 'all' })]),
+    // The deleted dish's page must not be refetched (404); everything else refreshes, even after a partial merge.
+    onSuccess: (_moved, { source }) => queryClient.removeQueries({ queryKey: dishQueries.detail(source.id).queryKey }),
+    onSettled: () => refreshAfterMove(queryClient),
   })
 }

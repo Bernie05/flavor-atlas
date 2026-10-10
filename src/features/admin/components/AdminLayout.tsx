@@ -1,7 +1,9 @@
+import { useRef } from 'react'
 import { Link, NavLink, Outlet, ScrollRestoration, useNavigate } from 'react-router'
 import { AtlasMark } from '@/components/layout/AtlasMark'
 import { CuisinePalettes } from '@/features/cuisines/components/CuisinePalettes'
 import { useLogout, useSession } from '@/features/auth/queries'
+import { useRouteFocus } from '@/lib/useRouteFocus'
 
 const tabClass = ({ isActive }: { isActive: boolean }) =>
   `inline-flex min-h-11 items-center border-b-2 px-3 text-sm font-semibold whitespace-nowrap transition-colors ${
@@ -13,6 +15,8 @@ export function AdminLayout() {
   const session = useSession().data
   const logout = useLogout()
   const navigate = useNavigate()
+  const mainRef = useRef<HTMLElement>(null)
+  useRouteFocus(mainRef)
 
   return (
     <div className="flex min-h-dvh flex-col">
@@ -63,7 +67,7 @@ export function AdminLayout() {
         </nav>
       </header>
 
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8">
+      <main ref={mainRef} className="mx-auto w-full max-w-6xl flex-1 px-4 py-8">
         <Outlet />
       </main>
       <ScrollRestoration />

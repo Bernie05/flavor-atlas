@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router'
 import { CardGridSkeleton } from '@/components/feedback/CardGridSkeleton'
 import { EmptyState } from '@/components/feedback/EmptyState'
 import { ErrorState } from '@/components/feedback/ErrorState'
+import { AdminEditLink } from '@/features/admin/components/AdminEditLink'
 import { cuisineQueries } from '@/features/cuisines/queries'
 import { cuisineTint } from '@/features/cuisines/utils'
 import { dishQueries, regionQueries } from '@/features/dishes/queries'
@@ -40,19 +41,22 @@ export function DishPage() {
       <title>{`${dish.data.name} · Flavor Atlas`}</title>
 
       <header className="max-w-3xl space-y-4">
-        <nav aria-label="Breadcrumb" className="label-mono text-tint-ink">
-          <Link to="/recipes" className="inline-flex min-h-10 items-center hover:underline">
-            Recipes
-          </Link>
-          {cuisine && (
-            <>
-              <span aria-hidden> / </span>
-              <Link to={`/cuisines/${cuisine.id}`} className="inline-flex min-h-10 items-center hover:underline">
-                {cuisine.name}
-              </Link>
-            </>
-          )}
-        </nav>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <nav aria-label="Breadcrumb" className="label-mono text-tint-ink">
+            <Link to="/recipes" className="inline-flex min-h-10 items-center hover:underline">
+              Recipes
+            </Link>
+            {cuisine && (
+              <>
+                <span aria-hidden> / </span>
+                <Link to={`/cuisines/${cuisine.id}`} className="inline-flex min-h-10 items-center hover:underline">
+                  {cuisine.name}
+                </Link>
+              </>
+            )}
+          </nav>
+          <AdminEditLink to={`/admin/dishes/${dish.data.id}/edit`} label={dish.data.name} />
+        </div>
         <h1 className="text-6xl sm:text-7xl">
           <em>{dish.data.name}</em>
         </h1>

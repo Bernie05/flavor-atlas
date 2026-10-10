@@ -38,6 +38,7 @@ npm run auth:hash     # admin password hash + session secret for .env
 - **Access is enforced on the server.** Every write goes through the `/api/data` gateway (`server/auth/access.ts` decides). Hiding a button is never the protection. New write endpoints must check `isAdmin()` the same way.
 - **Server-only secrets** live in `server/` and in env vars without the `VITE_` prefix. Never import `@anthropic-ai/sdk` from `src/`.
 - Every list or detail view handles loading, error and empty states.
+- Every page has exactly one `<h1>`: after each navigation, focus moves to it (`lib/useRouteFocus.ts`, used by both layouts) so screen readers announce the new page.
 - Imports use the `@/` alias for anything outside the current feature folder.
 - **Photos are credited and bundled.** Seed photos live in `public/photos/` as WebP (`/photos/<slug>.webp`), only from freely licensed sources, with `imageCredit` ("Photo: Author, License") and `imageSourceUrl`; `seed.test.ts` enforces both. Render photos through `RecipeCover` (resolves the path with `photoSrc`, falls back to the emoji on error) or `usePhoto` for background photos; never a bare `<img>`.
 - Keep runtime data out of git: `db.json` is ignored; edit `db.seed.json` instead.

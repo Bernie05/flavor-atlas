@@ -38,3 +38,32 @@ export function planMove(recipes: RecipeWithRatings[], target: Dish, regions: Re
   }
   return plan
 }
+
+export interface MergePlan {
+  /** The dish that goes away once its recipes have moved. */
+  source: Dish
+  target: Dish
+  moves: MovePlan
+}
+
+/** The dishes `source` can merge into: others of its cuisine, so regional versions keep their region. */
+export function mergeTargets(source: Dish, dishes: Dish[]): Dish[] {
+  return dishes
+    .filter((dish) => dish.cuisineId === source.cuisineId && dish.id !== source.id)
+    .toSorted((a, b) => a.name.localeCompare(b.name))
+}
+
+/**
+ * Merging two dishes ("Pancit" and "Pancit Bihon" turn out to be one): every
+ * version of `source` moves to `target`, then `source` is deleted. It's a
+ * move plan (planMove) plus the delete, so the dialog can show it first.
+ */
+export function planMerge(source: Dish, target: Dish, recipes: RecipeWithRatings[], regions: Region[]): MergePlan {
+  if (source.cuisineId !== target.cuisineId) throw new Error('Only dishes of the same cuisine can be merged')
+  const moves = planMove(
+    recipes.filter((recipe) => recipe.dishId === source.id),
+    target,
+    regions,
+  )
+  return { source, target, moves }
+}

@@ -5,6 +5,7 @@ import { ErrorState } from '@/components/feedback/ErrorState'
 import { FoodEmoji } from '@/components/ui/FoodEmoji'
 import { StarRating } from '@/components/ui/StarRating'
 import { CuisineCloth } from '@/features/cuisines/components/CuisineCloth'
+import { AdminEditLink } from '@/features/admin/components/AdminEditLink'
 import { cuisineQueries } from '@/features/cuisines/queries'
 import { cuisineTint } from '@/features/cuisines/utils'
 import { RegionTag } from '@/features/dishes/components/RegionTag'
@@ -120,27 +121,30 @@ function RecipeView({ recipe }: { recipe: RecipeWithRatings }) {
           </>
         )}
         <div className="min-w-0 max-w-3xl space-y-5">
-          <nav aria-label="Breadcrumb" className="label-mono text-tint-ink">
-            <Link to="/recipes" className="inline-flex min-h-10 items-center hover:underline">
-              Recipes
-            </Link>
-            {cuisine && (
-              <>
-                <span aria-hidden> / </span>
-                <Link to={`/cuisines/${cuisine.id}`} className="inline-flex min-h-10 items-center hover:underline">
-                  {cuisine.name}
-                </Link>
-              </>
-            )}
-            {dish && (
-              <>
-                <span aria-hidden> / </span>
-                <Link to={`/dishes/${dish.id}`} className="inline-flex min-h-10 items-center hover:underline">
-                  {dish.name}
-                </Link>
-              </>
-            )}
-          </nav>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <nav aria-label="Breadcrumb" className="label-mono text-tint-ink">
+              <Link to="/recipes" className="inline-flex min-h-10 items-center hover:underline">
+                Recipes
+              </Link>
+              {cuisine && (
+                <>
+                  <span aria-hidden> / </span>
+                  <Link to={`/cuisines/${cuisine.id}`} className="inline-flex min-h-10 items-center hover:underline">
+                    {cuisine.name}
+                  </Link>
+                </>
+              )}
+              {dish && (
+                <>
+                  <span aria-hidden> / </span>
+                  <Link to={`/dishes/${dish.id}`} className="inline-flex min-h-10 items-center hover:underline">
+                    {dish.name}
+                  </Link>
+                </>
+              )}
+            </nav>
+            <AdminEditLink to={`/admin/recipes/${recipe.id}/edit`} label={recipe.title} />
+          </div>
           <h1 className="text-6xl sm:text-7xl">{recipe.title}</h1>
           {(region || recipe.variantNote) && (
             <p className="space-y-1">

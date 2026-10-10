@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Dish, Region } from '@/features/dishes/schema'
-import { planMove } from './move'
+import { mergeTargets, planMerge, planMove } from './move'
 import type { RecipeWithRatings } from './schema'
 
 const recipe = (id: string, title: string, dishId: string, cuisineId: string, regionId = '') =>
@@ -44,5 +44,35 @@ describe('planMove', () => {
   it('leaves recipes already in the target dish alone', () => {
     const plan = planMove([recipe('1', 'Chicken Adobo', 'adobo', 'filipino')], adobo, regions)
     expect(plan).toEqual({ updates: [], losesRegion: [], unchanged: ['Chicken Adobo'] })
+  })
+})
+
+describe('mergeTargets', () => {
+  it('offers the other dishes of the same cuisine, by name', () => {
+    const pancit: Dish = { id: 'pancit', cuisineId: 'filipino', name: 'Pancit', description: '' }
+    expect(mergeTargets(humba, [humba, ramen, pancit, adobo]).map((dish) => dish.id)).toEqual(['adobo', 'pancit'])
+  })
+})
+
+describe('planMerge', () => {
+  it("moves only the source dish's versions, keeping their regions", () => {
+    const recipes = [
+      recipe('1', 'Chicken Adobo', 'adobo', 'filipino'),
+      recipe('2', 'Adobong Dilaw', 'adobo', 'filipino', 'batangas'),
+      recipe('3', 'Humba', 'humba', 'filipino'),
+    ]
+    const plan = planMerge(adobo, humba, recipes, regions)
+    expect(plan.source).toBe(adobo)
+    expect(plan.moves.updates.map((update) => update.id)).toEqual(['1', '2'])
+    expect(plan.moves.updates[1]!.input).toMatchObject({ dishId: 'humba', regionId: 'batangas' })
+    expect(plan.moves.losesRegion).toEqual([])
+  })
+
+  it('plans just the delete for a dish with no versions', () => {
+    expect(planMerge(adobo, humba, [], regions).moves.updates).toEqual([])
+  })
+
+  it('refuses dishes of different cuisines', () => {
+    expect(() => planMerge(adobo, ramen, [], regions)).toThrow()
   })
 })

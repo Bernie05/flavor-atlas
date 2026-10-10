@@ -224,3 +224,6 @@ This repo ships Claude Code configuration in `.claude/`:
   - [x] Pre-commit hook, and tests against the real json-server
   - [x] Dishes and regional kitchens in the admin: add, edit (regions placed on the map), delete once unused
   - [x] Move recipes to another dish (and cuisine) in bulk, with the plan shown before saving
+  - [x] Merge two dishes of a cuisine in one step (versions move over, the extra dish goes)
+  - [x] "Edit" shortcuts on public cuisine, dish and recipe pages, for the admin only
+  - [x] Focus moves to the new page's heading after every navigation, so screen readers announce it
