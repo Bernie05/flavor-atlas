@@ -43,6 +43,8 @@ export function DishPage() {
   if (dish.isPending || recipes.isPending) return <CardGridSkeleton />
 
   const cuisine = cuisines.data?.find((c) => c.id === dish.data.cuisineId)
+  // A dish brought back by an undo remembers its own old id: "Adobo is now part of Adobo" says nothing.
+  const showMergedNote = mergedAway !== undefined && mergedAway !== dish.data.name
   const regionById = new Map(regions.data?.map((r) => [r.id, r]))
   const { everyday, regional } = groupVersions(recipes.data)
 
@@ -67,11 +69,12 @@ export function DishPage() {
           </nav>
           <AdminEditLink to={`/admin/dishes/${dish.data.id}/edit`} label={dish.data.name} />
         </div>
-        <h1 className="text-6xl sm:text-7xl">
+        {/* Route focus lands here; the note is its description, so it's read along with the name. */}
+        <h1 className="text-6xl sm:text-7xl" aria-describedby={showMergedNote ? 'merged-note' : undefined}>
           <em>{dish.data.name}</em>
         </h1>
-        {mergedAway && (
-          <p role="status" className="rounded-2xl bg-tint-soft px-4 py-3 text-tint-ink">
+        {showMergedNote && (
+          <p id="merged-note" className="rounded-2xl bg-tint-soft px-4 py-3 text-tint-ink">
             {mergedAway} is now part of {dish.data.name}: its versions are all here.
           </p>
         )}

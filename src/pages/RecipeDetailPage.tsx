@@ -123,24 +123,31 @@ function RecipeView({ recipe }: { recipe: RecipeWithRatings }) {
         <div className="min-w-0 max-w-3xl space-y-5">
           <div className="flex flex-wrap items-center justify-between gap-2">
             {/* Over a photo the breadcrumb sits high, where the scrim is light: it gets the Edit pill's dark backing. */}
-            <nav aria-label="Breadcrumb" className="label-mono text-tint-ink in-[.on-photo]:rounded-full in-[.on-photo]:bg-canvas/75 in-[.on-photo]:px-3">
+            <nav aria-label="Breadcrumb" className="label-mono text-tint-ink in-[.on-photo]:rounded-2xl in-[.on-photo]:bg-canvas/75 in-[.on-photo]:px-3">
               <Link to="/recipes" className="inline-flex min-h-10 items-center hover:underline">
                 Recipes
               </Link>
+              {/* Each separator stays with the link after it, so a wrapped line never ends in "/". */}
               {cuisine && (
                 <>
-                  <span aria-hidden> / </span>
-                  <Link to={`/cuisines/${cuisine.id}`} className="inline-flex min-h-10 items-center hover:underline">
-                    {cuisine.name}
-                  </Link>
+                  {' '}
+                  <span className="whitespace-nowrap">
+                    <span aria-hidden>/ </span>
+                    <Link to={`/cuisines/${cuisine.id}`} className="inline-flex min-h-10 items-center hover:underline">
+                      {cuisine.name}
+                    </Link>
+                  </span>
                 </>
               )}
               {dish && (
                 <>
-                  <span aria-hidden> / </span>
-                  <Link to={`/dishes/${dish.id}`} className="inline-flex min-h-10 items-center hover:underline">
-                    {dish.name}
-                  </Link>
+                  {' '}
+                  <span className="whitespace-nowrap">
+                    <span aria-hidden>/ </span>
+                    <Link to={`/dishes/${dish.id}`} className="inline-flex min-h-10 items-center hover:underline">
+                      {dish.name}
+                    </Link>
+                  </span>
                 </>
               )}
             </nav>

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Dish, Region } from '@/features/dishes/schema'
-import { canUndo, mergeTargets, planMerge, planMove, restoreRecipes, UNDO_WINDOW_MS, undoMerge, undoMove, undoneMessage } from './move'
+import { canUndo, findRestoredDish, mergeTargets, planMerge, planMove, restoreRecipes, UNDO_WINDOW_MS, undoMerge, undoMove, undoneMessage } from './move'
 import type { RecipeWithRatings } from './schema'
 
 const recipe = (id: string, title: string, dishId: string, cuisineId: string, regionId = '') =>
@@ -116,5 +116,15 @@ describe('undoneMessage', () => {
     expect(undoneMessage(undoMove(planMove([one, two], humba, regions), 0))).toBe('Undone: 2 recipes are back where they were.')
     expect(undoneMessage(undoMerge(planMerge(adobo, humba, [one, two], regions), 0))).toBe('Undone: Adobo is back, with its 2 versions.')
     expect(undoneMessage(undoMerge(planMerge(adobo, humba, [], regions), 0))).toBe('Undone: Adobo is back.')
+  })
+})
+
+describe('findRestoredDish', () => {
+  it('finds the copy an unfinished undo created, but never the dish it was merged into', () => {
+    const undo = undoMerge(planMerge(adobo, humba, [], regions), 0)
+    const target = { ...humba, mergedFrom: [{ id: 'adobo', name: 'Adobo' }] }
+    const copy = { ...adobo, id: 'adobo-2', mergedFrom: [{ id: 'adobo', name: 'Adobo' }] }
+    expect(findRestoredDish([target], undo)).toBeUndefined()
+    expect(findRestoredDish([target, copy], undo)).toBe(copy)
   })
 })

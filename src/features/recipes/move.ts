@@ -95,7 +95,9 @@ export type Undo =
 
 export const undoMove = (plan: MovePlan, at: number): Undo => ({ kind: 'move', at, recipes: plan.updates })
 
-export const undoMerge = (plan: MergePlan, at: number): Undo => ({
+export type MergeUndo = Extract<Undo, { kind: 'merge' }>
+
+export const undoMerge = (plan: MergePlan, at: number): MergeUndo => ({
   kind: 'merge',
   at,
   source: plan.source,
@@ -115,3 +117,10 @@ export function undoneMessage(undo: Undo): string {
   if (undo.kind === 'merge') return `Undone: ${undo.source.name} is back${n > 0 ? `, with its ${n} ${n === 1 ? 'version' : 'versions'}` : ''}.`
   return `Undone: ${n === 1 ? `${undo.recipes[0]!.title} is` : `${n} recipes are`} back where ${n === 1 ? 'it was' : 'they were'}.`
 }
+
+/**
+ * A dish an earlier, unfinished undo already brought back: it remembers the
+ * merged dish's id. Reusing it makes pressing Undo again safe (no second copy).
+ */
+export const findRestoredDish = (dishes: Dish[], undo: MergeUndo) =>
+  dishes.find((dish) => dish.id !== undo.target.id && dish.mergedFrom?.some((merged) => merged.id === undo.source.id))

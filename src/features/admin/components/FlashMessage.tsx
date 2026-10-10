@@ -11,6 +11,9 @@ export interface FlashState {
   undo?: Undo
 }
 
+/** The innermost error: undo wraps saveMoves' error, which wraps the request's. */
+const rootCause = (error: unknown): unknown => (error instanceof Error && error.cause !== undefined ? rootCause(error.cause) : error)
+
 const buttonClass = 'min-h-10 rounded-full px-3 text-sm font-semibold hover:bg-surface/60'
 
 /** Shows a one-time message passed in navigation state, e.g. "Added Japchae.", with Undo when there's something to undo. */
@@ -25,14 +28,19 @@ export function FlashMessage() {
   const undo = state.undo
 
   // Replacing the state (not pushing) so the message doesn't come back on refresh or back-navigation.
-  const replace = (next: FlashState | null) => navigate(location.pathname + location.search, { replace: true, state: next })
+  // The undo's own error belongs to this message: a new one starts clean.
+  const replace = (next: FlashState | null) => {
+    undoChange.reset()
+    navigate(location.pathname + location.search, { replace: true, state: next })
+  }
 
   return (
     <div role="status" className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 rounded-2xl bg-accent-soft px-4 py-3 text-accent-ink">
       <p className="text-sm font-semibold">{message}</p>
       {undoChange.isError && (
         <p className="w-full text-sm text-danger">
-          {undoChange.error.message.startsWith('Moved') ? undoChange.error.message : `Couldn't undo: ${describeError(undoChange.error)}`}
+          {/* The server's reason, under the "Moved n of m" wrapper a failed recipe save adds. */}
+          {undoChange.error.message} ({describeError(rootCause(undoChange.error))})
         </p>
       )}
       <div className="flex gap-1">
@@ -57,7 +65,7 @@ export function FlashMessage() {
                 },
               })
             }}
-            className={`${buttonClass} underline underline-offset-4 aria-disabled:opacity-60`}
+            className={`${buttonClass} underline underline-offset-4 aria-disabled:cursor-wait aria-disabled:opacity-80`}
           >
             {undoChange.isPending ? 'Undoing…' : 'Undo'}
           </button>

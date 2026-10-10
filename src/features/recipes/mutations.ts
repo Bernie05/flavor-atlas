@@ -3,7 +3,7 @@ import { useRef } from 'react'
 import { dishQueries, useCreateDish } from '@/features/dishes/queries'
 import { dataService } from '@/services/data'
 import type { RecipeSubmission } from './form'
-import { restoreRecipes, type MergePlan, type Undo } from './move'
+import { findRestoredDish, restoreRecipes, type MergePlan, type Undo } from './move'
 import { recipeQueries } from './queries'
 import type { Recipe, RecipeInput, RecipeWithRatings } from './schema'
 
@@ -154,18 +154,26 @@ export function useMergeDishes() {
 export function useUndoChange() {
   const queryClient = useQueryClient()
   return useMutation({
+    // Every step can run twice: recipes are saved whole (as they were), and the merged dish is
+    // looked up before it's recreated. So after a failure, pressing Undo again finishes the job.
     mutationFn: async (undo: Undo) => {
-      if (undo.kind === 'move') return saveMoves({ updates: restoreRecipes(undo.recipes) })
-      const { source, target } = undo
-      const dish = await dataService.createDish({ cuisineId: source.cuisineId, name: source.name, description: source.description })
-      await dataService.updateDish(dish.id, {
-        name: dish.name,
-        description: dish.description,
-        mergedFrom: [{ id: source.id, name: source.name }, ...(source.mergedFrom ?? [])],
-      })
-      const moved = await saveMoves({ updates: restoreRecipes(undo.recipes, dish.id) })
-      await dataService.updateDish(target.id, { name: target.name, description: target.description, mergedFrom: target.mergedFrom ?? [] })
-      return moved
+      try {
+        if (undo.kind === 'move') return await saveMoves({ updates: restoreRecipes(undo.recipes) })
+        const { source, target } = undo
+        const dish =
+          findRestoredDish(await dataService.listDishes(), undo) ??
+          (await dataService.createDish({ cuisineId: source.cuisineId, name: source.name, description: source.description }))
+        await dataService.updateDish(dish.id, {
+          name: dish.name,
+          description: dish.description,
+          mergedFrom: [{ id: source.id, name: source.name }, ...(source.mergedFrom ?? [])],
+        })
+        const moved = await saveMoves({ updates: restoreRecipes(undo.recipes, dish.id) })
+        await dataService.updateDish(target.id, { name: target.name, description: target.description, mergedFrom: target.mergedFrom ?? [] })
+        return moved
+      } catch (error) {
+        throw new Error("Couldn't finish undoing. Press Undo again to finish.", { cause: error })
+      }
     },
     onSettled: () => refreshAfterMove(queryClient),
   })
