@@ -119,4 +119,18 @@ describe('the data API (json-server behind our handler)', () => {
     for (let i = 0; i < 6; i++) statuses.push((await call('POST', '/submissions', { recipeId: '1', score: 4 })).status)
     expect(statuses).toContain(429)
   })
+
+  it('edits and deletes dishes and regions, refusing the ones recipes use', async () => {
+    expect(await call('PATCH', '/dishes/adobo', { name: 'Adobo (all kinds)', description: '' })).toMatchObject({
+      status: 200,
+      body: { id: 'adobo', cuisineId: 'filipino', name: 'Adobo (all kinds)' },
+    })
+    const region = await call('POST', '/regions', { cuisineId: 'filipino', name: 'Iloilo', latitude: 10.7, longitude: 122.56 })
+    expect(region.status).toBe(201)
+    expect((await call('PATCH', `/regions/${region.body!.id as string}`, { name: 'Iloilo City' })).body).toMatchObject({ name: 'Iloilo City' })
+    expect((await call('DELETE', `/regions/${region.body!.id as string}`)).status).toBe(200)
+    expect((await call('DELETE', '/regions/batangas')).status).toBe(409)
+    expect((await call('DELETE', '/dishes/adobo')).status).toBe(409)
+    await expectNoDanglingRecipes()
+  })
 })

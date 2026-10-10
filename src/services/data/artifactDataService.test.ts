@@ -153,6 +153,29 @@ describe('artifact data service', () => {
     expect(await visitor.listSubmissions()).toEqual([])
   })
 
+  it('renames a dish, keeps its cuisine, and refuses to delete it while recipes use it', async () => {
+    const fake = fakeDb()
+    const service = serviceOver(fake.db)
+    const adobo = await service.updateDish('adobo', { name: 'Adobo (all kinds)', description: 'Braised in vinegar.' })
+    expect(adobo).toMatchObject({ id: 'adobo', cuisineId: 'filipino', name: 'Adobo (all kinds)' })
+    expect((await serviceOver(fake.db).getDish('adobo')).name).toBe('Adobo (all kinds)')
+    await expect(service.deleteDish('adobo')).rejects.toMatchObject({ status: 409 })
+    const empty = await service.createDish({ cuisineId: 'filipino', name: 'Leftover', description: '' })
+    await service.deleteDish(empty.id)
+    expect((await serviceOver(fake.db).listDishes()).some((d) => d.id === empty.id)).toBe(false)
+  })
+
+  it('adds, moves and deletes a regional kitchen, but not one recipes come from', async () => {
+    const fake = fakeDb()
+    const service = serviceOver(fake.db)
+    const iloilo = await service.createRegion({ cuisineId: 'filipino', name: 'Iloilo', latitude: 10.7, longitude: 122.56 })
+    await service.updateRegion(iloilo.id, { name: 'Iloilo City', latitude: 10.72, longitude: 122.56 })
+    expect((await serviceOver(fake.db).listRegions()).find((r) => r.id === iloilo.id)).toMatchObject({ name: 'Iloilo City', cuisineId: 'filipino' })
+    await expect(service.deleteRegion('batangas')).rejects.toMatchObject({ status: 409 })
+    await service.deleteRegion(iloilo.id)
+    expect((await serviceOver(fake.db).listRegions()).some((r) => r.id === iloilo.id)).toBe(false)
+  })
+
   it('stores "to taste" ingredients as plain JSON', async () => {
     const fake = fakeDb()
     const service = serviceOver(fake.db)

@@ -5,7 +5,7 @@ import { dishSchema, regionSchema, type Dish, type Region } from '@/features/dis
 import { ratingSchema, submissionSchema, type Rating, type Submission } from '@/features/ratings/schema'
 import { recipeSchema, type Recipe } from '@/features/recipes/schema'
 import type { DataService } from './DataService'
-import { cuisineExists, cuisineInUse, cuisineNameInvalid, NotFoundError } from './errors'
+import { cuisineExists, cuisineInUse, cuisineNameInvalid, NotFoundError, stillUsed } from './errors'
 
 export const dbSchema = z.object({
   cuisines: z.array(cuisineSchema),
@@ -112,8 +112,46 @@ export function createSnapshotDataService(store: SnapshotStore): DataService {
       return structuredClone(dish)
     },
 
+    async updateDish(id, input) {
+      const dish = (await store.read()).dishes.find((d) => d.id === id)
+      if (!dish) throw new NotFoundError("We couldn't find that dish.")
+      const updated: Dish = { ...dish, ...input }
+      await store.put('dishes', id, updated)
+      return structuredClone(updated)
+    },
+
+    async deleteDish(id) {
+      const db = await store.read()
+      if (!db.dishes.some((d) => d.id === id)) throw new NotFoundError("We couldn't find that dish.")
+      const using = db.recipes.filter((recipe) => recipe.dishId === id).length
+      if (using > 0) throw stillUsed('dish', using)
+      await store.put('dishes', id, null)
+    },
+
     async listRegions() {
       return structuredClone((await store.read()).regions)
+    },
+
+    async createRegion(input) {
+      const region: Region = { ...input, id: crypto.randomUUID() }
+      await store.put('regions', region.id, region)
+      return structuredClone(region)
+    },
+
+    async updateRegion(id, input) {
+      const region = (await store.read()).regions.find((r) => r.id === id)
+      if (!region) throw new NotFoundError("We couldn't find that region.")
+      const updated: Region = { ...region, ...input }
+      await store.put('regions', id, updated)
+      return structuredClone(updated)
+    },
+
+    async deleteRegion(id) {
+      const db = await store.read()
+      if (!db.regions.some((r) => r.id === id)) throw new NotFoundError("We couldn't find that region.")
+      const using = db.recipes.filter((recipe) => recipe.regionId === id).length
+      if (using > 0) throw stillUsed('region', using)
+      await store.put('regions', id, null)
     },
 
     async listRecipes(filters = {}) {

@@ -16,6 +16,10 @@ interface ConfirmDialogProps {
    */
   canConfirm?: boolean
   children?: ReactNode
+  /** 'primary' for actions that aren't destructive (moving recipes); 'danger' by default. */
+  tone?: 'danger' | 'primary'
+  /** Confirm stays visible and focusable but does nothing yet (e.g. until a choice is made). */
+  confirmBlocked?: boolean
 }
 
 /**
@@ -35,6 +39,8 @@ export function ConfirmDialog({
   onCancel,
   canConfirm = true,
   children,
+  tone = 'danger',
+  confirmBlocked = false,
 }: ConfirmDialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null)
   const cancelRef = useRef<HTMLButtonElement>(null)
@@ -85,9 +91,12 @@ export function ConfirmDialog({
         {canConfirm && (
           <button
             type="button"
-            onClick={onConfirm}
+            onClick={() => !confirmBlocked && onConfirm()}
+            aria-disabled={confirmBlocked || undefined}
             disabled={isPending}
-            className="min-h-10 rounded-full bg-danger px-4 font-semibold text-on-danger disabled:opacity-60"
+            className={`min-h-10 rounded-full px-4 font-semibold disabled:opacity-60 aria-disabled:opacity-60 ${
+              tone === 'danger' ? 'bg-danger text-on-danger' : 'bg-ink text-canvas hover:bg-accent'
+            }`}
           >
             {isPending ? pendingLabel : confirmLabel}
           </button>

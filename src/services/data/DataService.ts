@@ -1,5 +1,5 @@
 import type { Cuisine, CuisineInput, CuisineUpdate } from '@/features/cuisines/schema'
-import type { Dish, DishInput, Region } from '@/features/dishes/schema'
+import type { Dish, DishInput, DishUpdate, Region, RegionInput } from '@/features/dishes/schema'
 import type { Rating, RatingInput, Submission } from '@/features/ratings/schema'
 import type { Recipe, RecipeInput, RecipeWithRatings } from '@/features/recipes/schema'
 
@@ -28,7 +28,16 @@ export interface DataService {
   listDishes(): Promise<Dish[]>
   getDish(id: string): Promise<Dish>
   createDish(input: DishInput): Promise<Dish>
+  /** Renames or re-describes a dish; its cuisine stays (its recipes share it). */
+  updateDish(id: string, input: DishUpdate): Promise<Dish>
+  /** Refused with a 409 ApiError while any recipe is a version of it. */
+  deleteDish(id: string): Promise<void>
   listRegions(): Promise<Region[]>
+  createRegion(input: RegionInput): Promise<Region>
+  /** Renames or moves a region on the map; its cuisine stays. */
+  updateRegion(id: string, input: Omit<RegionInput, 'cuisineId'>): Promise<Region>
+  /** Refused with a 409 ApiError while any recipe comes from it. */
+  deleteRegion(id: string): Promise<void>
   listRecipes(filters?: RecipeFilters): Promise<RecipeWithRatings[]>
   getRecipe(id: string): Promise<RecipeWithRatings>
   createRecipe(input: RecipeInput): Promise<Recipe>

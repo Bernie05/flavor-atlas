@@ -97,8 +97,30 @@ export const httpDataService: DataService = {
     return requestJson('POST', '/dishes', dishSchema, input)
   },
 
+  updateDish(id, input) {
+    // PATCH keeps the fields not sent (the cuisine).
+    return requestJson('PATCH', `/dishes/${encodeURIComponent(id)}`, dishSchema, input)
+  },
+
+  async deleteDish(id) {
+    // The server refuses (409, with its reason) while a recipe is a version of it.
+    await request('DELETE', `/dishes/${encodeURIComponent(id)}`)
+  },
+
   listRegions() {
     return requestJson('GET', '/regions', z.array(regionSchema))
+  },
+
+  createRegion(input) {
+    return requestJson('POST', '/regions', regionSchema, input)
+  },
+
+  updateRegion(id, input) {
+    return requestJson('PATCH', `/regions/${encodeURIComponent(id)}`, regionSchema, input)
+  },
+
+  async deleteRegion(id) {
+    await request('DELETE', `/regions/${encodeURIComponent(id)}`)
   },
 
   listRecipes(filters = {}) {

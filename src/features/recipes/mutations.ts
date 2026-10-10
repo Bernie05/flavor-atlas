@@ -1,8 +1,9 @@
 import { useMutation, useQueryClient, type QueryClient } from '@tanstack/react-query'
 import { useRef } from 'react'
-import { useCreateDish } from '@/features/dishes/queries'
+import { dishQueries, useCreateDish } from '@/features/dishes/queries'
 import { dataService } from '@/services/data'
 import type { RecipeSubmission } from './form'
+import type { MovePlan } from './move'
 import { recipeQueries } from './queries'
 import type { Recipe, RecipeInput, RecipeWithRatings } from './schema'
 
@@ -83,4 +84,33 @@ export function useSubmitRecipe(save: SaveMutation) {
   }
 
   return { submit, isPending: createDish.isPending || save.isPending, error: createDish.error ?? save.error }
+}
+
+/**
+ * Save a move plan (planMove), one recipe at a time: json-server has no
+ * transactions. If one fails, the error says how many were moved; each saved
+ * recipe is whole, so running the move again for the rest is safe.
+ */
+export function useMoveRecipes() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (plan: MovePlan) => {
+      let moved = 0
+      for (const { id, input } of plan.updates) {
+        try {
+          await dataService.updateRecipe(id, input)
+        } catch (error) {
+          throw new Error(
+            `Moved ${moved} of ${plan.updates.length}; “${plan.updates[moved]?.title}” couldn't be saved. Try the rest again.`,
+            { cause: error },
+          )
+        }
+        moved++
+      }
+      return moved
+    },
+    // Recipes and dishes both change (a dish's versions); refresh either way, so a partial move shows.
+    onSettled: () =>
+      Promise.all([refreshRecipes(queryClient), queryClient.invalidateQueries({ queryKey: dishQueries.all(), refetchType: 'all' })]),
+  })
 }

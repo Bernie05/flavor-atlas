@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { isOnMap, projectPoint } from '@/features/atlas/utils'
 
 /**
  * A dish is a family of recipes: "Adobo" groups Chicken Adobo, Adobong Dilaw,
@@ -13,6 +14,9 @@ export const dishInputSchema = z.object({
 
 export const dishSchema = dishInputSchema.extend({ id: z.string() })
 
+/** What the admin can change on a dish. Its cuisine stays: its recipes share it (move them instead). */
+export const dishUpdateSchema = dishInputSchema.omit({ cuisineId: true })
+
 /** A place a regional version comes from, marked on the map like a cuisine's capital. */
 export const regionSchema = z.object({
   id: z.string(),
@@ -22,6 +26,21 @@ export const regionSchema = z.object({
   longitude: z.number().min(-180).max(180),
 })
 
+/** A new regional kitchen. Its place must be on the drawn map, like a cuisine's capital. */
+export const regionInputSchema = z
+  .object({
+    cuisineId: z.string().min(1, 'Choose a cuisine'),
+    name: z.string().trim().min(2, 'Name the place, e.g. Batangas').max(60),
+    latitude: z.number({ error: 'Enter a latitude' }).min(-90).max(90),
+    longitude: z.number({ error: 'Enter a longitude' }).min(-180).max(180),
+  })
+  .refine((input) => isOnMap(projectPoint(input)), {
+    message: 'Pick a place on the map: the atlas draws from Pakistan to the Pacific',
+    path: ['latitude'],
+  })
+
 export type DishInput = z.infer<typeof dishInputSchema>
+export type DishUpdate = z.infer<typeof dishUpdateSchema>
+export type RegionInput = z.infer<typeof regionInputSchema>
 export type Dish = z.infer<typeof dishSchema>
 export type Region = z.infer<typeof regionSchema>

@@ -59,3 +59,7 @@ export const cuisineNameInvalid = () => new ApiError(400, 'Use Latin letters in 
 /** A cuisine still has recipes, so deleting it would leave them pointing at nothing (409). */
 export const cuisineInUse = (recipes: number) =>
   new ApiError(409, `${recipes} ${recipes === 1 ? 'recipe still uses' : 'recipes still use'} this cuisine. Delete or move ${recipes === 1 ? 'it' : 'them'} first.`)
+
+/** A dish or region still has recipes, so deleting it would leave them pointing at nothing (409). */
+export const stillUsed = (what: 'dish' | 'region', recipes: number) =>
+  new ApiError(409, `${recipes} ${recipes === 1 ? 'recipe still uses' : 'recipes still use'} this ${what}. Move ${recipes === 1 ? 'it' : 'them'} first.`)
