@@ -48,9 +48,16 @@ function CuisineView({ cuisineId }: { cuisineId: string }) {
             </nav>
             {cuisine.data && <AdminEditLink to={`/admin/cuisines/${cuisine.data.id}/edit`} label={cuisine.data.name} />}
           </div>
-          <h1 className="text-6xl sm:text-7xl">
-            <em>{cuisine.data?.name ?? 'Loading…'}</em>
-          </h1>
+          {/* The h1 waits for the name: focus moves to it after a navigation, and "Loading…" would be what's announced. */}
+          {cuisine.data ? (
+            <h1 className="text-6xl sm:text-7xl">
+              <em>{cuisine.data.name}</em>
+            </h1>
+          ) : (
+            <p aria-hidden className="font-display text-6xl text-ink-subtle sm:text-7xl">
+              <em>Loading…</em>
+            </p>
+          )}
           {cuisine.data && (
             <p className="label-mono flex items-center gap-2 text-tint-ink tabular-nums">
               <CuisineFlag countryCode={cuisine.data.countryCode} size="md" />

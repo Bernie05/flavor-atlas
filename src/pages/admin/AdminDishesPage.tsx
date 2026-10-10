@@ -11,6 +11,7 @@ import { cuisineTint, formatCoordinates } from '@/features/cuisines/utils'
 import type { Dish } from '@/features/dishes/schema'
 import { dishQueries, regionQueries, useDeleteDish, useDeleteRegion } from '@/features/dishes/queries'
 import { MergeDishDialog } from '@/features/recipes/components/MergeDishDialog'
+import { mergeTargets } from '@/features/recipes/move'
 import { recipeQueries } from '@/features/recipes/queries'
 import { describeError } from '@/services/data'
 
@@ -138,7 +139,8 @@ export function AdminDishesPage() {
                     name: dish.name,
                     detail: plural(recipes, 'version'),
                     editTo: `/admin/dishes/${dish.id}/edit`,
-                    onMerge: () => setToMerge(dish),
+                    // Only offered when the cuisine has another dish to merge into.
+                    onMerge: mergeTargets(dish, dishes.data!).length > 0 ? () => setToMerge(dish) : undefined,
                     onDelete: () => setToDelete({ kind: 'dish', id: dish.id, name: dish.name, recipes }),
                   }
                 })}

@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
+import { inputClass } from '@/components/ui/formStyles'
 import type { Dish, Region } from '@/features/dishes/schema'
 import { describeError } from '@/services/data'
 import { mergeTargets, planMerge } from '../move'
@@ -23,6 +24,7 @@ const versions = (n: number) => `${n} ${n === 1 ? 'version' : 'versions'}`
  * it's deleted. Like moving recipes, the plan is spelled out before saving.
  */
 export function MergeDishDialog({ source, dishes, recipes, regions, onClose, onMerged }: MergeDishDialogProps) {
+  const selectId = useId()
   const [targetId, setTargetId] = useState('')
   const merge = useMergeDishes()
   const targets = source ? mergeTargets(source, dishes) : []
@@ -51,10 +53,11 @@ export function MergeDishDialog({ source, dishes, recipes, regions, onClose, onM
       pendingLabel="Merging…"
       confirmBlocked={!plan}
       blockedHint="Choose a dish first."
-      onBlockedConfirm={() => document.getElementById('merge-target')?.focus()}
+      onBlockedConfirm={() => document.getElementById(selectId)?.focus()}
       isPending={merge.isPending}
       error={merge.error ? `${merge.error.message}${merge.error.cause ? ` (${describeError(merge.error.cause)})` : ''}` : undefined}
-      onCancel={close}
+      // Escape mid-merge would drop the result (no message, focus lost): the dialog stays until it's done.
+      onCancel={merge.isPending ? () => {} : close}
       onConfirm={() => {
         if (!plan) return
         merge.mutate(plan, {
@@ -68,14 +71,14 @@ export function MergeDishDialog({ source, dishes, recipes, regions, onClose, onM
       {targets.length > 0 && (
         <div className="space-y-3">
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="merge-target" className="text-sm font-semibold">
+            <label htmlFor={selectId} className="text-sm font-semibold">
               Merge into
             </label>
             <select
-              id="merge-target"
+              id={selectId}
               value={targetId}
               onChange={(event) => setTargetId(event.target.value)}
-              className="min-h-11 w-full rounded-xl border border-line-strong bg-surface px-3"
+              className={inputClass}
             >
               <option value="">Choose a dish…</option>
               {targets.map((dish) => (

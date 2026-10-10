@@ -12,7 +12,7 @@ const WAIT_MS = 5000
  * Only a new pathname counts: filters and search change the query string and
  * keep focus where the person is typing. A page that focuses a field itself
  * (autofocus) keeps it. Lazy pages draw a skeleton first, so it waits for the
- * heading to appear.
+ * heading (or an error message) to appear.
  */
 export function useRouteFocus(mainRef: RefObject<HTMLElement | null>) {
   const { pathname } = useLocation()
@@ -34,7 +34,9 @@ export function useRouteFocus(mainRef: RefObject<HTMLElement | null>) {
       const active = document.activeElement
       // A page that focused a field itself (autofocus) keeps it.
       if (active && main.contains(active) && active.matches('input, select, textarea')) return (done = true)
-      const heading = main.querySelector('h1')
+      // A page that failed to load has no heading: its error message is the next best thing.
+      const heading =
+        main.querySelector('h1') ?? [...main.querySelectorAll<HTMLElement>('[role="alert"]')].find((alert) => alert.textContent?.trim())
       if (!heading) return false
       if (!heading.hasAttribute('tabindex')) heading.tabIndex = -1
       // ScrollRestoration owns the scroll position (top for a new page, restored on Back).

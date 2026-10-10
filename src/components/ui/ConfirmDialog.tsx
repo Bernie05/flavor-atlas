@@ -72,6 +72,8 @@ export function ConfirmDialog({
     <dialog
       ref={dialogRef}
       onClose={onCancel}
+      // Escape while saving would close the dialog and drop the result's message: it waits.
+      onCancel={(event) => isPending && event.preventDefault()}
       aria-labelledby={`${id}-title`}
       aria-describedby={`${id}-description`}
       className="m-auto w-[min(26rem,calc(100%-2rem))] rounded-2xl bg-surface p-6 text-ink ring-1 ring-line backdrop:bg-ink/40 backdrop:backdrop-blur-sm"
