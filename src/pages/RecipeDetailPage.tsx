@@ -122,7 +122,8 @@ function RecipeView({ recipe }: { recipe: RecipeWithRatings }) {
         )}
         <div className="min-w-0 max-w-3xl space-y-5">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <nav aria-label="Breadcrumb" className="label-mono text-tint-ink">
+            {/* Over a photo the breadcrumb sits high, where the scrim is light: it gets the Edit pill's dark backing. */}
+            <nav aria-label="Breadcrumb" className="label-mono text-tint-ink in-[.on-photo]:rounded-full in-[.on-photo]:bg-canvas/75 in-[.on-photo]:px-3">
               <Link to="/recipes" className="inline-flex min-h-10 items-center hover:underline">
                 Recipes
               </Link>

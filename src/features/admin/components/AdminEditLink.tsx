@@ -18,7 +18,7 @@ export function AdminEditLink({ to, label }: AdminEditLinkProps) {
   return (
     <Link
       to={to}
-      className="label-mono inline-flex min-h-10 items-center gap-1.5 rounded-full border border-line bg-surface px-3 text-ink-muted hover:bg-surface-sunken hover:text-ink in-[.on-photo]:bg-canvas/60 in-[.on-photo]:text-ink"
+      className="label-mono inline-flex min-h-10 items-center gap-1.5 rounded-full border border-line bg-surface px-3 text-ink-muted hover:bg-surface-sunken hover:text-ink in-[.on-photo]:bg-canvas/75 in-[.on-photo]:text-ink"
     >
       <svg aria-hidden viewBox="0 0 24 24" className="size-3.5" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
         <path d="M4 20h4L19 9l-4-4L4 16v4Z" />
