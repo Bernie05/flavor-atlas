@@ -6,7 +6,7 @@ import { EmptyState } from '@/components/feedback/EmptyState'
 import { ErrorState } from '@/components/feedback/ErrorState'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { StarRating } from '@/components/ui/StarRating'
-import { FlashMessage } from '@/features/admin/components/FlashMessage'
+import { FlashMessage, type FlashState } from '@/features/admin/components/FlashMessage'
 import { cuisineQueries } from '@/features/cuisines/queries'
 import { dishQueries, regionQueries } from '@/features/dishes/queries'
 import { summarizeRatings } from '@/features/ratings/summary'
@@ -155,11 +155,11 @@ export function AdminRecipesPage() {
         dishes={dishes ?? []}
         regions={regions ?? []}
         onClose={() => setMoving(false)}
-        onMoved={(message) => {
+        onMoved={(message, undo) => {
           setSelected(new Set())
           focusHeading()
           // The router's own address (in the phone preview it isn't the browser's).
-          navigate(`.${location.search}`, { replace: true, state: { flash: message } })
+          navigate(`.${location.search}`, { replace: true, state: { flash: message, undo } satisfies FlashState })
         }}
       />
 

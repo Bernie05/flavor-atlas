@@ -4,7 +4,7 @@ import type { Cuisine } from '@/features/cuisines/schema'
 import type { Dish, Region } from '@/features/dishes/schema'
 import { describeError } from '@/services/data'
 import { useMoveRecipes } from '../mutations'
-import { planMove } from '../move'
+import { planMove, undoMove, type Undo } from '../move'
 import type { RecipeWithRatings } from '../schema'
 
 interface MoveRecipesDialogProps {
@@ -14,7 +14,7 @@ interface MoveRecipesDialogProps {
   dishes: Dish[]
   regions: Region[]
   onClose: () => void
-  onMoved: (message: string) => void
+  onMoved: (message: string, undo: Undo) => void
 }
 
 /**
@@ -54,7 +54,7 @@ export function MoveRecipesDialog({ open, recipes, cuisines, dishes, regions, on
         if (!plan || !target) return
         move.mutate(plan, {
           onSuccess: (moved) => {
-            onMoved(`Moved ${count(moved)} to ${target.name}.`)
+            onMoved(`Moved ${count(moved)} to ${target.name}.`, undoMove(plan, Date.now()))
             close()
           },
         })

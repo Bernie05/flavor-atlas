@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { RecipeWithRatings } from '@/features/recipes/schema'
-import { compareVersions, countVersions, groupVersions, ingredientKey, otherVersions } from './utils'
+import { compareVersions, countVersions, findMergedInto, groupVersions, ingredientKey, otherVersions } from './utils'
 
 const recipe = (id: string, title: string, dishId: string, regionId = '') =>
   ({ id, title, dishId, regionId }) as RecipeWithRatings
@@ -61,5 +61,18 @@ describe('compareVersions', () => {
 describe('ingredientKey', () => {
   it('drops preparation notes and case', () => {
     expect(ingredientKey('Garlic, crushed')).toBe('garlic')
+  })
+})
+
+describe('findMergedInto', () => {
+  const humba = { id: 'humba', cuisineId: 'filipino', name: 'Humba', description: '', mergedFrom: [{ id: 'adobo', name: 'Adobo' }] }
+  const pancit = { id: 'pancit', cuisineId: 'filipino', name: 'Pancit', description: '' }
+
+  it('finds the dish an old id was merged into, with its old name', () => {
+    expect(findMergedInto([pancit, humba], 'adobo')).toEqual({ dish: humba, oldName: 'Adobo' })
+  })
+
+  it('finds nothing for an id that was never merged', () => {
+    expect(findMergedInto([pancit, humba], 'ramen')).toBeUndefined()
   })
 })

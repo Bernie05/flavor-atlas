@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Dish, Region } from '@/features/dishes/schema'
-import { mergeTargets, planMerge, planMove } from './move'
+import { canUndo, mergeTargets, planMerge, planMove, restoreRecipes, UNDO_WINDOW_MS, undoMerge, undoMove, undoneMessage } from './move'
 import type { RecipeWithRatings } from './schema'
 
 const recipe = (id: string, title: string, dishId: string, cuisineId: string, regionId = '') =>
@@ -72,7 +72,49 @@ describe('planMerge', () => {
     expect(planMerge(adobo, humba, [], regions).moves.updates).toEqual([])
   })
 
+  it('has the target remember the source and whatever was merged into it before', () => {
+    const merged = { ...adobo, mergedFrom: [{ id: 'old-adobo', name: 'Adobo (old)' }] }
+    const target = { ...humba, mergedFrom: [{ id: 'pork-humba', name: 'Pork Humba' }] }
+    expect(planMerge(merged, target, [], regions).mergedFrom).toEqual([
+      { id: 'pork-humba', name: 'Pork Humba' },
+      { id: 'adobo', name: 'Adobo' },
+      { id: 'old-adobo', name: 'Adobo (old)' },
+    ])
+  })
+
   it('refuses dishes of different cuisines', () => {
     expect(() => planMerge(adobo, ramen, [], regions)).toThrow()
+  })
+})
+
+describe('undo', () => {
+  const regional = recipe('2', 'Adobong Dilaw', 'adobo', 'filipino', 'batangas')
+
+  it('remembers each recipe as it was, so a move across cuisines comes back whole (region too)', () => {
+    const plan = planMove([regional], ramen, regions)
+    const [restored] = restoreRecipes(undoMove(plan, 0).recipes)
+    expect(restored).toMatchObject({ id: '2', input: { dishId: 'adobo', cuisineId: 'filipino', regionId: 'batangas' } })
+  })
+
+  it('points restored recipes at a recreated dish when given its new id', () => {
+    const plan = planMerge(adobo, humba, [regional], regions)
+    expect(restoreRecipes(plan.moves.updates, 'adobo-2')[0]!.input.dishId).toBe('adobo-2')
+  })
+
+  it('is offered only for a while', () => {
+    const undo = undoMove(planMove([regional], humba, regions), 1000)
+    expect(canUndo(undo, 1000 + UNDO_WINDOW_MS - 1)).toBe(true)
+    expect(canUndo(undo, 1000 + UNDO_WINDOW_MS)).toBe(false)
+  })
+})
+
+describe('undoneMessage', () => {
+  it('says what came back', () => {
+    const one = recipe('1', 'Chicken Adobo', 'adobo', 'filipino')
+    const two = recipe('2', 'Adobong Dilaw', 'adobo', 'filipino')
+    expect(undoneMessage(undoMove(planMove([one], humba, regions), 0))).toBe('Undone: Chicken Adobo is back where it was.')
+    expect(undoneMessage(undoMove(planMove([one, two], humba, regions), 0))).toBe('Undone: 2 recipes are back where they were.')
+    expect(undoneMessage(undoMerge(planMerge(adobo, humba, [one, two], regions), 0))).toBe('Undone: Adobo is back, with its 2 versions.')
+    expect(undoneMessage(undoMerge(planMerge(adobo, humba, [], regions), 0))).toBe('Undone: Adobo is back.')
   })
 })

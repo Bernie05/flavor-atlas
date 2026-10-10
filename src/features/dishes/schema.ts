@@ -12,10 +12,17 @@ export const dishInputSchema = z.object({
   description: z.string().trim().max(300, 'Keep the description under 300 characters'),
 })
 
-export const dishSchema = dishInputSchema.extend({ id: z.string() })
+/** A dish merged into another one: its old id keeps working as a link (it redirects). */
+export const mergedDishSchema = z.object({ id: z.string(), name: z.string() })
+
+export const dishSchema = dishInputSchema.extend({
+  id: z.string(),
+  /** Dishes merged into this one, so their old links still lead somewhere. Absent on most dishes. */
+  mergedFrom: z.array(mergedDishSchema).optional(),
+})
 
 /** What the admin can change on a dish. Its cuisine stays: its recipes share it (move them instead). */
-export const dishUpdateSchema = dishInputSchema.omit({ cuisineId: true })
+export const dishUpdateSchema = dishInputSchema.omit({ cuisineId: true }).extend({ mergedFrom: z.array(mergedDishSchema).optional() })
 
 /** A place a regional version comes from, marked on the map like a cuisine's capital. */
 export const regionSchema = z.object({
@@ -44,3 +51,4 @@ export type DishUpdate = z.infer<typeof dishUpdateSchema>
 export type RegionInput = z.infer<typeof regionInputSchema>
 export type Dish = z.infer<typeof dishSchema>
 export type Region = z.infer<typeof regionSchema>
+export type MergedDish = z.infer<typeof mergedDishSchema>

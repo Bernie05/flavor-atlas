@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { Link, useParams } from 'react-router'
+import { Link, Navigate, useLocation, useParams } from 'react-router'
 import { CardGridSkeleton } from '@/components/feedback/CardGridSkeleton'
 import { EmptyState } from '@/components/feedback/EmptyState'
 import { ErrorState } from '@/components/feedback/ErrorState'
@@ -9,7 +9,7 @@ import { cuisineTint } from '@/features/cuisines/utils'
 import { dishQueries, regionQueries } from '@/features/dishes/queries'
 import { RegionTag } from '@/features/dishes/components/RegionTag'
 import { VersionComparison } from '@/features/dishes/components/VersionComparison'
-import { groupVersions } from '@/features/dishes/utils'
+import { findMergedInto, groupVersions } from '@/features/dishes/utils'
 import { RecipeCard } from '@/features/recipes/components/RecipeCard'
 import { recipeQueries } from '@/features/recipes/queries'
 import { NotFoundError } from '@/services/data'
@@ -22,8 +22,18 @@ export function DishPage() {
   const recipes = useQuery(recipeQueries.list({ dishId }))
   const cuisines = useQuery(cuisineQueries.list())
   const regions = useQuery(regionQueries.list())
+  const missing = dish.error instanceof NotFoundError
+  // Only for a missing dish: it may have been merged into another one.
+  const allDishes = useQuery({ ...dishQueries.list(), enabled: missing })
+  const mergedAway = (useLocation().state as { mergedAway?: string } | null)?.mergedAway
 
-  if (dish.error instanceof NotFoundError) return <NotFoundPage message="We don't have that dish in the atlas yet." />
+  if (missing) {
+    if (allDishes.isPending) return <CardGridSkeleton />
+    const merged = allDishes.data && findMergedInto(allDishes.data, dishId)
+    // An old link (a bookmark, a shared URL) goes to the dish it's now part of, saying so there.
+    if (merged) return <Navigate to={`/dishes/${merged.dish.id}`} replace state={{ mergedAway: merged.oldName }} />
+    return <NotFoundPage message="We don't have that dish in the atlas yet." />
+  }
   if (dish.isError || recipes.isError) {
     return <ErrorState error={dish.error ?? recipes.error} onRetry={() => {
           void dish.refetch()
@@ -60,6 +70,11 @@ export function DishPage() {
         <h1 className="text-6xl sm:text-7xl">
           <em>{dish.data.name}</em>
         </h1>
+        {mergedAway && (
+          <p role="status" className="rounded-2xl bg-tint-soft px-4 py-3 text-tint-ink">
+            {mergedAway} is now part of {dish.data.name}: its versions are all here.
+          </p>
+        )}
         {dish.data.description && <p className="text-lg text-ink-muted">{dish.data.description}</p>}
         <p className="label-mono text-ink-subtle tabular-nums">
           {recipes.data.length} {recipes.data.length === 1 ? 'version' : 'versions'}

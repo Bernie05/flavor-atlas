@@ -3,7 +3,7 @@ import { useRef } from 'react'
 import { dishQueries, useCreateDish } from '@/features/dishes/queries'
 import { dataService } from '@/services/data'
 import type { RecipeSubmission } from './form'
-import type { MergePlan, MovePlan } from './move'
+import { restoreRecipes, type MergePlan, type Undo } from './move'
 import { recipeQueries } from './queries'
 import type { Recipe, RecipeInput, RecipeWithRatings } from './schema'
 
@@ -91,7 +91,7 @@ export function useSubmitRecipe(save: SaveMutation) {
  * transactions. If one fails, the error says how many were moved; each saved
  * recipe is whole, so running the move again for the rest is safe.
  */
-async function saveMoves(plan: MovePlan) {
+async function saveMoves(plan: { updates: { id: string; title: string; input: RecipeInput }[] }) {
   let moved = 0
   for (const { id, input } of plan.updates) {
     try {
@@ -128,17 +128,45 @@ export function useMoveRecipes() {
 export function useMergeDishes() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async ({ source, moves }: MergePlan) => {
+    mutationFn: async ({ source, target, moves, mergedFrom }: MergePlan) => {
       const moved = await saveMoves(moves)
       try {
+        // Before the delete: if it fails, the redirect is harmless (the old dish still has its own page).
+        await dataService.updateDish(target.id, { name: target.name, description: target.description, mergedFrom })
         await dataService.deleteDish(source.id)
       } catch (error) {
-        throw new Error(`Moved every version, but ${source.name} itself couldn't be deleted. Delete it from the list.`, { cause: error })
+        throw new Error(`Moved every version, but ${source.name} itself couldn't be removed. Merge it again to finish.`, { cause: error })
       }
       return moved
     },
     // The deleted dish's page must not be refetched (404); everything else refreshes, even after a partial merge.
     onSuccess: (_moved, { source }) => queryClient.removeQueries({ queryKey: dishQueries.detail(source.id).queryKey }),
+    onSettled: () => refreshAfterMove(queryClient),
+  })
+}
+
+/**
+ * Undo a move or a merge (see `Undo` in move.ts): each recipe is saved as it
+ * was. A merged dish comes back as a new dish (the server picks its id); it
+ * remembers its old id, so links to it still lead to it, and the dish it was
+ * merged into forgets it.
+ */
+export function useUndoChange() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (undo: Undo) => {
+      if (undo.kind === 'move') return saveMoves({ updates: restoreRecipes(undo.recipes) })
+      const { source, target } = undo
+      const dish = await dataService.createDish({ cuisineId: source.cuisineId, name: source.name, description: source.description })
+      await dataService.updateDish(dish.id, {
+        name: dish.name,
+        description: dish.description,
+        mergedFrom: [{ id: source.id, name: source.name }, ...(source.mergedFrom ?? [])],
+      })
+      const moved = await saveMoves({ updates: restoreRecipes(undo.recipes, dish.id) })
+      await dataService.updateDish(target.id, { name: target.name, description: target.description, mergedFrom: target.mergedFrom ?? [] })
+      return moved
+    },
     onSettled: () => refreshAfterMove(queryClient),
   })
 }

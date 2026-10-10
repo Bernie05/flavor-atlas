@@ -227,3 +227,4 @@ This repo ships Claude Code configuration in `.claude/`:
   - [x] Merge two dishes of a cuisine in one step (versions move over, the extra dish goes)
   - [x] "Edit" shortcuts on public cuisine, dish and recipe pages, for the admin only
   - [x] Focus moves to the new page's heading after every navigation, so screen readers announce it
+  - [x] Undo for moves and merges; links to a merged dish lead to the dish it became part of

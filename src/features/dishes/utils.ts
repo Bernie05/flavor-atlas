@@ -1,4 +1,14 @@
 import type { RecipeWithRatings } from '@/features/recipes/schema'
+import type { Dish } from './schema'
+
+/** The dish an old, merged-away dish id now lives in, with the old name, for a "now part of" note. */
+export function findMergedInto(dishes: Dish[], oldId: string): { dish: Dish; oldName: string } | undefined {
+  for (const dish of dishes) {
+    const merged = dish.mergedFrom?.find((entry) => entry.id === oldId)
+    if (merged) return { dish, oldName: merged.name }
+  }
+  return undefined
+}
 
 export interface DishVersions {
   /** Versions with no region: the classic and everyday ones. */

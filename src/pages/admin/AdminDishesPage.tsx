@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router'
 import { CardGridSkeleton } from '@/components/feedback/CardGridSkeleton'
 import { ErrorState } from '@/components/feedback/ErrorState'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
-import { FlashMessage } from '@/features/admin/components/FlashMessage'
+import { FlashMessage, type FlashState } from '@/features/admin/components/FlashMessage'
 import { CuisineFlag } from '@/features/cuisines/components/CuisineFlag'
 import { cuisineQueries } from '@/features/cuisines/queries'
 import { cuisineTint, formatCoordinates } from '@/features/cuisines/utils'
@@ -98,8 +98,8 @@ export function AdminDishesPage() {
         recipes={recipes.data!}
         regions={regions.data!}
         onClose={() => setToMerge(null)}
-        onMerged={(message) => {
-          navigate('.', { replace: true, state: { flash: message } })
+        onMerged={(message, undo) => {
+          navigate('.', { replace: true, state: { flash: message, undo } satisfies FlashState })
           requestAnimationFrame(() => headingRef.current?.focus())
         }}
       />
