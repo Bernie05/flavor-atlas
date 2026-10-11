@@ -42,14 +42,16 @@ Open http://localhost:5173.
 
 ### Admin login
 
-Browsing is open to everyone. Everything that changes data lives under `/admin` and needs the admin password (the footer has a small "Admin" link). Set it up once:
+Browsing is open to everyone. Everything that changes data lives under `/admin` and needs the admin's username and password. Set them up once:
 
 ```bash
-npm run auth:hash      # asks for a password, prints two lines
-# paste both lines into .env (git-ignored), then restart npm run dev
+npm run auth:hash      # asks for a username and password, prints three lines
+# paste all three into .env (git-ignored), then restart npm run dev
 ```
 
-`.env` stores only a scrypt **hash** of the password and a random `SESSION_SECRET`, never the password itself. Without them, login is unavailable and every change is refused (secure by default). Then open http://localhost:5173/admin.
+`.env` stores the username, a scrypt **hash** of the password (never the password itself) and a random `SESSION_SECRET`. Without all three, login is unavailable and every change is refused (secure by default).
+
+**The login isn't linked from the public site.** Open http://localhost:5173/admin/login yourself and bookmark it; an "Admin" link appears in the footer once you're logged in. Hiding it isn't the protection (the server checks every change); it just doesn't invite visitors to try, and the page asks search engines not to list it.
 
 After pulling changes to `db.seed.json`, run `npm run db:reset` so your local `db.json` matches the new data shape.
 
@@ -58,7 +60,7 @@ After pulling changes to `db.seed.json`, run `npm run db:reset` so your local `d
 | `npm run dev` | The app and its API on port 5173 |
 | `npm run dev:mock` | Web app with the seed data in memory, no API needed |
 | `npm run db:reset` | Restore `db.json` from the committed seed (restart `npm run dev` afterwards) |
-| `npm run auth:hash` | Create the admin password hash and session secret for `.env` |
+| `npm run auth:hash` | Create the admin username, password hash and session secret for `.env` |
 | `npm test` | Unit tests (Vitest) |
 | `npm run test:e2e` | Browser tests (Playwright) against the real server, on a throwaway copy of the seed |
 | `npm run typecheck` / `lint` / `build` | Quality checks |
@@ -148,7 +150,7 @@ Browser ──► Vite dev server (one process; json-server runs inside it)
 - **No open CORS.** json-server's `Access-Control-Allow-Origin: *` and `X-Powered-By` headers are removed, and responses are `nosniff`.
 - **json-server has no port of its own.** It runs inside the dev server behind the gateway (`server/data/jsonServerApp.ts`). Its own CLI listens on every network interface with open CORS, which would let anyone on the network skip the gateway.
 - **Session:** an HMAC-signed token with a 7-day expiry, in an `HttpOnly; SameSite=Strict` cookie that page JavaScript can't read.
-- **Login:** scrypt hash compared in constant time, limited to 5 attempts per minute per IP. After login, the `?next=` address must be a path on this site (no other sites, `//`, backslashes or control characters).
+- **Login:** username and password. The username is compared in constant time and the scrypt hash is checked even when the username is wrong, with one message for both, so neither the answer nor its timing confirms a username. Limited to 5 attempts per minute per IP. After login, the `?next=` address must be a path on this site (no other sites, `//`, backslashes or control characters).
 - **Public vs admin:** the public site has no create, edit or delete controls; they live in `/admin`, whose pages load lazily so visitors never download them. The one public write is sending a review: the server keeps only the recipe, stars and comment, checks each, sets the id and date, drops a filled honeypot, allows five per visitor per ten minutes, holds at most 200 waiting (then says the queue is full), and queues it where only the admin can read it (`server/auth/access.ts`, `server/data/submissions.ts`).
 - **Data integrity:** json-server would give a new cuisine a random id and set a deleted record's references to null; the data handler keeps cuisine slugs and refuses deletes a recipe still depends on (`server/data/slugCreate.ts`, `server/data/integrity.ts`).
 - **Phone preview:** there's no server, so the admin area is shown only to the artifact's owner (claude.ai's `isOwner()`), and the artifact database's rules do the enforcing: everyone may read, only the owner may write, and the review queue is open to people the preview is shared with as Contributors (its rules can't make a queue write-only, as the server does).
@@ -171,6 +173,7 @@ See [docs/plans/admin-auth.md](docs/plans/admin-auth.md) for the design.
 | `VITE_ROUTER_MODE` | `browser` or `memory` | `browser` |
 | `VITE_AI_SOURCE` | `server` or `artifact` | `server` |
 | `ANTHROPIC_API_KEY` | Claude API key, **server only** | none |
+| `ADMIN_USERNAME` | From `npm run auth:hash`, **server only** | none (login disabled) |
 | `ADMIN_PASSWORD_HASH` | From `npm run auth:hash`, **server only** | none (login disabled) |
 | `SESSION_SECRET` | From `npm run auth:hash`, **server only** | none (login disabled) |
 | `VITE_AUTH_SOURCE` | `server` or `artifact` | `server` |

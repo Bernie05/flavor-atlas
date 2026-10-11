@@ -22,8 +22,10 @@ export function RootLayout() {
   const mainRef = useRef<HTMLElement>(null)
   // A screen reader hears the new page's heading after each navigation.
   useRouteFocus(mainRef)
-  // The admin link stays quiet in the footer. In the phone preview only the owner sees it.
-  const showAdminLink = session?.mode === 'password' || session?.admin
+  // Visitors see no way into the admin: the admin opens /admin/login directly (bookmark it), and
+  // the link appears once logged in. Hiding it isn't the protection (the server is); it just
+  // doesn't invite anyone to try.
+  const showAdminLink = session?.admin === true
 
   return (
     <div className="flex min-h-dvh flex-col">

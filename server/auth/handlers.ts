@@ -1,4 +1,5 @@
-import { verifyPassword } from './password'
+import { createHash, timingSafeEqual } from 'node:crypto'
+import { normalizeUsername, verifyPassword } from './password'
 import { createRateLimiter } from './rateLimit'
 import {
   clearedSessionCookie,
@@ -10,6 +11,8 @@ import {
 } from './session'
 
 export interface AuthConfig {
+  /** The admin's username (lowercase), from `npm run auth:hash`. */
+  username?: string
   /** scrypt hash from `npm run auth:hash`. */
   passwordHash?: string
   /** Random secret that signs session tokens. */
@@ -26,7 +29,11 @@ export interface AuthResponse {
 const MIN_SECRET_LENGTH = 32
 
 const isConfigured = (config: AuthConfig): config is Required<AuthConfig> =>
-  Boolean(config.passwordHash && config.sessionSecret && config.sessionSecret.length >= MIN_SECRET_LENGTH)
+  Boolean(config.username && config.passwordHash && config.sessionSecret && config.sessionSecret.length >= MIN_SECRET_LENGTH)
+
+/** Compare two strings in constant time (hashed first, so different lengths don't show either). */
+const sameText = (a: string, b: string) =>
+  timingSafeEqual(createHash('sha256').update(a).digest(), createHash('sha256').update(b).digest())
 
 /** Is this request from a logged-in admin? False whenever auth isn't set up (secure by default). */
 export function isAdmin(cookieHeader: string | undefined, config: AuthConfig, nowMs = Date.now()): boolean {
@@ -48,7 +55,7 @@ export function handleLogin(
   if (!isConfigured(config)) {
     return {
       status: 503,
-      body: { error: 'not_configured', message: 'Admin login isn’t set up. Run `npm run auth:hash` and add the values to .env.' },
+      body: { error: 'not_configured', message: 'Admin login isn’t set up. Run `npm run auth:hash` and add the three values to .env.' },
     }
   }
   // Count every attempt, right or wrong, before checking the password.
@@ -56,9 +63,15 @@ export function handleLogin(
     return { status: 429, body: { error: 'rate_limited', message: 'Too many attempts. Wait a minute and try again.' } }
   }
 
-  const password = typeof body === 'object' && body !== null && 'password' in body ? body.password : undefined
-  if (typeof password !== 'string' || !verifyPassword(password, config.passwordHash)) {
-    return { status: 401, body: { error: 'wrong_password', message: 'That password isn’t right.' } }
+  const fields = typeof body === 'object' && body !== null ? (body as Record<string, unknown>) : {}
+  const username = typeof fields.username === 'string' ? normalizeUsername(fields.username) : ''
+  const password = typeof fields.password === 'string' ? fields.password : ''
+  // Both checks always run, and one message covers both: a wrong username must not answer
+  // faster (the password check is the slow part) or differently, or it gives the username away.
+  const rightUsername = sameText(username, config.username)
+  const rightPassword = verifyPassword(password, config.passwordHash)
+  if (!rightUsername || !rightPassword) {
+    return { status: 401, body: { error: 'wrong_password', message: 'That username or password isn’t right.' } }
   }
 
   return {

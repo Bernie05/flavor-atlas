@@ -6,6 +6,7 @@ const MAX_BODY_BYTES = 64 * 1024
 
 export interface ApiEnv {
   ANTHROPIC_API_KEY?: string
+  ADMIN_USERNAME?: string
   ADMIN_PASSWORD_HASH?: string
   SESSION_SECRET?: string
   /** The database file, relative to the project. Default db.json; the browser tests use a throwaway copy. */
@@ -37,6 +38,7 @@ interface DataModule {
   createDataHandler(file: string): Promise<(req: IncomingMessage, res: ServerResponse, next: () => void) => void>
 }
 interface AuthConfig {
+  username?: string
   passwordHash?: string
   sessionSecret?: string
 }
@@ -52,7 +54,11 @@ interface AuthConfig {
  * so Vite never puts them in the browser bundle.
  */
 export function apiPlugin(env: ApiEnv): Plugin {
-  const authConfig: AuthConfig = { passwordHash: env.ADMIN_PASSWORD_HASH, sessionSecret: env.SESSION_SECRET }
+  const authConfig: AuthConfig = {
+    username: env.ADMIN_USERNAME?.trim().toLowerCase(),
+    passwordHash: env.ADMIN_PASSWORD_HASH,
+    sessionSecret: env.SESSION_SECRET,
+  }
 
   return {
     name: 'flavor-atlas-api',

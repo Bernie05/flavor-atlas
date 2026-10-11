@@ -16,6 +16,8 @@ export function AdminLoginPage() {
   return (
     <main className="grid min-h-dvh place-items-center px-4 py-10">
       <title>Admin login · Flavor Atlas</title>
+      {/* Nothing links here for visitors; keep search engines from listing it too. */}
+      <meta name="robots" content="noindex" />
       <div className="w-full max-w-sm space-y-6">
         <Link to="/" className="flex items-center gap-2">
           <AtlasMark className="size-7" />

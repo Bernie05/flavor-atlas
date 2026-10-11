@@ -13,7 +13,7 @@ npm run test:e2e     # Playwright: real browser, real server, throwaway db (CI r
 npm run typecheck && npm run lint && npm test && npm run build   # run before every commit
 # .githooks/pre-commit runs typecheck, lint and tests on every commit (activated by npm install)
 npm run build:demo   # single-file build in dist-demo/ (seed + artifact db changes, memory router, viewer AI)
-npm run auth:hash     # admin password hash + session secret for .env
+npm run auth:hash     # admin username, password hash + session secret for .env (login: /admin/login, not linked publicly)
 # AI helpers need ANTHROPIC_API_KEY in .env (server only, no VITE_ prefix)
 ```
 

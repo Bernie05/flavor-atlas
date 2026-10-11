@@ -1,5 +1,5 @@
 import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { authService } from '@/services/auth'
+import { authService, type Credentials } from '@/services/auth'
 
 export const sessionQuery = queryOptions({
   queryKey: ['auth', 'session'],
@@ -15,7 +15,7 @@ export const useIsAdmin = () => useSession().data?.admin === true
 export function useLogin() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (password: string) => authService.login(password),
+    mutationFn: (credentials: Credentials) => authService.login(credentials),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: sessionQuery.queryKey }),
   })
 }

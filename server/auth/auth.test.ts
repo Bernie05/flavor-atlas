@@ -120,34 +120,54 @@ describe('access rules', () => {
 })
 
 describe('login', () => {
-  const config = { passwordHash: hashPassword('right-password'), sessionSecret: SECRET }
+  const config = { username: 'bernie', passwordHash: hashPassword('right-password'), sessionSecret: SECRET }
   const options = { ip: '1.2.3.4', secure: false, config, allow: () => true }
+  const right = { username: 'bernie', password: 'right-password' }
 
-  it('sets an HttpOnly, SameSite=Strict session cookie for the right password', () => {
-    const response = handleLogin({ password: 'right-password' }, options)
+  it('sets an HttpOnly, SameSite=Strict session cookie for the right username and password', () => {
+    const response = handleLogin(right, options)
     expect(response.status).toBe(200)
     expect(response.setCookie).toMatch(/^fa_session=.+; Path=\/; HttpOnly; SameSite=Strict; Max-Age=\d+$/)
     expect(isAdmin(response.setCookie!.split(';')[0], config)).toBe(true)
   })
 
   it('adds Secure over HTTPS', () => {
-    expect(handleLogin({ password: 'right-password' }, { ...options, secure: true }).setCookie).toContain('Secure')
+    expect(handleLogin(right, { ...options, secure: true }).setCookie).toContain('Secure')
   })
 
-  it('rejects a wrong or missing password without a cookie', () => {
-    for (const body of [{ password: 'wrong' }, {}, null, 'right-password']) {
+  it('takes the username without regard to case or surrounding spaces', () => {
+    expect(handleLogin({ ...right, username: ' Bernie ' }, options).status).toBe(200)
+  })
+
+  it('rejects a wrong or missing username or password, without a cookie', () => {
+    for (const body of [
+      { ...right, password: 'wrong' },
+      { ...right, username: 'admin' },
+      { password: 'right-password' },
+      { username: 'bernie' },
+      {},
+      null,
+      'right-password',
+    ]) {
       const response = handleLogin(body, options)
       expect(response.status).toBe(401)
       expect(response.setCookie).toBeUndefined()
     }
   })
 
-  it('refuses when rate limited, even with the right password', () => {
-    expect(handleLogin({ password: 'right-password' }, { ...options, allow: () => false }).status).toBe(429)
+  it("says the same thing for a wrong username as for a wrong password, so it can't confirm a username", () => {
+    const wrongUser = handleLogin({ ...right, username: 'admin' }, options)
+    const wrongPassword = handleLogin({ ...right, password: 'wrong' }, options)
+    expect(wrongUser).toEqual(wrongPassword)
   })
 
-  it('is closed when not configured, and nobody counts as admin', () => {
-    expect(handleLogin({ password: 'x' }, { ...options, config: {} }).status).toBe(503)
+  it('refuses when rate limited, even with the right username and password', () => {
+    expect(handleLogin(right, { ...options, allow: () => false }).status).toBe(429)
+  })
+
+  it('is closed when not configured (no username counts), and nobody counts as admin', () => {
+    expect(handleLogin(right, { ...options, config: {} }).status).toBe(503)
+    expect(handleLogin(right, { ...options, config: { ...config, username: undefined } }).status).toBe(503)
     expect(isAdmin(`fa_session=${createSessionToken(SECRET)}`, { sessionSecret: SECRET })).toBe(false)
   })
 })
@@ -155,7 +175,7 @@ describe('login', () => {
 describe('hardening (from the security review)', () => {
   it('treats a malformed cookie as logged out instead of crashing', () => {
     expect(parseCookies('fa_session=%; other=1')).toEqual({ fa_session: '%', other: '1' })
-    expect(isAdmin('fa_session=%', { passwordHash: hashPassword('x'), sessionSecret: SECRET })).toBe(false)
+    expect(isAdmin('fa_session=%', { username: 'bernie', passwordHash: hashPassword('x'), sessionSecret: SECRET })).toBe(false)
   })
 
   it('forgets ended windows so memory does not grow per IP', () => {
@@ -167,7 +187,7 @@ describe('hardening (from the security review)', () => {
   })
 
   it('refuses a session secret shorter than 32 characters', () => {
-    const config = { passwordHash: hashPassword('right-password'), sessionSecret: 'short' }
-    expect(handleLogin({ password: 'right-password' }, { ip: 'x', secure: false, config, allow: () => true }).status).toBe(503)
+    const config = { username: 'bernie', passwordHash: hashPassword('right-password'), sessionSecret: 'short' }
+    expect(handleLogin({ username: 'bernie', password: 'right-password' }, { ip: 'x', secure: false, config, allow: () => true }).status).toBe(503)
   })
 })

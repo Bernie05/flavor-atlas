@@ -9,10 +9,16 @@ export interface Session {
  * Who is allowed to change things. Like DataService and AiService, the UI
  * depends on this interface; the server enforces the same rules on its side.
  */
+/** What the admin types to log in. */
+export interface Credentials {
+  username: string
+  password: string
+}
+
 export interface AuthService {
   getSession(): Promise<Session>
   /** Rejects with AuthError. Only in 'password' mode. */
-  login(password: string): Promise<void>
+  login(credentials: Credentials): Promise<void>
   logout(): Promise<void>
 }
 

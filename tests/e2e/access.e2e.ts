@@ -5,6 +5,20 @@ import { expect, test } from '@playwright/test'
  * but the server is the protection, so these go straight at the API too.
  */
 test.describe('a visitor', () => {
+  test('sees no way into the admin on the public site', async ({ page }) => {
+    for (const path of ['/', '/recipes', '/recipes/1']) {
+      await page.goto(path)
+      await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+      await expect(page.getByRole('link', { name: /admin|log ?in/i })).toHaveCount(0)
+    }
+  })
+
+  test('cannot log in with the right password under another username', async ({ request }) => {
+    const response = await request.post('/api/auth/login', { data: { username: 'admin', password: process.env.E2E_PASSWORD } })
+    expect(response.status()).toBe(401)
+    expect((await response.json()).message).toBe('That username or password isn’t right.')
+  })
+
   test('is sent to the login page from the admin area, which remembers where it was going', async ({ page }) => {
     await page.goto('/admin/recipes')
     await expect(page).toHaveURL(/\/admin\/login\?next=%2Fadmin%2Frecipes/)

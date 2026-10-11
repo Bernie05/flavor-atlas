@@ -27,8 +27,8 @@ export const httpAuthService: AuthService = {
     return { admin, mode: 'password' }
   },
 
-  async login(password) {
-    const response = await post('/api/auth/login', { password })
+  async login({ username, password }) {
+    const response = await post('/api/auth/login', { username, password })
     if (response.ok) return
     const { error, message } = ((await response.json().catch(() => null)) ?? {}) as { error?: string; message?: string }
     throw new AuthError(CODES.find((code) => code === error) ?? 'failed', message ?? 'Login failed. Try again.')

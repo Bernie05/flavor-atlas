@@ -15,6 +15,7 @@ if (!process.env.E2E_DATA_FILE) {
   const file = join(mkdtempSync(join(tmpdir(), 'flavor-atlas-e2e-')), 'db.json')
   copyFileSync('db.seed.json', file)
   process.env.E2E_DATA_FILE = file
+  process.env.E2E_USERNAME = 'e2e-admin'
   process.env.E2E_PASSWORD = randomBytes(18).toString('base64url')
   process.env.E2E_PASSWORD_HASH = hashPassword(process.env.E2E_PASSWORD)
   process.env.E2E_SESSION_SECRET = randomBytes(32).toString('base64url')
@@ -52,6 +53,7 @@ export default defineConfig({
     timeout: 60_000,
     // Server-only values, read by vite.config.ts's loadEnv (process.env wins over .env).
     env: {
+      ADMIN_USERNAME: process.env.E2E_USERNAME!,
       ADMIN_PASSWORD_HASH: process.env.E2E_PASSWORD_HASH!,
       SESSION_SECRET: process.env.E2E_SESSION_SECRET!,
       DATA_FILE: process.env.E2E_DATA_FILE!,

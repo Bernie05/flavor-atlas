@@ -27,10 +27,11 @@ Browser ──► Vite dev server (json-server runs inside it, behind the gatewa
              └─ POST /api/ai            admin (else 401)
 ```
 
+- **Username:** `ADMIN_USERNAME` (server env), compared in constant time; a wrong username and a wrong password get the same answer, in the same time.
 - **Password:** stored only as a scrypt hash in `ADMIN_PASSWORD_HASH` (server env). Create it with `npm run auth:hash`. Compared with `timingSafeEqual`.
 - **Session:** an HMAC-signed token with an expiry (7 days), signed with `SESSION_SECRET`, in an `HttpOnly; SameSite=Strict` cookie (plus `Secure` over HTTPS). JavaScript can't read it, other sites can't send it, and it can't be forged.
 - **Brute force:** 5 login attempts per minute per IP.
-- **Secure by default:** if `ADMIN_PASSWORD_HASH` or `SESSION_SECRET` is missing, login is unavailable and every write is refused.
+- **Secure by default:** if `ADMIN_USERNAME`, `ADMIN_PASSWORD_HASH` or `SESSION_SECRET` is missing, login is unavailable and every write is refused.
 - **Redirects:** `/login?next=…` only accepts local paths, to prevent open redirects.
 
 ## Security review

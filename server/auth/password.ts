@@ -22,3 +22,9 @@ export function verifyPassword(password: string, stored: string): boolean {
   // and that timing difference can leak how close a guess was.
   return expected.length === actual.length && timingSafeEqual(expected, actual)
 }
+
+/** Usernames: 3 to 32 lowercase letters, digits, dots, dashes or underscores. */
+export const USERNAME_PATTERN = /^[a-z0-9._-]{3,32}$/
+
+/** Usernames compare without case or surrounding spaces ("Bernie " is "bernie"). */
+export const normalizeUsername = (username: string) => username.trim().toLowerCase()
