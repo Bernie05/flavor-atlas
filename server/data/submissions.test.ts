@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { createSubmission, MAX_COMMENT } from './submissions'
+import { createSubmission, MAX_COMMENT, MAX_QUEUE } from './submissions'
 
 const fresh = () => ({ recipes: [{ id: '1' }], submissions: [] as unknown[] }) as Record<string, unknown>
 const now = new Date('2026-10-09T12:00:00.000Z')
@@ -44,6 +44,13 @@ describe('createSubmission', () => {
     const data = fresh()
     expect(createSubmission(data, { recipeId: '1', score: 5, hp_field: 'http://spam.example' }, { now })).toEqual({ status: 201, item: null })
     expect(data.submissions).toEqual([])
+  })
+
+  it('says the queue is full instead of growing past its limit', () => {
+    const data = { recipes: [{ id: '1' }], submissions: Array.from({ length: MAX_QUEUE }, (_, i) => ({ id: String(i) })) }
+    const result = createSubmission(data, { recipeId: '1', score: 5, comment: 'One more' })
+    expect(result).toMatchObject({ status: 503, body: { error: 'queue_full' } })
+    expect(data.submissions).toHaveLength(MAX_QUEUE)
   })
 
   it('starts the queue when the database has none yet', () => {

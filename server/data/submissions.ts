@@ -8,12 +8,19 @@
 
 export const MAX_COMMENT = 300
 
+/**
+ * Reviews waiting at most. The per-visitor limit stops one sender, not many:
+ * past this the queue says it's full instead of growing until the admin can't
+ * find real reviews in it (or the database file balloons).
+ */
+export const MAX_QUEUE = 200
+
 /** The hidden field bots fill in. People never see it. */
 export const HONEYPOT = 'hp_field'
 
 export type SubmissionResult =
   | { status: 201; item: Record<string, unknown> | null }
-  | { status: 400; body: { error: string; message: string } }
+  | { status: 400 | 503; body: { error: string; message: string } }
 
 const invalid = (message: string): SubmissionResult => ({ status: 400, body: { error: 'invalid_request', message } })
 
@@ -29,6 +36,11 @@ export function createSubmission(
   // A bot filled the field no person can see: say thanks, keep nothing.
   if (typeof input[HONEYPOT] === 'string' && input[HONEYPOT] !== '') return { status: 201, item: null }
 
+  const queue = Array.isArray(data.submissions) ? data.submissions : []
+  if (queue.length >= MAX_QUEUE) {
+    return { status: 503, body: { error: 'queue_full', message: 'Lots of reviews are waiting to be read. Try again in a day or two.' } }
+  }
+
   const recipes = Array.isArray(data.recipes) ? (data.recipes as { id?: unknown }[]) : []
   if (typeof input.recipeId !== 'string' || !recipes.some((recipe) => recipe.id === input.recipeId)) {
     return invalid("That recipe isn't in the atlas.")
@@ -41,6 +53,6 @@ export function createSubmission(
   if (comment.length > MAX_COMMENT) return invalid(`Keep your review under ${MAX_COMMENT} characters.`)
 
   const item = { id, recipeId: input.recipeId, score: input.score, comment, createdAt: now.toISOString() }
-  data.submissions = [...(Array.isArray(data.submissions) ? data.submissions : []), item]
+  data.submissions = [...queue, item]
   return { status: 201, item }
 }

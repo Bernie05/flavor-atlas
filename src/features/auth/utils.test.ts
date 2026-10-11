@@ -6,7 +6,7 @@ describe('safeNextPath', () => {
     expect(safeNextPath('/recipes/new?cuisine=korean')).toBe('/recipes/new?cuisine=korean')
   })
 
-  it.each([null, '', 'https://evil.example', '//evil.example', '/\\evil.example', 'javascript:alert(1)'])(
+  it.each([null, '', 'https://evil.example', '//evil.example', '/\\evil.example', 'javascript:alert(1)', '/\t/evil.example', '/\n/evil.example'])(
     'falls back to the home page for %s',
     (next) => {
       expect(safeNextPath(next)).toBe('/')

@@ -137,18 +137,28 @@ Without a key the app works normally and the AI buttons explain how to set it up
 ```
 Browser ──► Vite dev server (one process; json-server runs inside it)
              ├─ /api/auth/login|logout|session   password → signed session cookie
-             ├─ /api/data/*   reads: anyone · writes: admin only (else 401)
+             ├─ /api/data/*   reads: the atlas collections only · everything else: admin (else 401)
              │                except POST /submissions: anyone, checked and rate-limited
              └─ /api/ai       admin only
 ```
 
 - **The server enforces access.** The UI hides admin controls as a convenience, but every write goes through the `/api/data` gateway, which checks the session first.
+- **Deny by default.** Only the atlas collections (cuisines, dishes, regions, recipes, ratings) are public to read, and a public read may only `_embed` those. The review queue, the change history and any collection added later are admin-only unless listed.
+- **One spelling per path.** The gateway decodes and re-encodes each request path before checking it, and passes that same path on, so `/%73ubmissions` is `/submissions` to the access check, the review validator and json-server alike. Undecodable paths get a 400.
+- **No open CORS.** json-server's `Access-Control-Allow-Origin: *` and `X-Powered-By` headers are removed, and responses are `nosniff`.
 - **json-server has no port of its own.** It runs inside the dev server behind the gateway (`server/data/jsonServerApp.ts`). Its own CLI listens on every network interface with open CORS, which would let anyone on the network skip the gateway.
 - **Session:** an HMAC-signed token with a 7-day expiry, in an `HttpOnly; SameSite=Strict` cookie that page JavaScript can't read.
-- **Login:** scrypt hash compared in constant time, limited to 5 attempts per minute per IP.
-- **Public vs admin:** the public site has no create, edit or delete controls; they live in `/admin`, whose pages load lazily so visitors never download them. The one public write is sending a review: the server keeps only the recipe, stars and comment, checks each, sets the id and date, drops a filled honeypot, allows five per visitor per ten minutes, and queues it where only the admin can read it (`server/auth/access.ts`, `server/data/submissions.ts`).
+- **Login:** scrypt hash compared in constant time, limited to 5 attempts per minute per IP. After login, the `?next=` address must be a path on this site (no other sites, `//`, backslashes or control characters).
+- **Public vs admin:** the public site has no create, edit or delete controls; they live in `/admin`, whose pages load lazily so visitors never download them. The one public write is sending a review: the server keeps only the recipe, stars and comment, checks each, sets the id and date, drops a filled honeypot, allows five per visitor per ten minutes, holds at most 200 waiting (then says the queue is full), and queues it where only the admin can read it (`server/auth/access.ts`, `server/data/submissions.ts`).
 - **Data integrity:** json-server would give a new cuisine a random id and set a deleted record's references to null; the data handler keeps cuisine slugs and refuses deletes a recipe still depends on (`server/data/slugCreate.ts`, `server/data/integrity.ts`).
 - **Phone preview:** there's no server, so the admin area is shown only to the artifact's owner (claude.ai's `isOwner()`), and the artifact database's rules do the enforcing: everyone may read, only the owner may write, and the review queue is open to people the preview is shared with as Contributors (its rules can't make a queue write-only, as the server does).
+
+**Known limits** (fine for one admin on a dev server, worth fixing before real hosting):
+- Logging out clears the cookie in your browser, but a copied cookie stays valid until it expires (7 days). Changing `SESSION_SECRET` ends every session at once.
+- Rate limits are kept in memory: they reset when the server restarts and aren't shared between servers.
+- The Vite dev server isn't a production server: hosting needs its own server with HTTPS and security headers (a separate step).
+
+The browser tests (`tests/e2e/access.e2e.ts`) attack the gateway the ways above; each was checked to fail without its fix.
 
 See [docs/plans/admin-auth.md](docs/plans/admin-auth.md) for the design.
 

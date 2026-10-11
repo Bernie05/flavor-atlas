@@ -21,9 +21,11 @@ async function request(method: Method, path: string, body?: unknown): Promise<Re
   })
 
   if (response.status === 401) throw new UnauthorizedError()
-  if (response.status === 429) {
+  if (response.status === 429 || response.status === 503) {
+    // Rate limited, or the review queue is full: the server's message is written for visitors.
     const body = (await response.json().catch(() => null)) as { message?: unknown } | null
-    throw new ApiError(429, typeof body?.message === 'string' ? body.message : 'Too many requests. Try again in a few minutes.')
+    const fallback = response.status === 429 ? 'Too many requests. Try again in a few minutes.' : 'The server is busy. Try again later.'
+    throw new ApiError(response.status, typeof body?.message === 'string' ? body.message : fallback)
   }
   if (response.status === 404) {
     throw new NotFoundError("We couldn't find what you were looking for.")
