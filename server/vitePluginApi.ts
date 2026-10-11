@@ -27,6 +27,7 @@ interface AuthModule {
 }
 interface AccessModule {
   requiresAdmin(method: string | undefined, path?: string): boolean
+  canonicalPath(path: string): string | null
 }
 interface AiModule {
   handleAiRequest(body: unknown, generate: unknown): Promise<{ status: number; body: unknown }>
@@ -94,7 +95,11 @@ export function apiPlugin(env: ApiEnv): Plugin {
       // The gateway, then the data: every request to json-server passes the check.
       server.middlewares.use('/api/data', (req, res, next) =>
         guarded(server, res, async () => {
-          const { requiresAdmin } = await load<AccessModule>('/server/auth/access.ts')
+          const { canonicalPath, requiresAdmin } = await load<AccessModule>('/server/auth/access.ts')
+          // Every layer after this reads one spelling of the path (see canonicalPath).
+          const path = canonicalPath(req.url ?? '/')
+          if (path === null) return send(res, 400, { error: 'invalid_request', message: 'That address is malformed.' })
+          req.url = path
           if (requiresAdmin(req.method, req.url) && !(await isAdmin(req))) {
             return send(res, 401, { error: 'unauthorized', message: 'Log in as the admin to make changes.' })
           }

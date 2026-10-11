@@ -25,6 +25,24 @@ test.describe('a visitor', () => {
     expect((await request.get('/api/data/recipes?_embed=ratings')).status()).toBe(200)
   })
 
+  test('cannot reach a private collection by spelling its name differently', async ({ request }) => {
+    // %73 is "s" and %61 is "a": json-server decodes them, so the gateway must as well.
+    for (const path of ['/api/data/%73ubmissions', '/api/data/%61ctivity', '/api/data//submissions/', '/api/data/'])
+      expect((await request.get(path)).status(), path).toBe(401)
+    expect((await request.get('/api/data/%E0%A4%A')).status()).toBe(400)
+  })
+
+  test("can't skip the review checks by spelling the queue's address differently", async ({ request }) => {
+    const sent = await request.post('/api/data/%73ubmissions', { data: { recipeId: '1', score: 99, comment: 'x', hp_field: '' } })
+    expect(sent.status()).toBe(400) // the same validation as /submissions: 99 stars is refused
+  })
+
+  test("gets no header inviting other websites to call the API", async ({ request }) => {
+    const response = await request.get('/api/data/recipes', { headers: { Origin: 'https://evil.example' } })
+    expect(response.headers()['access-control-allow-origin']).toBeUndefined()
+    expect(response.headers()['x-content-type-options']).toBe('nosniff')
+  })
+
   test("can send a review, which stays out of sight until it's approved", async ({ request }) => {
     const comment = `Visitor review ${Date.now()}`
     const sent = await request.post('/api/data/submissions', { data: { recipeId: '1', score: 4, comment, hp_field: '' } })

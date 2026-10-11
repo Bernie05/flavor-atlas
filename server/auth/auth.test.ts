@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { requiresAdmin } from './access'
+import { canonicalPath, requiresAdmin } from './access'
 import { handleLogin, isAdmin } from './handlers'
 import { hashPassword, verifyPassword } from './password'
 import { createRateLimiter } from './rateLimit'
@@ -62,8 +62,8 @@ describe('rate limiter', () => {
 
 describe('access rules', () => {
   it('lets anyone read and only the admin write', () => {
-    expect(['GET', 'HEAD', 'OPTIONS', 'get'].map((m) => requiresAdmin(m))).toEqual([false, false, false, false])
-    expect(['POST', 'PUT', 'PATCH', 'DELETE'].map((m) => requiresAdmin(m))).toEqual([true, true, true, true])
+    expect(['GET', 'HEAD', 'OPTIONS', 'get'].map((m) => requiresAdmin(m, '/recipes'))).toEqual([false, false, false, false])
+    expect(['POST', 'PUT', 'PATCH', 'DELETE'].map((m) => requiresAdmin(m, '/recipes'))).toEqual([true, true, true, true])
   })
 
   it('lets anyone send a review for moderation, but only the admin see or change the queue', () => {
@@ -84,6 +84,32 @@ describe('access rules', () => {
     expect(requiresAdmin('GET', '/dishes?_embed=activity')).toBe(true)
     expect(requiresAdmin('GET', '/recipes?_expand=submissions')).toBe(true)
     expect(requiresAdmin('GET', '/recipes?_embed=ratings')).toBe(false) // public ratings stay public
+  })
+
+  it('reads the path as json-server will: an encoded name is the same name', () => {
+    // %73 is "s", %61 is "a": json-server decodes these, so the check must too.
+    expect(requiresAdmin('GET', '/%73ubmissions')).toBe(true)
+    expect(requiresAdmin('GET', '/%61ctivity')).toBe(true)
+    expect(requiresAdmin('GET', '/recipes/%31')).toBe(false) // an encoded id in a public collection is fine
+    expect(requiresAdmin('GET', '/%E0%A4%A')).toBe(true) // undecodable: refused, not guessed at
+    expect(requiresAdmin('POST', '/%73ubmissions')).toBe(false) // the queue, by another spelling: allowed, and the gateway
+    // rewrites it to /submissions first, so the review validator sees it too (canonicalPath below)
+  })
+
+  it('gives every path one spelling, so each layer reads the same one', () => {
+    expect(canonicalPath('/%73ubmissions')).toBe('/submissions')
+    expect(canonicalPath('//recipes//1/?_embed=ratings')).toBe('/recipes/1?_embed=ratings')
+    expect(canonicalPath('/dishes/pancit%20canton')).toBe('/dishes/pancit%20canton') // spaces stay encoded
+    expect(canonicalPath('/%E0%A4%A')).toBeNull()
+  })
+
+  it('denies by default: only the atlas collections are public, so a new one starts private', () => {
+    for (const name of ['cuisines', 'dishes', 'regions', 'recipes', 'ratings']) expect(requiresAdmin('GET', `/${name}`)).toBe(false)
+    expect(requiresAdmin('GET', '/')).toBe(true)
+    expect(requiresAdmin('GET', '/db')).toBe(true)
+    expect(requiresAdmin('GET', '/some-future-collection')).toBe(true)
+    expect(requiresAdmin('GET', '/recipes?_embed=some-future-collection')).toBe(true)
+    expect(requiresAdmin('GET', '/recipes?_embed[]=submissions')).toBe(true)
   })
 
   it('keeps the change history to the admin, reads included', () => {

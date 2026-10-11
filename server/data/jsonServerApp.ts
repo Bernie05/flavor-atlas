@@ -41,6 +41,12 @@ export async function createDataHandler(file: string): Promise<DataHandler> {
   }
 
   return (req, res, next) => {
+    withoutOpenHeaders(res)
+    // A cross-site preflight gets no CORS answer at all: the app never sends one (it's same-origin).
+    if (req.method === 'OPTIONS') {
+      res.statusCode = 204
+      return void res.end()
+    }
     // The gateway already checked who may write; this checks the write keeps the data whole.
     const refusal = checkIntegrity(req.method, req.url, db.data)
     if (refusal) return send(res, refusal.status, refusal.body)
@@ -80,6 +86,22 @@ export async function createDataHandler(file: string): Promise<DataHandler> {
     }
     app.handler(req, res, next)
   }
+}
+
+/**
+ * json-server answers every request with `Access-Control-Allow-Origin: *`,
+ * which tells browsers any website may call this API. The app is served from
+ * the same origin and never needs it; the SameSite cookie already keeps other
+ * sites out of admin actions, and this keeps it that way if that ever changes.
+ * X-Powered-By only tells an attacker what we run. nosniff makes browsers treat
+ * every response as the JSON it says it is.
+ */
+const DROPPED_HEADERS = /^(access-control-|x-powered-by$)/i
+
+function withoutOpenHeaders(res: ServerResponse) {
+  const setHeader = res.setHeader.bind(res)
+  res.setHeader = (name, value) => (DROPPED_HEADERS.test(name) ? res : setHeader(name, value))
+  setHeader('X-Content-Type-Options', 'nosniff')
 }
 
 /** The request body as JSON, at most 64 KB (the gateway's limit). */
