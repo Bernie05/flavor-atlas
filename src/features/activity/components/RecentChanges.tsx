@@ -43,7 +43,7 @@ export function RecentChanges() {
   const undo = (entry: Activity) => {
     if (!entry.undo || undoChange.isPending) return
     setUndoneId(entry.id)
-    setOutcome('')
+    setOutcome('') // a new undo replaces the last one's message
     undoChange.mutate(entry.undo, {
       onSuccess: () => {
         setOutcome(undoneMessage(entry.undo!))
@@ -57,15 +57,16 @@ export function RecentChanges() {
 
   return (
     <section aria-labelledby="changes-heading" className="min-w-0 space-y-4">
-      <div className="flex min-h-10 items-end justify-between gap-3">
-        <h2 id="changes-heading" ref={headingRef} tabIndex={-1} className="text-3xl">
-          Recent changes
-        </h2>
-      </div>
-      <p role="status" className="text-sm font-semibold text-accent-ink empty:hidden">
+      <h2 id="changes-heading" ref={headingRef} tabIndex={-1} className="flex min-h-10 items-end text-3xl">
+        Recent changes
+      </h2>
+      {/* Always in the accessibility tree (no display:none while empty), so its message is announced. */}
+      <p role="status" className="text-sm font-semibold text-accent-ink empty:mb-0">
         {outcome}
       </p>
 
+      {/* Smaller, in-section versions of the loading, error and empty states: the page-level
+          ErrorState and EmptyState would outweigh the rest of the dashboard. */}
       {activity.isPending ? (
         <div aria-hidden className="h-40 animate-pulse rounded-2xl bg-surface-sunken" />
       ) : activity.isError ? (
@@ -90,20 +91,21 @@ export function RecentChanges() {
                   <div className="min-w-0">
                     <p className={`break-words ${entry.undoneAt ? 'text-ink-muted line-through decoration-1' : 'font-semibold'}`}>
                       {entry.link && !entry.undoneAt ? (
-                        <Link to={entry.link} className="hover:underline">
+                        <Link to={entry.link} className="-my-2.5 inline-block py-2.5 text-accent hover:text-accent-hover hover:underline">
                           {entry.summary}
                         </Link>
                       ) : (
                         entry.summary
                       )}
-                      {entry.undoneAt && <span className="sr-only"> (undone)</span>}
                     </p>
                     <p className="label-mono text-ink-subtle">
                       {KIND_LABELS[entry.kind]} · <time dateTime={entry.at}>{timeAgo(entry.at, now)}</time>
                       {entry.undoneAt && ' · undone'}
                     </p>
                     {mine && undoChange.isError && (
-                      <p className="mt-1 text-sm text-danger">{undoChange.error.message}</p>
+                      <p role="alert" className="mt-1 text-sm text-danger">
+                        {undoChange.error.message}
+                      </p>
                     )}
                   </div>
                   {canUndo && (
@@ -114,7 +116,7 @@ export function RecentChanges() {
                       className="-ml-3 min-h-10 justify-self-start rounded-full px-3 text-sm font-semibold text-accent hover:bg-surface-sunken aria-disabled:cursor-wait aria-disabled:opacity-80 sm:ml-0"
                     >
                       {mine && undoChange.isPending ? 'Undoing…' : 'Undo'}
-                      <span className="sr-only">: {entry.summary}</span>
+                      <span className="sr-only">{` ${entry.summary}`}</span>
                     </button>
                   )}
                 </li>

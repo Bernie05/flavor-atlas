@@ -10,12 +10,12 @@ interface PaginationProps {
   onNavigate?: () => void
 }
 
-const itemClass = 'inline-flex min-h-10 min-w-10 items-center justify-center rounded-full px-3 text-sm font-semibold tabular-nums'
+const itemClass = 'inline-flex min-h-10 min-w-10 items-center justify-center rounded-full px-2 text-sm font-semibold tabular-nums sm:px-3'
 
 /**
  * Page links: real links (?page=2), so a page can be bookmarked, reloaded or
  * opened in a new tab, and Back returns to the one before. Previous and Next
- * stay in place at the ends (aria-disabled), so the row never shifts.
+ * stay in place at the ends (shown, but hidden from screen readers), so the row never shifts.
  */
 export function Pagination({ page, pageCount, hrefFor, onNavigate }: PaginationProps) {
   if (pageCount <= 1) return null
@@ -26,16 +26,18 @@ export function Pagination({ page, pageCount, hrefFor, onNavigate }: PaginationP
         {label}
       </Link>
     ) : (
-      // A link with no href isn't focusable or announced as a link: the right state for "no previous page".
-      <a aria-disabled="true" className={`${itemClass} text-ink-subtle`}>
+      // Keeps the row from shifting at either end. Hidden from screen readers: a link-less
+      // "Previous" would only be read as stray text, and there is nothing to go to.
+      <a aria-hidden="true" className={`${itemClass} text-ink-subtle`}>
         {label}
       </a>
     )
 
   return (
-    <nav aria-label="Pages" className="flex flex-wrap items-center justify-center gap-1">
+    // A grid keeps Previous and Next on the numbers' row even at 320px.
+    <nav aria-label="Pages" className="grid grid-cols-[auto_1fr_auto] items-center gap-1">
       {edge('Previous', page - 1, page > 1)}
-      <ul className="flex flex-wrap items-center gap-1">
+      <ul className="flex flex-wrap items-center justify-center gap-1">
         {pageNumbers(page, pageCount).map((n, i) =>
           n === 'gap' ? (
             <li key={`gap-${i}`} aria-hidden className="px-1 text-ink-subtle">
