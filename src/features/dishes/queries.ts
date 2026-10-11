@@ -1,6 +1,13 @@
 import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query'
+import { activityMeta } from '@/features/activity/meta'
 import { dataService } from '@/services/data'
-import type { DishInput, DishUpdate, RegionInput } from './schema'
+import type { Dish, DishInput, DishUpdate, Region, RegionInput } from './schema'
+
+/** A record to delete, with its name for the change history. */
+interface Named {
+  id: string
+  name: string
+}
 
 export const dishQueries = {
   all: () => ['dishes'] as const,
@@ -21,6 +28,7 @@ export function useCreateDish() {
   return useMutation({
     mutationFn: (input: DishInput) => dataService.createDish(input),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: dishQueries.all(), refetchType: 'all' }),
+    meta: activityMeta((dish: Dish) => ({ kind: 'dish', summary: `Added the dish ${dish.name}`, link: `/dishes/${dish.id}` })),
   })
 }
 
@@ -37,17 +45,29 @@ const useRefreshRegions = () => {
 
 export function useUpdateDish(id: string) {
   const refresh = useRefreshDishes()
-  return useMutation({ mutationFn: (input: DishUpdate) => dataService.updateDish(id, input), onSuccess: refresh })
+  return useMutation({
+    mutationFn: (input: DishUpdate) => dataService.updateDish(id, input),
+    onSuccess: refresh,
+    meta: activityMeta((dish: Dish) => ({ kind: 'dish', summary: `Edited the dish ${dish.name}`, link: `/dishes/${dish.id}` })),
+  })
 }
 
 export function useDeleteDish() {
   const refresh = useRefreshDishes()
-  return useMutation({ mutationFn: (id: string) => dataService.deleteDish(id), onSuccess: refresh })
+  return useMutation({
+    mutationFn: ({ id }: Named) => dataService.deleteDish(id),
+    onSuccess: refresh,
+    meta: activityMeta((_: void, { name }: Named) => ({ kind: 'dish', summary: `Deleted the dish ${name}` })),
+  })
 }
 
 export function useCreateRegion() {
   const refresh = useRefreshRegions()
-  return useMutation({ mutationFn: (input: RegionInput) => dataService.createRegion(input), onSuccess: refresh })
+  return useMutation({
+    mutationFn: (input: RegionInput) => dataService.createRegion(input),
+    onSuccess: refresh,
+    meta: activityMeta((region: Region) => ({ kind: 'region', summary: `Added the regional kitchen ${region.name}`, link: `/regions/${region.id}` })),
+  })
 }
 
 export function useUpdateRegion(id: string) {
@@ -55,10 +75,15 @@ export function useUpdateRegion(id: string) {
   return useMutation({
     mutationFn: (input: Omit<RegionInput, 'cuisineId'>) => dataService.updateRegion(id, input),
     onSuccess: refresh,
+    meta: activityMeta((region: Region) => ({ kind: 'region', summary: `Edited the regional kitchen ${region.name}`, link: `/regions/${region.id}` })),
   })
 }
 
 export function useDeleteRegion() {
   const refresh = useRefreshRegions()
-  return useMutation({ mutationFn: (id: string) => dataService.deleteRegion(id), onSuccess: refresh })
+  return useMutation({
+    mutationFn: ({ id }: Named) => dataService.deleteRegion(id),
+    onSuccess: refresh,
+    meta: activityMeta((_: void, { name }: Named) => ({ kind: 'region', summary: `Deleted the regional kitchen ${name}` })),
+  })
 }

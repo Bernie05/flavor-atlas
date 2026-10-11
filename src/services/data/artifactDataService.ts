@@ -76,9 +76,10 @@ export function createArtifactStore(
       WRITABLE_COLLECTIONS.map((c) => {
         const get = artifactDb.collection(c).get()
         // The review queue is readable only by those who may send reviews (Contributors
-        // and up; the preview's rules can't make it write-only like the real server).
-        // For view-only visitors the read is refused: "no queue here", not "no database".
-        return c === 'submissions' ? get.catch(() => ({ docs: [] })) : get
+        // and up; the preview's rules can't make it write-only like the real server),
+        // and the change history only by the owner. For anyone else the read is
+        // refused: "nothing here for you", not "no database".
+        return c === 'submissions' || c === 'activity' ? get.catch(() => ({ docs: [] })) : get
       }),
     )
     const changes = Object.fromEntries(

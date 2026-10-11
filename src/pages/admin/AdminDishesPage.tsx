@@ -73,7 +73,7 @@ export function AdminDishesPage() {
         onCancel={close}
         onConfirm={() => {
           if (!toDelete) return
-          remove.mutate(toDelete.id, {
+          remove.mutate({ id: toDelete.id, name: toDelete.name }, {
             onSuccess: () => {
               navigate('.', { replace: true, state: { flash: `Deleted ${toDelete.name}.` } })
               setToDelete(null)

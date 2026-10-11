@@ -1,4 +1,6 @@
 import { z } from 'zod'
+import { activitySchema, type Activity } from '@/features/activity/schema'
+import { activityOverflow, sortActivity } from '@/features/activity/utils'
 import { cuisineSchema } from '@/features/cuisines/schema'
 import { dishSchema, regionSchema } from '@/features/dishes/schema'
 import { ratingSchema, submissionSchema } from '@/features/ratings/schema'
@@ -48,6 +50,24 @@ async function requestJson<T>(method: Method, path: string, schema: z.ZodType<T>
 }
 
 const recipePath = (id: string) => `/recipes/${encodeURIComponent(id)}`
+
+/**
+ * The change history, entry by entry: one that fails its schema (written by an
+ * older version, say) is skipped instead of hiding the whole history. A
+ * database from before the history existed has no collection yet: that's empty.
+ */
+async function readActivity(): Promise<Activity[]> {
+  try {
+    const raw = await requestJson('GET', '/activity', z.array(z.unknown()))
+    return raw.flatMap((item) => {
+      const parsed = activitySchema.safeParse(item)
+      return parsed.success ? [parsed.data] : []
+    })
+  } catch (error) {
+    if (error instanceof NotFoundError) return []
+    throw error
+  }
+}
 
 export const httpDataService: DataService = {
   listCuisines() {
@@ -178,6 +198,19 @@ export const httpDataService: DataService = {
 
   async deleteRating(id) {
     await request('DELETE', `/ratings/${encodeURIComponent(id)}`)
+  },
+
+  listActivity: () => readActivity().then(sortActivity),
+
+  async logActivity(input) {
+    const entry = await requestJson('POST', '/activity', activitySchema, { ...input, at: new Date().toISOString() })
+    // Keep the history short: drop what's now beyond the limit (normally one entry).
+    for (const old of activityOverflow(await readActivity())) await request('DELETE', `/activity/${encodeURIComponent(old.id)}`)
+    return entry
+  },
+
+  async markActivityUndone(id) {
+    await request('PATCH', `/activity/${encodeURIComponent(id)}`, { undoneAt: new Date().toISOString() })
   },
 
   createRating(input) {

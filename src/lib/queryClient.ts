@@ -1,6 +1,8 @@
 import { MutationCache, QueryClient } from '@tanstack/react-query'
+import { activityQueries } from '@/features/activity/queries'
+import '@/features/activity/meta'
 import { sessionQuery } from '@/features/auth/queries'
-import { isRetryable, UnauthorizedError } from '@/services/data'
+import { dataService, isRetryable, UnauthorizedError } from '@/services/data'
 
 export const queryClient: QueryClient = new QueryClient({
   defaultOptions: {
@@ -22,6 +24,17 @@ export const queryClient: QueryClient = new QueryClient({
       if (error instanceof UnauthorizedError) {
         void queryClient.invalidateQueries({ queryKey: sessionQuery.queryKey })
       }
+    },
+    // A mutation marked with activityMeta goes into the change history once it succeeds.
+    // Best effort: the change itself is saved, so a history that can't be written
+    // must not turn it into an error.
+    onSuccess: (data, variables, _context, mutation) => {
+      const entry = mutation.meta?.activity?.(data, variables)
+      if (!entry) return
+      void dataService
+        .logActivity(entry)
+        .then(() => queryClient.invalidateQueries({ queryKey: activityQueries.all() }))
+        .catch(() => {})
     },
   }),
 })

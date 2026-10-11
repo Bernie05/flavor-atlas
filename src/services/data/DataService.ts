@@ -1,3 +1,4 @@
+import type { Activity, ActivityInput } from '@/features/activity/schema'
 import type { Cuisine, CuisineInput, CuisineUpdate } from '@/features/cuisines/schema'
 import type { Dish, DishInput, DishUpdate, Region, RegionInput } from '@/features/dishes/schema'
 import type { Rating, RatingInput, Submission } from '@/features/ratings/schema'
@@ -53,4 +54,10 @@ export interface DataService {
   /** Publishes a queued review as a rating (keeping its date) and removes it from the queue. */
   approveSubmission(id: string): Promise<Rating>
   rejectSubmission(id: string): Promise<void>
+  /** The admin's change history, newest first. Admin only. Entries that fail their schema are skipped. */
+  listActivity(): Promise<Activity[]>
+  /** Adds an entry (with its id and time) and drops the oldest beyond ACTIVITY_LIMIT. Admin only. */
+  logActivity(input: ActivityInput): Promise<Activity>
+  /** Marks a move or merge as undone, so it isn't offered again. */
+  markActivityUndone(id: string): Promise<void>
 }

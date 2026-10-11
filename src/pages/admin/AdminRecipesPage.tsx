@@ -7,6 +7,8 @@ import { ErrorState } from '@/components/feedback/ErrorState'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { StarRating } from '@/components/ui/StarRating'
 import { FlashMessage, type FlashState } from '@/features/admin/components/FlashMessage'
+import { Pagination } from '@/features/admin/components/Pagination'
+import { ADMIN_RECIPE_SORTS, isAdminRecipeSort, paginate, parsePage, sortAdminRecipes } from '@/features/admin/list'
 import { cuisineQueries } from '@/features/cuisines/queries'
 import { dishQueries, regionQueries } from '@/features/dishes/queries'
 import { summarizeRatings } from '@/features/ratings/summary'
@@ -40,15 +42,34 @@ export function AdminRecipesPage() {
   // ?cuisine=filipino opens the list filtered, e.g. from a cuisine that can't be deleted yet.
   // The filter is React state mirrored to the URL, so a reload keeps it (as on CuisinePage).
   const [searchParams, setSearchParams] = useSearchParams()
-  const [cuisineFilter, setCuisineFilter] = useState(() => searchParams.get('cuisine') ?? '')
-  const filterByCuisine = (id: string) => {
-    setCuisineFilter(id)
-    // Change only the cuisine: a ?dish= or ?region= filter stays.
+  /** Change some address parameters, keeping the others (a ?dish= filter stays when the sort changes). */
+  const setParams = (changes: Record<string, string | null>) => {
     const next = new URLSearchParams(searchParams)
-    if (id) next.set('cuisine', id)
-    else next.delete('cuisine')
+    for (const [key, value] of Object.entries(changes)) {
+      if (value) next.set(key, value)
+      else next.delete(key)
+    }
     setSearchParams(next, { replace: true })
   }
+  const [cuisineFilter, setCuisineFilter] = useState(() => searchParams.get('cuisine') ?? '')
+  // A new filter starts again from page 1.
+  const filterByCuisine = (id: string) => {
+    setCuisineFilter(id)
+    setParams({ cuisine: id || null, page: null })
+  }
+  // Sort and page change one click at a time, so they're read straight from the address
+  // (unlike the search box, which is React state: see the setSearchParams gotcha).
+  const sortParam = searchParams.get('sort')
+  const sort = isAdminRecipeSort(sortParam) ? sortParam : 'newest'
+  const pageLink = (page: number) => {
+    const next = new URLSearchParams(searchParams)
+    if (page > 1) next.set('page', String(page))
+    else next.delete('page')
+    return `?${next.toString()}`
+  }
+  // After a page link: the new page starts at its "Showing 13–24 of 27" line.
+  const rangeRef = useRef<HTMLParagraphElement>(null)
+  const focusRange = () => requestAnimationFrame(() => rangeRef.current?.focus())
   const headingRef = useRef<HTMLHeadingElement>(null)
   // The selection bar (and the button that had focus) goes away: start again from the heading.
   const focusHeading = () => requestAnimationFrame(() => headingRef.current?.focus())
@@ -56,7 +77,7 @@ export function AdminRecipesPage() {
   // ?dish=… or ?region=… come from a dish or region that can't be deleted yet: its recipes, to move.
   const dishFilter = searchParams.get('dish')
   const regionFilter = searchParams.get('region')
-  const clearPlaceFilter = () => setSearchParams(cuisineFilter ? { cuisine: cuisineFilter } : {}, { replace: true })
+  const clearPlaceFilter = () => setParams({ dish: null, region: null, page: null })
   const [selected, setSelected] = useState<Set<string>>(() => new Set())
   const [moving, setMoving] = useState(false)
   const toggle = (id: string) =>
@@ -78,9 +99,15 @@ export function AdminRecipesPage() {
   const cuisineById = new Map(cuisines.data.map((c) => [c.id, c]))
   // An id that isn't a cuisine (a stale link) shows everything, matching what the select shows.
   const cuisineId = cuisineById.has(cuisineFilter) ? cuisineFilter : ''
-  const visible = applyRecipeFilters(recipes.data, { ...DEFAULT_FILTERS, query, cuisineId, sort: 'newest' }).filter(
-    (recipe) => (!dishFilter || recipe.dishId === dishFilter) && (!regionFilter || recipe.regionId === regionFilter),
+  const matching = sortAdminRecipes(
+    applyRecipeFilters(recipes.data, { ...DEFAULT_FILTERS, query, cuisineId }).filter(
+      (recipe) => (!dishFilter || recipe.dishId === dishFilter) && (!regionFilter || recipe.regionId === regionFilter),
+    ),
+    sort,
   )
+  // One page of the matches. A page past the end (the last recipe on it was deleted) shows the last one.
+  const paged = paginate(matching, parsePage(searchParams.get('page')))
+  const visible = paged.items
   const placeName = dishFilter ? dishById.get(dishFilter)?.name : regions?.find((r) => r.id === regionFilter)?.name
   const selectedRecipes = recipes.data.filter((recipe) => selected.has(recipe.id))
   const allShownSelected = visible.length > 0 && visible.every((recipe) => selected.has(recipe.id))
@@ -139,7 +166,7 @@ export function AdminRecipesPage() {
         }}
         onConfirm={() => {
           if (!toDelete) return
-          deleteRecipe.mutate(toDelete.id, {
+          deleteRecipe.mutate({ id: toDelete.id, name: toDelete.title }, {
             onSuccess: () => {
               navigate('.', { replace: true, state: { flash: `Deleted “${toDelete.title}”.` } })
               setToDelete(null)
@@ -188,7 +215,10 @@ export function AdminRecipesPage() {
           id="admin-search"
           type="search"
           value={query}
-          onChange={(event) => setQuery(event.target.value)}
+          onChange={(event) => {
+            setQuery(event.target.value)
+            if (searchParams.has('page')) setParams({ page: null })
+          }}
           placeholder="Search by name or ingredient"
           className="min-h-11 min-w-0 flex-1 rounded-full border border-line-strong bg-surface px-4 placeholder:text-ink-subtle"
         />
@@ -205,6 +235,21 @@ export function AdminRecipesPage() {
           {cuisines.data.map((c) => (
             <option key={c.id} value={c.id}>
               {c.name}
+            </option>
+          ))}
+        </select>
+        <label htmlFor="admin-sort" className="sr-only">
+          Sort recipes
+        </label>
+        <select
+          id="admin-sort"
+          value={sort}
+          onChange={(event) => setParams({ sort: event.target.value === 'newest' ? null : event.target.value, page: null })}
+          className="min-h-11 rounded-full border border-line-strong bg-surface px-4"
+        >
+          {Object.entries(ADMIN_RECIPE_SORTS).map(([value, label]) => (
+            <option key={value} value={value}>
+              {label}
             </option>
           ))}
         </select>
@@ -225,6 +270,10 @@ export function AdminRecipesPage() {
         <EmptyState title="No recipes match" description="Try a different search or cuisine." />
       ) : (
         <>
+          <p ref={rangeRef} tabIndex={-1} className="label-mono text-ink-subtle tabular-nums">
+            {paged.pageCount > 1 ? `Showing ${paged.first}–${paged.last} of ${paged.total}` : `${paged.total} ${paged.total === 1 ? 'recipe' : 'recipes'}`}
+            {paged.pageCount > 1 && <span className="sr-only">, page {paged.page} of {paged.pageCount}</span>}
+          </p>
           {/* Wide screens: a table to scan and compare (scrolls inside its box if it ever runs out of room). */}
           <div className="hidden overflow-x-auto rounded-2xl bg-surface ring-1 ring-line lg:block">
             <table className="w-full text-left text-sm">
@@ -236,7 +285,7 @@ export function AdminRecipesPage() {
                         type="checkbox"
                         checked={allShownSelected}
                         onChange={selectAllShown}
-                        aria-label={allShownSelected ? 'Deselect all shown' : 'Select all shown'}
+                        aria-label={`${allShownSelected ? 'Deselect' : 'Select'} all ${paged.pageCount > 1 ? 'on this page' : 'shown'}`}
                         className="size-5 accent-[var(--accent)]"
                       />
                     </label>
@@ -290,7 +339,7 @@ export function AdminRecipesPage() {
           {/* Phones have no table header, so select-all gets its own row. */}
           <label className="flex min-h-10 cursor-pointer items-center gap-3 px-1 text-sm font-semibold lg:hidden">
             <input type="checkbox" checked={allShownSelected} onChange={selectAllShown} className="size-5 accent-[var(--accent)]" />
-            Select all shown ({visible.length})
+            Select all {paged.pageCount > 1 ? 'on this page' : 'shown'} ({visible.length})
           </label>
 
           {/* Phones: one row per recipe, actions underneath. */}
@@ -324,6 +373,8 @@ export function AdminRecipesPage() {
               )
             })}
           </ul>
+
+          <Pagination page={paged.page} pageCount={paged.pageCount} hrefFor={pageLink} onNavigate={focusRange} />
         </>
       )}
 

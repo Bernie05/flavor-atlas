@@ -27,6 +27,9 @@ const METHODS = {
   listSubmissions: true,
   approveSubmission: true,
   rejectSubmission: true,
+  listActivity: true,
+  logActivity: true,
+  markActivityUndone: true,
 } satisfies Record<keyof DataService, true>
 
 /**

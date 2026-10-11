@@ -3,6 +3,7 @@ import { Link } from 'react-router'
 import { CardGridSkeleton } from '@/components/feedback/CardGridSkeleton'
 import { ErrorState } from '@/components/feedback/ErrorState'
 import { StarRating } from '@/components/ui/StarRating'
+import { RecentChanges } from '@/features/activity/components/RecentChanges'
 import { findAttention } from '@/features/admin/attention'
 import { NeedsAttention } from '@/features/admin/components/NeedsAttention'
 import { StatTile } from '@/features/admin/components/StatTile'
@@ -80,6 +81,7 @@ export function AdminDashboardPage() {
 
       <div className="grid gap-8 lg:grid-cols-2">
         <NeedsAttention groups={attention} />
+        <RecentChanges />
 
         <section aria-labelledby="latest-heading" className="space-y-4">
           <div className="flex items-end justify-between">

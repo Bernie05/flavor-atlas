@@ -43,7 +43,7 @@ export function AdminReviewsPage() {
           setToDelete(null)
           deleteRating.reset()
         }}
-        onConfirm={() => toDelete && deleteRating.mutate(toDelete.id, { onSuccess: () => setToDelete(null) })}
+        onConfirm={() => toDelete && deleteRating.mutate({ id: toDelete.id, label: `the ${toDelete.score}-star review of ${toDelete.recipeTitle}`, recipeId: toDelete.recipeId }, { onSuccess: () => setToDelete(null) })}
       />
 
       <header>

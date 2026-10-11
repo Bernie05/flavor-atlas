@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { ACTIVITY_LIMIT } from '@/features/activity/utils'
 import { createArtifactStore } from './artifactDataService'
 import { ApiError, UnauthorizedError } from './errors'
 import { getSeed } from './mockDataService'
@@ -151,6 +152,25 @@ describe('artifact data service', () => {
     const visitor = serviceOver(db)
     expect((await visitor.getCuisine('korean')).name).toBe('Korean (edited)') // saved changes, not the bare seed
     expect(await visitor.listSubmissions()).toEqual([])
+  })
+
+  it('keeps a short change history, newest first, that only the owner can read', async () => {
+    const fake = fakeDb()
+    const service = serviceOver(fake.db)
+    for (let i = 0; i < ACTIVITY_LIMIT + 2; i++) await service.logActivity({ kind: 'recipe', summary: `Change ${i}` })
+    const history = await service.listActivity()
+    expect(history).toHaveLength(ACTIVITY_LIMIT) // the two oldest were dropped
+    expect(history[0]!.summary).toBe(`Change ${ACTIVITY_LIMIT + 1}`)
+    await service.markActivityUndone(history[0]!.id)
+    expect((await service.listActivity())[0]!.undoneAt).toBeDefined()
+
+    const visitor = serviceOver({
+      ...fake.db,
+      collection: (path: string) =>
+        path === 'activity' ? { get: async () => Promise.reject({ code: 'permission_denied', message: 'owner only' }) } : fake.db.collection(path),
+    })
+    expect(await visitor.listActivity()).toEqual([])
+    expect((await visitor.listRecipes()).length).toBeGreaterThan(0)
   })
 
   it('renames a dish, keeps its cuisine, and refuses to delete it while recipes use it', async () => {

@@ -1,4 +1,6 @@
 import { z } from 'zod'
+import { activitySchema, type Activity } from '@/features/activity/schema'
+import { activityOverflow, sortActivity } from '@/features/activity/utils'
 import { cuisineSchema, type Cuisine } from '@/features/cuisines/schema'
 import { cuisineIdFor, cuisineUsage } from '@/features/cuisines/utils'
 import { dishSchema, regionSchema, type Dish, type Region } from '@/features/dishes/schema'
@@ -15,12 +17,14 @@ export const dbSchema = z.object({
   ratings: z.array(ratingSchema),
   /** Visitor reviews waiting for the admin; older seeds have none. */
   submissions: z.array(submissionSchema).default([]),
+  /** The admin's change history; older seeds have none. */
+  activity: z.array(activitySchema).default([]),
 })
 
 export type Db = z.infer<typeof dbSchema>
 
 /** The collections the app can change. Cuisines and regions are fixed. */
-export type WritableCollection = 'cuisines' | 'dishes' | 'regions' | 'recipes' | 'ratings' | 'submissions'
+export type WritableCollection = 'cuisines' | 'dishes' | 'regions' | 'recipes' | 'ratings' | 'submissions' | 'activity'
 
 export interface WritableRecords {
   cuisines: Cuisine
@@ -29,6 +33,7 @@ export interface WritableRecords {
   recipes: Recipe
   ratings: Rating
   submissions: Submission
+  activity: Activity
 }
 
 /**
@@ -222,6 +227,23 @@ export function createSnapshotDataService(store: SnapshotStore): DataService {
       await store.put('ratings', id, null)
     },
 
+    async listActivity() {
+      return structuredClone(sortActivity((await store.read()).activity))
+    },
+
+    async logActivity(input) {
+      const entry: Activity = { ...input, id: crypto.randomUUID(), at: new Date().toISOString() }
+      await store.put('activity', entry.id, entry)
+      for (const old of activityOverflow((await store.read()).activity)) await store.put('activity', old.id, null)
+      return structuredClone(entry)
+    },
+
+    async markActivityUndone(id) {
+      const entry = (await store.read()).activity.find((e) => e.id === id)
+      if (!entry) throw new NotFoundError("We couldn't find that change.")
+      await store.put('activity', id, { ...entry, undoneAt: new Date().toISOString() })
+    },
+
     async createRating(input) {
       findRecipe(await store.read(), input.recipeId) // can't rate a recipe that doesn't exist
       const rating: Rating = { ...input, id: crypto.randomUUID(), createdAt: new Date().toISOString() }
@@ -255,6 +277,8 @@ export function applyPut<C extends WritableCollection>(db: Db, collection: C, id
       return { ...db, ratings: putRecord(db.ratings, id, record as Rating | null) }
     case 'submissions':
       return { ...db, submissions: putRecord(db.submissions, id, record as Submission | null) }
+    case 'activity':
+      return { ...db, activity: putRecord(db.activity, id, record as Activity | null) }
   }
   throw new Error(`Unknown collection: ${String(collection)}`)
 }

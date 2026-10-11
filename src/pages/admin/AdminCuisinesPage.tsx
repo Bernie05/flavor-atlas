@@ -73,7 +73,7 @@ export function AdminCuisinesPage() {
         onCancel={closeDialog}
         onConfirm={() => {
           if (!toDelete) return
-          deleteCuisine.mutate(toDelete.id, {
+          deleteCuisine.mutate({ id: toDelete.id, name: toDelete.name }, {
             onSuccess: () => {
               navigate('.', { replace: true, state: { flash: `Deleted ${toDelete.name}.` } })
               setToDelete(null)

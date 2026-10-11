@@ -3,7 +3,7 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { inputClass } from '@/components/ui/formStyles'
 import type { Dish, Region } from '@/features/dishes/schema'
 import { describeError } from '@/services/data'
-import { mergeTargets, planMerge, undoMerge, type Undo } from '../move'
+import { mergeTargets, planMerge, type Undo } from '../move'
 import { useMergeDishes } from '../mutations'
 import type { RecipeWithRatings } from '../schema'
 
@@ -61,8 +61,8 @@ export function MergeDishDialog({ source, dishes, recipes, regions, onClose, onM
       onConfirm={() => {
         if (!plan) return
         merge.mutate(plan, {
-          onSuccess: (moved) => {
-            onMerged(`Merged ${plan.source.name} into ${plan.target.name}${moved > 0 ? ` (${versions(moved)} moved)` : ''}.`, undoMerge(plan, Date.now()))
+          onSuccess: ({ moved, undo }) => {
+            onMerged(`Merged ${plan.source.name} into ${plan.target.name}${moved > 0 ? ` (${versions(moved)} moved)` : ''}.`, undo)
             close()
           },
         })

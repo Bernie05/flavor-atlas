@@ -228,3 +228,5 @@ This repo ships Claude Code configuration in `.claude/`:
   - [x] "Edit" shortcuts on public cuisine, dish and recipe pages, for the admin only
   - [x] Focus moves to the new page's heading after every navigation, so screen readers announce it
   - [x] Undo for moves and merges; links to a merged dish lead to the dish it became part of
+  - [x] A change history on the dashboard (admin only), with Undo for recent moves and merges
+  - [x] Sorting and pages in the admin recipe list (shareable addresses: ?sort=name&page=2)

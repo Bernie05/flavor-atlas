@@ -43,7 +43,7 @@ describe('planMove', () => {
 
   it('leaves recipes already in the target dish alone', () => {
     const plan = planMove([recipe('1', 'Chicken Adobo', 'adobo', 'filipino')], adobo, regions)
-    expect(plan).toEqual({ updates: [], losesRegion: [], unchanged: ['Chicken Adobo'] })
+    expect(plan).toEqual({ target: adobo, updates: [], losesRegion: [], unchanged: ['Chicken Adobo'] })
   })
 })
 

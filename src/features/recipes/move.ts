@@ -1,15 +1,20 @@
-import type { Dish, MergedDish, Region } from '@/features/dishes/schema'
-import type { RecipeInput, RecipeWithRatings } from './schema'
+import { z } from 'zod'
+import { dishSchema, type Dish, type MergedDish, type Region } from '@/features/dishes/schema'
+import { recipeInputSchema, type RecipeWithRatings } from './schema'
 
 /** One recipe saved by a move: what it becomes and what it was. */
-export interface RecipeChange {
-  id: string
-  title: string
-  input: RecipeInput
-  previous: RecipeInput
-}
+export const recipeChangeSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  input: recipeInputSchema,
+  previous: recipeInputSchema,
+})
+
+export type RecipeChange = z.infer<typeof recipeChangeSchema>
 
 export interface MovePlan {
+  /** The dish the recipes become versions of. */
+  target: Dish
   /** Each recipe to save, as it will be after the move, and as it was before (for undo). */
   updates: RecipeChange[]
   /** Recipes whose regional kitchen belongs to the old cuisine, so it's cleared. */
@@ -27,7 +32,7 @@ export interface MovePlan {
  */
 export function planMove(recipes: RecipeWithRatings[], target: Dish, regions: Region[]): MovePlan {
   const regionById = new Map(regions.map((region) => [region.id, region]))
-  const plan: MovePlan = { updates: [], losesRegion: [], unchanged: [] }
+  const plan: MovePlan = { target, updates: [], losesRegion: [], unchanged: [] }
 
   for (const recipe of recipes) {
     if (recipe.dishId === target.id) {
@@ -87,11 +92,16 @@ export const UNDO_WINDOW_MS = 10 * 60 * 1000
 /**
  * What it takes to undo a move or a merge. It's plain data, not a function,
  * because it travels in the router's navigation state (with the "Moved…"
- * message), and browser history can only store what it can copy.
+ * message), and browser history can only store what it can copy. It's also
+ * kept in the change history, so it has a schema: stored data is validated
+ * when it's read back.
  */
-export type Undo =
-  | { kind: 'move'; at: number; recipes: RecipeChange[] }
-  | { kind: 'merge'; at: number; source: Dish; target: Dish; recipes: RecipeChange[] }
+export const undoSchema = z.discriminatedUnion('kind', [
+  z.object({ kind: z.literal('move'), at: z.number(), recipes: z.array(recipeChangeSchema) }),
+  z.object({ kind: z.literal('merge'), at: z.number(), source: dishSchema, target: dishSchema, recipes: z.array(recipeChangeSchema) }),
+])
+
+export type Undo = z.infer<typeof undoSchema>
 
 export const undoMove = (plan: MovePlan, at: number): Undo => ({ kind: 'move', at, recipes: plan.updates })
 

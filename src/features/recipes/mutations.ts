@@ -3,7 +3,9 @@ import { useRef } from 'react'
 import { dishQueries, useCreateDish } from '@/features/dishes/queries'
 import { dataService } from '@/services/data'
 import type { RecipeSubmission } from './form'
-import { findRestoredDish, restoreRecipes, type MergePlan, type Undo } from './move'
+import { activityMeta } from '@/features/activity/meta'
+import { entryForUndo } from '@/features/activity/utils'
+import { findRestoredDish, restoreRecipes, undoMerge, undoMove, undoneMessage, type MergePlan, type MovePlan, type Undo } from './move'
 import { recipeQueries } from './queries'
 import type { Recipe, RecipeInput, RecipeWithRatings } from './schema'
 
@@ -19,11 +21,18 @@ import type { Recipe, RecipeInput, RecipeWithRatings } from './schema'
 export const refreshRecipes = (queryClient: QueryClient) =>
   queryClient.invalidateQueries({ queryKey: recipeQueries.all(), refetchType: 'all' })
 
+/** A record to delete, with its name for the change history. */
+export interface Named {
+  id: string
+  name: string
+}
+
 export function useCreateRecipe() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (input: RecipeInput) => dataService.createRecipe(input),
     onSuccess: () => refreshRecipes(queryClient),
+    meta: activityMeta((recipe: Recipe) => ({ kind: 'recipe', summary: `Added “${recipe.title}”`, link: `/recipes/${recipe.id}` })),
   })
 }
 
@@ -32,14 +41,17 @@ export function useUpdateRecipe(id: string) {
   return useMutation({
     mutationFn: (input: RecipeInput) => dataService.updateRecipe(id, input),
     onSuccess: () => refreshRecipes(queryClient),
+    meta: activityMeta((recipe: Recipe) => ({ kind: 'recipe', summary: `Edited “${recipe.title}”`, link: `/recipes/${recipe.id}` })),
   })
 }
 
 export function useDeleteRecipe() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (id: string) => dataService.deleteRecipe(id),
-    onSuccess: (_result, id) => {
+    // The title travels with the id, for the change history ("Deleted “Japchae”").
+    mutationFn: ({ id }: Named) => dataService.deleteRecipe(id),
+    meta: activityMeta((_: void, { name }: Named) => ({ kind: 'recipe', summary: `Deleted “${name}”` })),
+    onSuccess: (_result, { id }) => {
       // Remove the recipe from every cached list immediately, so no screen
       // can show it again, and drop its detail entry so it isn't refetched (404).
       queryClient.setQueriesData<RecipeWithRatings[]>({ queryKey: recipeQueries.lists() }, (recipes) =>
@@ -111,11 +123,25 @@ async function saveMoves(plan: { updates: { id: string; title: string; input: Re
 const refreshAfterMove = (queryClient: QueryClient) =>
   Promise.all([refreshRecipes(queryClient), queryClient.invalidateQueries({ queryKey: dishQueries.all(), refetchType: 'all' })])
 
+/** What a move or merge returns: how many recipes moved, and the data to undo it (also kept in the history). */
+interface Moved {
+  moved: number
+  undo: Undo
+}
+
+const count = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`
+
 export function useMoveRecipes() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: saveMoves,
+    mutationFn: async (plan: MovePlan): Promise<Moved> => ({ moved: await saveMoves(plan), undo: undoMove(plan, Date.now()) }),
     onSettled: () => refreshAfterMove(queryClient),
+    meta: activityMeta(({ moved, undo }: Moved, plan: MovePlan) => ({
+      kind: 'move',
+      summary: `Moved ${count(moved, 'recipe')} to ${plan.target.name}`,
+      link: `/dishes/${plan.target.id}`,
+      undo,
+    })),
   })
 }
 
@@ -128,7 +154,8 @@ export function useMoveRecipes() {
 export function useMergeDishes() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async ({ source, target, moves, mergedFrom }: MergePlan) => {
+    mutationFn: async (plan: MergePlan): Promise<Moved> => {
+      const { source, target, moves, mergedFrom } = plan
       const moved = await saveMoves(moves)
       try {
         // Before the delete: if it fails, the redirect is harmless (the old dish still has its own page).
@@ -137,8 +164,14 @@ export function useMergeDishes() {
       } catch (error) {
         throw new Error(`Moved every version, but ${source.name} itself couldn't be removed. Merge it again to finish.`, { cause: error })
       }
-      return moved
+      return { moved, undo: undoMerge(plan, Date.now()) }
     },
+    meta: activityMeta(({ moved, undo }: Moved, { source, target }: MergePlan) => ({
+      kind: 'merge',
+      summary: `Merged ${source.name} into ${target.name}${moved > 0 ? ` (${count(moved, 'version')})` : ''}`,
+      link: `/dishes/${target.id}`,
+      undo,
+    })),
     // The deleted dish's page must not be refetched (404); everything else refreshes, even after a partial merge.
     onSuccess: (_moved, { source }) => queryClient.removeQueries({ queryKey: dishQueries.detail(source.id).queryKey }),
     onSettled: () => refreshAfterMove(queryClient),
@@ -157,24 +190,34 @@ export function useUndoChange() {
     // Every step can run twice: recipes are saved whole (as they were), and the merged dish is
     // looked up before it's recreated. So after a failure, pressing Undo again finishes the job.
     mutationFn: async (undo: Undo) => {
-      try {
-        if (undo.kind === 'move') return await saveMoves({ updates: restoreRecipes(undo.recipes) })
-        const { source, target } = undo
-        const dish =
-          findRestoredDish(await dataService.listDishes(), undo) ??
-          (await dataService.createDish({ cuisineId: source.cuisineId, name: source.name, description: source.description }))
-        await dataService.updateDish(dish.id, {
-          name: dish.name,
-          description: dish.description,
-          mergedFrom: [{ id: source.id, name: source.name }, ...(source.mergedFrom ?? [])],
-        })
-        const moved = await saveMoves({ updates: restoreRecipes(undo.recipes, dish.id) })
-        await dataService.updateDish(target.id, { name: target.name, description: target.description, mergedFrom: target.mergedFrom ?? [] })
-        return moved
-      } catch (error) {
-        throw new Error("Couldn't finish undoing. Press Undo again to finish.", { cause: error })
-      }
+      const moved = await reverse(undo)
+      // Its history entry stops offering Undo (best effort: the undo itself is done).
+      const entry = entryForUndo(await dataService.listActivity().catch(() => []), undo.at)
+      if (entry) await dataService.markActivityUndone(entry.id).catch(() => {})
+      return moved
     },
+    meta: activityMeta((_: number, undo: Undo) => ({ kind: 'undo', summary: undoneMessage(undo).replace(/\.$/, '') })),
     onSettled: () => refreshAfterMove(queryClient),
   })
+}
+
+/** The undo itself: every step can run twice (see useUndoChange). */
+async function reverse(undo: Undo): Promise<number> {
+  try {
+    if (undo.kind === 'move') return await saveMoves({ updates: restoreRecipes(undo.recipes) })
+    const { source, target } = undo
+    const dish =
+      findRestoredDish(await dataService.listDishes(), undo) ??
+      (await dataService.createDish({ cuisineId: source.cuisineId, name: source.name, description: source.description }))
+    await dataService.updateDish(dish.id, {
+      name: dish.name,
+      description: dish.description,
+      mergedFrom: [{ id: source.id, name: source.name }, ...(source.mergedFrom ?? [])],
+    })
+    const moved = await saveMoves({ updates: restoreRecipes(undo.recipes, dish.id) })
+    await dataService.updateDish(target.id, { name: target.name, description: target.description, mergedFrom: target.mergedFrom ?? [] })
+    return moved
+  } catch (error) {
+    throw new Error("Couldn't finish undoing. Press Undo again to finish.", { cause: error })
+  }
 }

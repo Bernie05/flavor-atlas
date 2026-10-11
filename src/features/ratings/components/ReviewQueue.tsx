@@ -53,7 +53,7 @@ export function ReviewQueue({ recipes }: { recipes: RecipeWithRatings[] }) {
         onConfirm={() => {
           if (!toReject) return
           const message = `Rejected ${describe(toReject)}.`
-          reject.mutate(toReject.id, {
+          reject.mutate({ id: toReject.id, label: describe(toReject), recipeId: toReject.recipeId }, {
             onSuccess: () => {
               setToReject(null)
               done(message).onSuccess()
@@ -110,7 +110,7 @@ export function ReviewQueue({ recipes }: { recipes: RecipeWithRatings[] }) {
                   <button
                     type="button"
                     aria-disabled={busy}
-                    onClick={() => !busy && approve.mutate(review.id, done(`Approved ${describe(review)}. It's on the recipe now.`))}
+                    onClick={() => !busy && approve.mutate({ id: review.id, label: describe(review), recipeId: review.recipeId }, done(`Approved ${describe(review)}. It's on the recipe now.`))}
                     className="min-h-10 rounded-full bg-ink px-4 text-sm font-semibold text-canvas hover:bg-accent aria-disabled:opacity-60"
                   >
                     Approve<span className="sr-only">{which}</span>
