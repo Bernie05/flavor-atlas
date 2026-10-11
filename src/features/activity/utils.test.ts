@@ -14,6 +14,12 @@ describe('sortActivity and activityOverflow', () => {
     expect(sortActivity(entries).map((e) => e.id)).toEqual(['c', 'b', 'a'])
   })
 
+  it('puts the later-stored first when two share a timestamp', () => {
+    const same = '2026-10-11T10:00:00.000Z'
+    expect(sortActivity([entry('first', same), entry('second', same)]).map((e) => e.id)).toEqual(['second', 'first'])
+    expect(activityOverflow([entry('first', same), entry('second', same)], 1).map((e) => e.id)).toEqual(['first'])
+  })
+
   it('names the oldest entries beyond the limit', () => {
     expect(activityOverflow(entries, 2).map((e) => e.id)).toEqual(['a'])
     expect(activityOverflow(entries, 5)).toEqual([])

@@ -4,8 +4,16 @@ import type { Activity } from './schema'
 /** The history keeps the latest changes only: older ones are dropped as new ones come in. */
 export const ACTIVITY_LIMIT = 50
 
-/** Newest first. */
-export const sortActivity = (entries: Activity[]) => entries.toSorted((a, b) => b.at.localeCompare(a.at))
+/**
+ * Newest first. Two changes can share a millisecond (a merge and its history entry,
+ * or a quick script): then the one stored later is the newer, since both stores
+ * keep insertion order. Without that tie-break they'd come out oldest first.
+ */
+export const sortActivity = (entries: Activity[]) =>
+  entries
+    .map((entry, index) => ({ entry, index }))
+    .toSorted((a, b) => b.entry.at.localeCompare(a.entry.at) || b.index - a.index)
+    .map(({ entry }) => entry)
 
 /** The entries beyond the limit (the oldest), to delete after a new one is added. */
 export const activityOverflow = (entries: Activity[], limit = ACTIVITY_LIMIT) => sortActivity(entries).slice(limit)
