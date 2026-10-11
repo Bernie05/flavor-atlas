@@ -29,3 +29,8 @@ db.json
 
 # Environment
 .env
+
+# Browser tests: saved login, reports and failure traces
+tests/e2e/.auth/
+test-results/
+playwright-report/

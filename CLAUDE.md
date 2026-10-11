@@ -9,6 +9,7 @@ npm run dev          # app + API on :5173 (json-server runs in-process behind th
 npm run dev:mock     # Vite only, no API: seed data in memory (artifact data source falls back to it)
 npm run db:reset     # restore db.json from db.seed.json, then restart dev (needed after seed shape changes)
 npm test             # Vitest unit tests
+npm run test:e2e     # Playwright: real browser, real server, throwaway db (CI runs it too)
 npm run typecheck && npm run lint && npm test && npm run build   # run before every commit
 # .githooks/pre-commit runs typecheck, lint and tests on every commit (activated by npm install)
 npm run build:demo   # single-file build in dist-demo/ (seed + artifact db changes, memory router, viewer AI)
@@ -38,6 +39,7 @@ npm run auth:hash     # admin password hash + session secret for .env
 - **Access is enforced on the server.** Every write goes through the `/api/data` gateway (`server/auth/access.ts` decides). Hiding a button is never the protection. New write endpoints must check `isAdmin()` the same way.
 - **Server-only secrets** live in `server/` and in env vars without the `VITE_` prefix. Never import `@anthropic-ai/sdk` from `src/`.
 - Every list or detail view handles loading, error and empty states.
+- **Browser tests** (`tests/e2e/*.e2e.ts`) cover flows that cross the server: access rules, admin changes, undo. They run one at a time on one database, so a test makes its own data (`unique()`) or puts back what it changes. Prove a new test can fail (break the code, watch it go red) before trusting it.
 - **Admin changes go into the change history** by marking the mutation: `meta: activityMeta((saved, input) => ({ kind, summary, link }))` (`features/activity/meta.ts`). One `MutationCache.onSuccess` in `lib/queryClient.ts` writes it; never log from a component. Deletes pass `{ id, name }` so the entry can name what went. Never put a visitor's words in a summary.
 - Don't read `Date.now()` while rendering (the `purity` lint rule): use `useNow()` (`lib/useNow.ts`) for times on screen, and read the clock in event handlers.
 - Every page has exactly one `<h1>`: after each navigation, focus moves to it (`lib/useRouteFocus.ts`, used by both layouts) so screen readers announce the new page.

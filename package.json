@@ -12,6 +12,7 @@
     "build:demo": "tsc -b && vite build --mode demo --outDir dist-demo",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:e2e": "playwright test",
     "typecheck": "tsc -b",
     "lint": "oxlint",
     "prepare": "git config core.hooksPath .githooks || true",
@@ -29,6 +30,7 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@playwright/test": "1.56.1",
     "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.18",

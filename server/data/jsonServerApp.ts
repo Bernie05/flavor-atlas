@@ -27,8 +27,10 @@ export type DataHandler = (req: IncomingMessage, res: ServerResponse, next: () =
 export async function createDataHandler(file: string): Promise<DataHandler> {
   const db = new Low<Data>(new Observer(new NormalizedAdapter(new JSONFile<Data>(file))), {})
   await db.read()
-  // A db.json from before visitor reviews has no queue; json-server would 404 on it.
+  // A db.json from before visitor reviews (or the change history) lacks those
+  // collections, and json-server would 404 on them.
   db.data.submissions ??= []
+  db.data.activity ??= []
   const app = createApp(db, { logger: false })
   // Visitor reviews are the one public write: a few per visitor, then wait.
   const allowSubmission = createRateLimiter({ limit: 5, windowMs: 10 * 60_000 })

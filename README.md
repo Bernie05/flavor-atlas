@@ -60,6 +60,7 @@ After pulling changes to `db.seed.json`, run `npm run db:reset` so your local `d
 | `npm run db:reset` | Restore `db.json` from the committed seed (restart `npm run dev` afterwards) |
 | `npm run auth:hash` | Create the admin password hash and session secret for `.env` |
 | `npm test` | Unit tests (Vitest) |
+| `npm run test:e2e` | Browser tests (Playwright) against the real server, on a throwaway copy of the seed |
 | `npm run typecheck` / `lint` / `build` | Quality checks |
 | `npm run build:demo` | Self-contained single-file build in `dist-demo/` |
 
@@ -230,3 +231,4 @@ This repo ships Claude Code configuration in `.claude/`:
   - [x] Undo for moves and merges; links to a merged dish lead to the dish it became part of
   - [x] A change history on the dashboard (admin only), with Undo for recent moves and merges
   - [x] Sorting and pages in the admin recipe list (shareable addresses: ?sort=name&page=2)
+  - [x] Browser tests (Playwright) for the admin flows and access rules, run by GitHub Actions on every push

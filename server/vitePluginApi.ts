@@ -8,6 +8,8 @@ export interface ApiEnv {
   ANTHROPIC_API_KEY?: string
   ADMIN_PASSWORD_HASH?: string
   SESSION_SECRET?: string
+  /** The database file, relative to the project. Default db.json; the browser tests use a throwaway copy. */
+  DATA_FILE?: string
 }
 
 // Shapes of the server modules, declared here instead of imported so this
@@ -86,7 +88,7 @@ export function apiPlugin(env: ApiEnv): Plugin {
       let dataHandler: ReturnType<DataModule['createDataHandler']> | undefined
       const getDataHandler = () =>
         (dataHandler ??= load<DataModule>('/server/data/jsonServerApp.ts').then((m) =>
-          m.createDataHandler(resolve(server.config.root, 'db.json')),
+          m.createDataHandler(resolve(server.config.root, env.DATA_FILE ?? 'db.json')),
         ))
 
       // The gateway, then the data: every request to json-server passes the check.
