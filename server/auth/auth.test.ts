@@ -76,6 +76,21 @@ describe('access rules', () => {
     expect(requiresAdmin('POST', '/ratings')).toBe(true) // approved reviews are still admin-only
     expect(requiresAdmin('GET', '/recipes/1?_embed=ratings')).toBe(false)
   })
+
+  it('refuses to embed a private collection in a public read', () => {
+    expect(requiresAdmin('GET', '/recipes?_embed=submissions')).toBe(true)
+    expect(requiresAdmin('GET', '/recipes/1?_embed=ratings&_embed=submissions')).toBe(true)
+    expect(requiresAdmin('GET', '/recipes?_embed=ratings,submissions')).toBe(true)
+    expect(requiresAdmin('GET', '/dishes?_embed=activity')).toBe(true)
+    expect(requiresAdmin('GET', '/recipes?_expand=submissions')).toBe(true)
+    expect(requiresAdmin('GET', '/recipes?_embed=ratings')).toBe(false) // public ratings stay public
+  })
+
+  it('keeps the change history to the admin, reads included', () => {
+    for (const method of ['GET', 'HEAD', 'POST', 'PATCH', 'DELETE']) expect(requiresAdmin(method, '/activity')).toBe(true)
+    expect(requiresAdmin('GET', '/activity/abc')).toBe(true)
+    expect(requiresAdmin('GET', '/activity?_sort=-at')).toBe(true)
+  })
 })
 
 describe('login', () => {
