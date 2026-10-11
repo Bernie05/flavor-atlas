@@ -85,13 +85,16 @@ export function sortRecipes(recipes: RecipeWithRatings[], sort: RecipeSort): Rec
   switch (sort) {
     case 'newest':
       return recipes.toSorted((a, b) => b.createdAt.localeCompare(a.createdAt))
-    case 'top-rated':
-      // Highest average first; between equal averages, more ratings wins.
+    case 'top-rated': {
+      // Highest average first; between equal averages, more ratings wins. Each average is
+      // worked out once, not on every comparison (a sort compares n·log n times).
+      const summaries = new Map(recipes.map((recipe) => [recipe, summarizeRatings(recipe.ratings)]))
       return recipes.toSorted((a, b) => {
-        const ra = summarizeRatings(a.ratings)
-        const rb = summarizeRatings(b.ratings)
+        const ra = summaries.get(a)!
+        const rb = summaries.get(b)!
         return rb.average - ra.average || rb.count - ra.count
       })
+    }
     case 'quickest':
       return recipes.toSorted((a, b) => totalMinutes(a) - totalMinutes(b))
   }

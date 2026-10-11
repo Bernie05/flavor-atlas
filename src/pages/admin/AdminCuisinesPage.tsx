@@ -13,10 +13,10 @@ import { cuisineTint, cuisineUsage, formatCoordinates } from '@/features/cuisine
 import { dishQueries, regionQueries } from '@/features/dishes/queries'
 import { recipeQueries } from '@/features/recipes/queries'
 import { describeError } from '@/services/data'
+import { countOf } from '@/lib/plural'
 
 const actionClass = 'inline-flex min-h-10 items-center rounded-full px-3 text-sm font-semibold hover:bg-surface-sunken'
 
-const plural = (count: number, word: string) => `${count} ${word}${count === 1 ? '' : 's'}`
 
 /** Every cuisine on the atlas: add one, edit one, add a recipe to one, or delete an unused one. */
 export function AdminCuisinesPage() {
@@ -56,11 +56,11 @@ export function AdminCuisinesPage() {
         title={blocked ? `${toDelete?.name} still has recipes` : `Delete ${toDelete?.name ?? 'cuisine'}?`}
         description={
           blocked
-            ? `${plural(usage!.recipes, 'recipe')} still ${usage!.recipes === 1 ? 'uses' : 'use'} this cuisine. Delete them or give them another cuisine first, so none is left without one.`
+            ? `${countOf(usage!.recipes, 'recipe')} still ${usage!.recipes === 1 ? 'uses' : 'use'} this cuisine. Delete them or give them another cuisine first, so none is left without one.`
             : [
                 `${toDelete?.name ?? 'The cuisine'} will be removed from the map and the site`,
                 usage && (usage.dishes > 0 || usage.regions > 0)
-                  ? `, with its ${[usage.dishes > 0 && plural(usage.dishes, 'empty dish'), usage.regions > 0 && plural(usage.regions, 'regional kitchen')].filter(Boolean).join(' and ')}`
+                  ? `, with its ${[usage.dishes > 0 && countOf(usage.dishes, 'empty dish', 'empty dishes'), usage.regions > 0 && countOf(usage.regions, 'regional kitchen')].filter(Boolean).join(' and ')}`
                   : '',
                 ". This can't be undone.",
               ].join('')
@@ -122,8 +122,7 @@ export function AdminCuisinesPage() {
                 <div className="min-w-0">
                   <p className="font-display text-2xl leading-tight">{cuisine.name}</p>
                   <p className="label-mono text-ink-subtle tabular-nums">
-                    {countryName(cuisine.countryCode)} · {cuisine.origin} · {formatCoordinates(cuisine)} · {count}{' '}
-                    {count === 1 ? 'recipe' : 'recipes'}
+                    {countryName(cuisine.countryCode)} · {cuisine.origin} · {formatCoordinates(cuisine)} · {countOf(count, 'recipe')}
                   </p>
                 </div>
                 {/* Under the text on phones, beside it from sm up. */}

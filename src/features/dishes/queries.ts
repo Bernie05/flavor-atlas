@@ -1,13 +1,7 @@
 import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query'
-import { activityMeta } from '@/features/activity/meta'
+import { activityMeta, type Named } from '@/features/activity/meta'
 import { dataService } from '@/services/data'
 import type { Dish, DishInput, DishUpdate, Region, RegionInput } from './schema'
-
-/** A record to delete, with its name for the change history. */
-interface Named {
-  id: string
-  name: string
-}
 
 export const dishQueries = {
   all: () => ['dishes'] as const,

@@ -2,7 +2,7 @@ import type { Activity, ActivityInput } from '@/features/activity/schema'
 import type { Cuisine, CuisineInput, CuisineUpdate } from '@/features/cuisines/schema'
 import type { Dish, DishInput, DishUpdate, Region, RegionInput } from '@/features/dishes/schema'
 import type { Rating, RatingInput, Submission } from '@/features/ratings/schema'
-import type { Recipe, RecipeInput, RecipeWithRatings } from '@/features/recipes/schema'
+import type { Recipe, RecipeInput, RecipePlacement, RecipeWithRatings } from '@/features/recipes/schema'
 
 export interface RecipeFilters {
   cuisineId?: string
@@ -43,6 +43,8 @@ export interface DataService {
   getRecipe(id: string): Promise<RecipeWithRatings>
   createRecipe(input: RecipeInput): Promise<Recipe>
   updateRecipe(id: string, input: RecipeInput): Promise<Recipe>
+  /** Moves a recipe to another dish (and cuisine and region), leaving the rest of it as it is. */
+  placeRecipe(id: string, placement: RecipePlacement): Promise<Recipe>
   /** Deletes the recipe and all of its ratings. */
   deleteRecipe(id: string): Promise<void>
   createRating(input: RatingInput): Promise<Rating>

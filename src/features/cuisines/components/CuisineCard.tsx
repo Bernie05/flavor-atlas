@@ -4,6 +4,7 @@ import { usePhoto } from '@/features/recipes/usePhoto'
 import type { Cuisine } from '../schema'
 import { cuisineTint, formatCoordinates } from '../utils'
 import { CuisineFlag } from './CuisineFlag'
+import { countOf } from '@/lib/plural'
 
 interface CuisineCardProps {
   cuisine: Cuisine
@@ -19,7 +20,7 @@ interface CuisineCardProps {
  */
 export function CuisineCard({ cuisine, recipeCount, cover }: CuisineCardProps) {
   const photo = usePhoto(cover?.imageUrl ?? '')
-  const count = `${recipeCount} ${recipeCount === 1 ? 'recipe' : 'recipes'}`
+  const count = countOf(recipeCount, 'recipe')
 
   return (
     <Link

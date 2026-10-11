@@ -14,6 +14,7 @@ import { RecipeCard } from '@/features/recipes/components/RecipeCard'
 import { recipeQueries } from '@/features/recipes/queries'
 import { NotFoundError } from '@/services/data'
 import { NotFoundPage } from './NotFoundPage'
+import { countOf } from '@/lib/plural'
 
 /** A dish and all its versions: the everyday ones, and the regional ones with their place on the map. */
 export function DishPage() {
@@ -80,7 +81,7 @@ export function DishPage() {
         )}
         {dish.data.description && <p className="text-lg text-ink-muted">{dish.data.description}</p>}
         <p className="label-mono text-ink-subtle tabular-nums">
-          {recipes.data.length} {recipes.data.length === 1 ? 'version' : 'versions'}
+          {countOf(recipes.data.length, 'version')}
           {regional.length > 0 && ` · ${regional.length} from a particular place`}
         </p>
       </header>

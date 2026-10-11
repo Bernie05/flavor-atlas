@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { activitySchema, type Activity } from '@/features/activity/schema'
-import { activityOverflow, sortActivity } from '@/features/activity/utils'
+import { ACTIVITY_LIMIT, sortActivity } from '@/features/activity/utils'
 import { cuisineSchema } from '@/features/cuisines/schema'
 import { dishSchema, regionSchema } from '@/features/dishes/schema'
 import { ratingSchema, submissionSchema } from '@/features/ratings/schema'
@@ -167,6 +167,11 @@ export const httpDataService: DataService = {
     return requestJson('PATCH', recipePath(id), recipeSchema, input)
   },
 
+  placeRecipe(id, placement) {
+    // Three fields instead of the whole recipe; the server keeps the rest.
+    return requestJson('PATCH', recipePath(id), recipeSchema, placement)
+  },
+
   async deleteRecipe(id) {
     // _dependent cascades the delete to ratings with this recipeId.
     await request('DELETE', `${recipePath(id)}?_dependent=ratings`)
@@ -204,8 +209,17 @@ export const httpDataService: DataService = {
 
   async logActivity(input) {
     const entry = await requestJson('POST', '/activity', activitySchema, { ...input, at: new Date().toISOString() })
-    // Keep the history short: drop what's now beyond the limit (normally one entry).
-    for (const old of activityOverflow(await readActivity())) await request('DELETE', `/activity/${encodeURIComponent(old.id)}`)
+    // Keep the history short. With one entry per page, newest first, json-server's `pages` is
+    // the number of entries and page LIMIT + 1 holds an entry past the limit. So each check
+    // reads one entry, not the whole history. (A page past the end answers with the last page
+    // there is, which is why `pages` decides, not whether `data` came back.)
+    const overflowPath = `/activity?_sort=-at&_page=${ACTIVITY_LIMIT + 1}&_per_page=1`
+    const overflowSchema = z.object({ pages: z.number(), data: z.array(z.object({ id: z.string() })) })
+    let overflow = await requestJson('GET', overflowPath, overflowSchema)
+    while (overflow.pages > ACTIVITY_LIMIT) {
+      await request('DELETE', `/activity/${encodeURIComponent(overflow.data[0]!.id)}`)
+      overflow = await requestJson('GET', overflowPath, overflowSchema)
+    }
     return entry
   },
 

@@ -8,6 +8,7 @@ import { RecipeCard } from '@/features/recipes/components/RecipeCard'
 import { recipeQueries } from '@/features/recipes/queries'
 import { useSavedRecipeIds } from '@/features/saved/useSavedRecipes'
 import { pickSaved } from '@/features/saved/utils'
+import { countOf } from '@/lib/plural'
 
 /** The recipes saved on this device, newest first. */
 export function SavedPage() {
@@ -48,7 +49,7 @@ export function SavedPage() {
         <>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="label-mono text-ink-subtle tabular-nums" aria-live="polite">
-              {saved.length} {saved.length === 1 ? 'recipe' : 'recipes'}
+              {countOf(saved.length, 'recipe')}
             </p>
             <Link to="/shopping" className="inline-flex min-h-10 items-center rounded-full bg-ink px-4 text-sm font-semibold text-canvas hover:bg-accent">
               Make a shopping list

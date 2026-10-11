@@ -186,6 +186,12 @@ export function createSnapshotDataService(store: SnapshotStore): DataService {
       return structuredClone(recipe)
     },
 
+    async placeRecipe(id, placement) {
+      const recipe: Recipe = { ...findRecipe(await store.read(), id), ...placement }
+      await store.put('recipes', id, recipe)
+      return structuredClone(recipe)
+    },
+
     async deleteRecipe(id) {
       const db = await store.read()
       findRecipe(db, id) // throws NotFoundError, like the real API's 404

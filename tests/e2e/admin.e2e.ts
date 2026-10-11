@@ -126,3 +126,31 @@ test('a visitor review shows on the recipe only once the admin approves it', asy
   await expect(approved.first()).toBeVisible()
   await expect(recentChanges(page)).not.toContainText(comment)
 })
+
+test('the history keeps every recent change, and only drops the oldest past 50', async ({ page }) => {
+  const history = async () => (await (await page.request.get('/api/data/activity')).json()) as { summary: string; at: string }[]
+  const before = (await history()).length
+
+  // Short of the limit, nothing is dropped: two changes, two more entries.
+  const dish = unique('Pinakbet')
+  await addDish(page, 'Filipino', dish)
+  await page.getByRole('link', { name: `Edit ${dish}` }).click()
+  await page.getByLabel('Description').fill('Vegetables with bagoong.')
+  await page.getByRole('button', { name: 'Save changes' }).click()
+  await expect(page.getByText(`Saved ${dish}`)).toBeVisible()
+  await expect.poll(async () => (await history()).length).toBe(before + 2)
+
+  // Past the limit, the next change trims the history to 50, oldest first.
+  for (let i = (await history()).length; i < 55; i++) {
+    const at = new Date(Date.UTC(2020, 0, 1, 0, i)).toISOString()
+    expect((await page.request.post('/api/data/activity', { data: { kind: 'recipe', summary: `Old change ${i}`, at } })).ok()).toBe(true)
+  }
+  await page.getByRole('link', { name: `Edit ${dish}` }).click()
+  await page.getByLabel('Description').fill('Vegetables with shrimp paste.')
+  await page.getByRole('button', { name: 'Save changes' }).click()
+  await expect(page.getByText(`Saved ${dish}`)).toBeVisible()
+  await expect.poll(async () => (await history()).length).toBe(50)
+  const kept = await history()
+  expect(kept.map((entry) => entry.summary)).toContain(`Edited the dish ${dish}`)
+  expect(kept.map((entry) => entry.summary)).not.toContain('Old change 0')
+})

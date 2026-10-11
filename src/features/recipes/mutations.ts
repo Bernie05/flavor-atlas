@@ -1,13 +1,14 @@
 import { useMutation, useQueryClient, type QueryClient } from '@tanstack/react-query'
 import { useRef } from 'react'
 import { dishQueries, useCreateDish } from '@/features/dishes/queries'
+import { activityMeta, type Named } from '@/features/activity/meta'
+import { entryForUndo } from '@/features/activity/utils'
 import { dataService } from '@/services/data'
 import type { RecipeSubmission } from './form'
-import { activityMeta } from '@/features/activity/meta'
-import { entryForUndo } from '@/features/activity/utils'
 import { findRestoredDish, restoreRecipes, undoMerge, undoMove, undoneMessage, type MergePlan, type MovePlan, type Undo } from './move'
 import { recipeQueries } from './queries'
-import type { Recipe, RecipeInput, RecipeWithRatings } from './schema'
+import type { Recipe, RecipeInput, RecipePlacement, RecipeWithRatings } from './schema'
+import { countOf } from '@/lib/plural'
 
 /**
  * Refresh every cached recipe query after a change.
@@ -20,12 +21,6 @@ import type { Recipe, RecipeInput, RecipeWithRatings } from './schema'
  */
 export const refreshRecipes = (queryClient: QueryClient) =>
   queryClient.invalidateQueries({ queryKey: recipeQueries.all(), refetchType: 'all' })
-
-/** A record to delete, with its name for the change history. */
-export interface Named {
-  id: string
-  name: string
-}
 
 export function useCreateRecipe() {
   const queryClient = useQueryClient()
@@ -103,11 +98,12 @@ export function useSubmitRecipe(save: SaveMutation) {
  * transactions. If one fails, the error says how many were moved; each saved
  * recipe is whole, so running the move again for the rest is safe.
  */
-async function saveMoves(plan: { updates: { id: string; title: string; input: RecipeInput }[] }) {
+async function saveMoves(plan: { updates: { id: string; title: string; to: RecipePlacement }[] }) {
   let moved = 0
-  for (const { id, input } of plan.updates) {
+  // One at a time, not all at once: if one fails, "Moved 2 of 4" is exact and the rest can be retried.
+  for (const { id, to } of plan.updates) {
     try {
-      await dataService.updateRecipe(id, input)
+      await dataService.placeRecipe(id, to)
     } catch (error) {
       throw new Error(
         `Moved ${moved} of ${plan.updates.length}; “${plan.updates[moved]?.title}” couldn't be saved. Try the rest again.`,
@@ -129,8 +125,6 @@ interface Moved {
   undo: Undo
 }
 
-const count = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`
-
 export function useMoveRecipes() {
   const queryClient = useQueryClient()
   return useMutation({
@@ -138,7 +132,7 @@ export function useMoveRecipes() {
     onSettled: () => refreshAfterMove(queryClient),
     meta: activityMeta(({ moved, undo }: Moved, plan: MovePlan) => ({
       kind: 'move',
-      summary: `Moved ${count(moved, 'recipe')} to ${plan.target.name}`,
+      summary: `Moved ${countOf(moved, 'recipe')} to ${plan.target.name}`,
       link: `/dishes/${plan.target.id}`,
       undo,
     })),
@@ -168,7 +162,7 @@ export function useMergeDishes() {
     },
     meta: activityMeta(({ moved, undo }: Moved, { source, target }: MergePlan) => ({
       kind: 'merge',
-      summary: `Merged ${source.name} into ${target.name}${moved > 0 ? ` (${count(moved, 'version')})` : ''}`,
+      summary: `Merged ${source.name} into ${target.name}${moved > 0 ? ` (${countOf(moved, 'version')})` : ''}`,
       link: `/dishes/${target.id}`,
       undo,
     })),

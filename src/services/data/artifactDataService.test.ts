@@ -154,6 +154,15 @@ describe('artifact data service', () => {
     expect(await visitor.listSubmissions()).toEqual([])
   })
 
+  it('moves a recipe by its placement alone, so putting it back keeps edits made since', async () => {
+    const service = serviceOver(fakeDb().db)
+    const dilaw = (await service.listRecipes()).find((recipe) => recipe.title === 'Adobong Dilaw')!
+    await service.placeRecipe(dilaw.id, { dishId: 'ramen', cuisineId: 'japanese', regionId: '' })
+    await service.updateRecipe(dilaw.id, { ...(await service.getRecipe(dilaw.id)), description: 'Edited after the move' })
+    await service.placeRecipe(dilaw.id, { dishId: dilaw.dishId, cuisineId: dilaw.cuisineId, regionId: dilaw.regionId })
+    expect(await service.getRecipe(dilaw.id)).toMatchObject({ dishId: 'adobo', regionId: 'batangas', description: 'Edited after the move' })
+  })
+
   it('keeps a short change history, newest first, that only the owner can read', async () => {
     const fake = fakeDb()
     const service = serviceOver(fake.db)

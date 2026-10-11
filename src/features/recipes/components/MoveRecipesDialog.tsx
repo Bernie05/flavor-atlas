@@ -6,6 +6,7 @@ import { describeError } from '@/services/data'
 import { useMoveRecipes } from '../mutations'
 import { planMove, type Undo } from '../move'
 import type { RecipeWithRatings } from '../schema'
+import { countOf } from '@/lib/plural'
 
 interface MoveRecipesDialogProps {
   open: boolean
@@ -28,7 +29,6 @@ export function MoveRecipesDialog({ open, recipes, cuisines, dishes, regions, on
   const target = dishes.find((dish) => dish.id === targetId)
   const plan = target ? planMove(recipes, target, regions) : undefined
   const cuisineName = new Map(cuisines.map((c) => [c.id, c.name]))
-  const count = (n: number) => `${n} ${n === 1 ? 'recipe' : 'recipes'}`
 
   const close = () => {
     setTargetId('')
@@ -39,10 +39,10 @@ export function MoveRecipesDialog({ open, recipes, cuisines, dishes, regions, on
   return (
     <ConfirmDialog
       open={open}
-      title={`Move ${count(recipes.length)}`}
+      title={`Move ${countOf(recipes.length, 'recipe')}`}
       description="Each one becomes a version of the dish you pick, in that dish's cuisine."
       tone="primary"
-      confirmLabel={plan ? `Move ${count(plan.updates.length)}` : 'Move'}
+      confirmLabel={plan ? `Move ${countOf(plan.updates.length, 'recipe')}` : 'Move'}
       pendingLabel="Moving…"
       confirmBlocked={!plan || plan.updates.length === 0}
       blockedHint={plan ? 'They are all versions of that dish already.' : 'Choose a dish first.'}
@@ -54,7 +54,7 @@ export function MoveRecipesDialog({ open, recipes, cuisines, dishes, regions, on
         if (!plan || !target) return
         move.mutate(plan, {
           onSuccess: ({ moved, undo }) => {
-            onMoved(`Moved ${count(moved)} to ${target.name}.`, undo)
+            onMoved(`Moved ${countOf(moved, 'recipe')} to ${target.name}.`, undo)
             close()
           },
         })
@@ -92,7 +92,7 @@ export function MoveRecipesDialog({ open, recipes, cuisines, dishes, regions, on
             <>
               {plan.updates.length > 0 && (
                 <p>
-                  {count(plan.updates.length)} will become {plan.updates.length === 1 ? 'a version' : 'versions'} of{' '}
+                  {countOf(plan.updates.length, 'recipe')} will become {plan.updates.length === 1 ? 'a version' : 'versions'} of{' '}
                   <span className="font-semibold text-ink">{target.name}</span> ({cuisineName.get(target.cuisineId)}).
                 </p>
               )}

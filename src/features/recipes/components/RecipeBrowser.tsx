@@ -20,6 +20,7 @@ import {
   type RecipeFilterState,
 } from '../utils'
 import { RecipeCard } from './RecipeCard'
+import { countOf } from '@/lib/plural'
 
 interface RecipeBrowserProps {
   recipes: RecipeWithRatings[]
@@ -171,7 +172,7 @@ export function RecipeBrowser({ recipes, cuisines, lockedCuisineId }: RecipeBrow
 
       <div className="flex min-h-10 items-center justify-between gap-4">
         <p className="label-mono text-ink-subtle tabular-nums" aria-live="polite">
-          {visible.length} {visible.length === 1 ? 'recipe' : 'recipes'}
+          {countOf(visible.length, 'recipe')}
         </p>
         {filtered && (
           <button type="button" onClick={clearFilters} className="min-h-10 text-sm font-medium text-accent hover:text-accent-hover hover:underline">

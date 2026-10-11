@@ -20,7 +20,9 @@ export const isAdminRecipeSort = (value: string | null): value is AdminRecipeSor
 /** A new sorted array (the input is never changed). Ties keep a stable order by name. */
 export function sortAdminRecipes(recipes: RecipeWithRatings[], sort: AdminRecipeSort): RecipeWithRatings[] {
   const byName = (a: RecipeWithRatings, b: RecipeWithRatings) => a.title.localeCompare(b.title)
-  const rating = (recipe: RecipeWithRatings) => summarizeRatings(recipe.ratings)
+  // Each recipe's average once, up front: a comparator runs n·log n times, and would re-average both recipes on every call.
+  const summaries = new Map(recipes.map((recipe) => [recipe, summarizeRatings(recipe.ratings)]))
+  const rating = (recipe: RecipeWithRatings) => summaries.get(recipe)!
   switch (sort) {
     case 'newest':
       return recipes.toSorted((a, b) => b.createdAt.localeCompare(a.createdAt) || byName(a, b))

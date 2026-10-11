@@ -57,7 +57,14 @@ export const recipeSchema = recipeInputSchema.extend({
   createdAt: z.iso.datetime(),
 })
 
+/**
+ * Where a recipe sits in the atlas: its dish, cuisine and regional kitchen.
+ * A move changes only these, so it saves (and its undo stores) only these.
+ */
+export const recipePlacementSchema = recipeInputSchema.pick({ dishId: true, cuisineId: true, regionId: true })
+
 export type Difficulty = (typeof DIFFICULTIES)[number]
+export type RecipePlacement = z.infer<typeof recipePlacementSchema>
 export type Ingredient = z.infer<typeof ingredientSchema>
 export type RecipeInput = z.infer<typeof recipeInputSchema>
 export type Recipe = z.infer<typeof recipeSchema>

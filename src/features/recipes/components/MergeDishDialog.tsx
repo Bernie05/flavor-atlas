@@ -6,6 +6,7 @@ import { describeError } from '@/services/data'
 import { mergeTargets, planMerge, type Undo } from '../move'
 import { useMergeDishes } from '../mutations'
 import type { RecipeWithRatings } from '../schema'
+import { countOf } from '@/lib/plural'
 
 interface MergeDishDialogProps {
   /** The dish to merge away; null keeps the dialog closed. */
@@ -16,8 +17,6 @@ interface MergeDishDialogProps {
   onClose: () => void
   onMerged: (message: string, undo: Undo) => void
 }
-
-const versions = (n: number) => `${n} ${n === 1 ? 'version' : 'versions'}`
 
 /**
  * Merge one dish into another of its cuisine: its versions move over, then
@@ -45,7 +44,7 @@ export function MergeDishDialog({ source, dishes, recipes, regions, onClose, onM
       description={
         targets.length === 0
           ? `There's no other dish in its cuisine to merge it into.`
-          : `Its ${versions(ownVersions)} become versions of the dish you pick, then ${source?.name ?? 'it'} is deleted. Ratings stay with their recipes.`
+          : `Its ${countOf(ownVersions, 'version')} become versions of the dish you pick, then ${source?.name ?? 'it'} is deleted. Ratings stay with their recipes.`
       }
       canConfirm={targets.length > 0}
       tone="primary"
@@ -62,7 +61,7 @@ export function MergeDishDialog({ source, dishes, recipes, regions, onClose, onM
         if (!plan) return
         merge.mutate(plan, {
           onSuccess: ({ moved, undo }) => {
-            onMerged(`Merged ${plan.source.name} into ${plan.target.name}${moved > 0 ? ` (${versions(moved)} moved)` : ''}.`, undo)
+            onMerged(`Merged ${plan.source.name} into ${plan.target.name}${moved > 0 ? ` (${countOf(moved, 'version')} moved)` : ''}.`, undo)
             close()
           },
         })
@@ -92,7 +91,7 @@ export function MergeDishDialog({ source, dishes, recipes, regions, onClose, onM
           <p aria-live="polite" className="text-sm text-ink-muted empty:hidden">
             {plan &&
               (plan.moves.updates.length > 0
-                ? `${plan.target.name} will have ${versions(plan.moves.updates.length + recipes.filter((r) => r.dishId === plan.target.id).length)}.`
+                ? `${plan.target.name} will have ${countOf(plan.moves.updates.length + recipes.filter((r) => r.dishId === plan.target.id).length, 'version')}.`
                 : `${plan.source.name} has no versions, so it's simply deleted.`)}
           </p>
         </div>

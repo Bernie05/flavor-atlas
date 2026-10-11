@@ -14,9 +14,9 @@ import { MergeDishDialog } from '@/features/recipes/components/MergeDishDialog'
 import { mergeTargets } from '@/features/recipes/move'
 import { recipeQueries } from '@/features/recipes/queries'
 import { describeError } from '@/services/data'
+import { countOf } from '@/lib/plural'
 
 const actionClass = 'inline-flex min-h-10 items-center rounded-full px-3 text-sm font-semibold hover:bg-surface-sunken'
-const plural = (count: number, word: string) => `${count} ${word}${count === 1 ? '' : 's'}`
 
 type Target = { kind: 'dish' | 'region'; id: string; name: string; recipes: number }
 
@@ -62,7 +62,7 @@ export function AdminDishesPage() {
         title={blocked ? `${toDelete?.name} still has recipes` : `Delete ${toDelete?.name ?? ''}?`}
         description={
           blocked
-            ? `${plural(toDelete!.recipes, 'recipe')} ${toDelete!.kind === 'dish' ? (toDelete!.recipes === 1 ? 'is a version' : 'are versions') + ' of this dish' : (toDelete!.recipes === 1 ? 'comes' : 'come') + ' from this region'}. Move ${toDelete!.recipes === 1 ? 'it' : 'them'} first, so none is left without one.`
+            ? `${countOf(toDelete!.recipes, 'recipe')} ${toDelete!.kind === 'dish' ? (toDelete!.recipes === 1 ? 'is a version' : 'are versions') + ' of this dish' : (toDelete!.recipes === 1 ? 'comes' : 'come') + ' from this region'}. Move ${toDelete!.recipes === 1 ? 'it' : 'them'} first, so none is left without one.`
             : `${toDelete?.name ?? 'It'} will be removed from the atlas. This can't be undone.`
         }
         canConfirm={!blocked}
@@ -110,7 +110,7 @@ export function AdminDishesPage() {
             Dishes & regions
           </h1>
           <p className="label-mono mt-1 text-ink-subtle tabular-nums">
-            {dishes.data!.length} {dishes.data!.length === 1 ? 'dish' : 'dishes'} · {plural(regions.data!.length, 'regional kitchen')}
+            {countOf(dishes.data!.length, 'dish', 'dishes')} · {countOf(regions.data!.length, 'regional kitchen')}
           </p>
         </div>
       </header>
@@ -137,7 +137,7 @@ export function AdminDishesPage() {
                   return {
                     id: dish.id,
                     name: dish.name,
-                    detail: plural(recipes, 'version'),
+                    detail: countOf(recipes, 'version'),
                     editTo: `/admin/dishes/${dish.id}/edit`,
                     // Only offered when the cuisine has another dish to merge into.
                     onMerge: mergeTargets(dish, dishes.data!).length > 0 ? () => setToMerge(dish) : undefined,
@@ -156,7 +156,7 @@ export function AdminDishesPage() {
                   return {
                     id: region.id,
                     name: region.name,
-                    detail: `${formatCoordinates(region)} · ${plural(recipes, 'recipe')}`,
+                    detail: `${formatCoordinates(region)} · ${countOf(recipes, 'recipe')}`,
                     editTo: `/admin/regions/${region.id}/edit`,
                     onDelete: () => setToDelete({ kind: 'region', id: region.id, name: region.name, recipes }),
                   }

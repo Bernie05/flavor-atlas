@@ -10,6 +10,12 @@ declare module '@tanstack/react-query' {
   }
 }
 
+/** A record to delete, with its name so the history can say what went ("Deleted the dish Pancit"). */
+export interface Named {
+  id: string
+  name: string
+}
+
 /**
  * Marks a mutation for the change history: `meta: activityMeta((saved, input) => ({ … }))`.
  * One MutationCache handler (lib/queryClient.ts) writes the entry after any

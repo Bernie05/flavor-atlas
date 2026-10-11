@@ -19,6 +19,7 @@ import { recipeQueries } from '@/features/recipes/queries'
 import type { RecipeWithRatings } from '@/features/recipes/schema'
 import { applyRecipeFilters, DEFAULT_FILTERS, formatDuration, totalMinutes } from '@/features/recipes/utils'
 import { describeError } from '@/services/data'
+import { countOf } from '@/lib/plural'
 
 const actionClass =
   'inline-flex min-h-10 items-center rounded-full px-3 text-sm font-semibold hover:bg-surface-sunken'
@@ -271,7 +272,7 @@ export function AdminRecipesPage() {
       ) : (
         <>
           <p ref={rangeRef} tabIndex={-1} className="label-mono text-ink-subtle tabular-nums">
-            {paged.pageCount > 1 ? `Showing ${paged.first}–${paged.last} of ${paged.total}` : `${paged.total} ${paged.total === 1 ? 'recipe' : 'recipes'}`}
+            {paged.pageCount > 1 ? `Showing ${paged.first}–${paged.last} of ${paged.total}` : countOf(paged.total, 'recipe')}
             {paged.pageCount > 1 && <span className="sr-only">, page {paged.page} of {paged.pageCount}</span>}
           </p>
           {/* Wide screens: a table to scan and compare (scrolls inside its box if it ever runs out of room). */}

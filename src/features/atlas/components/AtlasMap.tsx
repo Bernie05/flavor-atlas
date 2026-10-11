@@ -6,6 +6,7 @@ import { LAND_PATH } from '../landPath'
 import { AtlasCaption } from './AtlasCaption'
 import { useMapViewport } from '../useMapViewport'
 import { isOnMap, labelBox, mapView, PIN, pinScale, placeLabels, projectPoint, tappableDots } from '../utils'
+import { countOf } from '@/lib/plural'
 
 interface AtlasMapProps {
   cuisines: Cuisine[]
@@ -86,7 +87,7 @@ export function AtlasMap({ cuisines, regions, recipeCounts, regionCounts }: Atla
               <Link
                 key={cuisine.id}
                 to={`/cuisines/${cuisine.id}`}
-                aria-label={`${cuisine.name}: ${count} ${count === 1 ? 'recipe' : 'recipes'}, from ${cuisine.origin}`}
+                aria-label={`${cuisine.name}: ${countOf(count, 'recipe')}, from ${cuisine.origin}`}
                 style={cuisineTint(cuisine.id)}
                 className="group outline-none"
                 // Where the pin is, so Tab can bring it into a zoomed-in view.
@@ -133,7 +134,7 @@ export function AtlasMap({ cuisines, regions, recipeCounts, regionCounts }: Atla
                 data-pin-y={point.y}
                 data-pin-label={region.name}
               >
-                <title>{`${region.name}: ${count} regional ${count === 1 ? 'recipe' : 'recipes'}, ${cuisineName.get(region.cuisineId) ?? ''}`}</title>
+                <title>{`${region.name}: ${countOf(count, 'regional recipe')}, ${cuisineName.get(region.cuisineId) ?? ''}`}</title>
                 {canTap && <circle cx={point.x} cy={point.y} r={PIN.dotHitRadius * k} fill="transparent" />}
                 <circle
                   cx={point.x}

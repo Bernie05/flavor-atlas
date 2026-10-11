@@ -20,6 +20,7 @@ const METHODS = {
   getRecipe: true,
   createRecipe: true,
   updateRecipe: true,
+  placeRecipe: true,
   deleteRecipe: true,
   createRating: true,
   deleteRating: true,

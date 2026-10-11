@@ -1,13 +1,19 @@
 import { z } from 'zod'
 import { dishSchema, type Dish, type MergedDish, type Region } from '@/features/dishes/schema'
-import { recipeInputSchema, type RecipeWithRatings } from './schema'
+import { recipePlacementSchema, type RecipePlacement, type RecipeWithRatings } from './schema'
+import { countOf } from '@/lib/plural'
 
-/** One recipe saved by a move: what it becomes and what it was. */
+/**
+ * One recipe moved: where it goes and where it was. Only the placement, not
+ * the whole recipe: a move sends three fields instead of every ingredient and
+ * step, its undo is small enough to keep in the history, and undoing it can't
+ * wipe out an edit made to the recipe since.
+ */
 export const recipeChangeSchema = z.object({
   id: z.string(),
   title: z.string(),
-  input: recipeInputSchema,
-  previous: recipeInputSchema,
+  to: recipePlacementSchema,
+  from: recipePlacementSchema,
 })
 
 export type RecipeChange = z.infer<typeof recipeChangeSchema>
@@ -15,7 +21,7 @@ export type RecipeChange = z.infer<typeof recipeChangeSchema>
 export interface MovePlan {
   /** The dish the recipes become versions of. */
   target: Dish
-  /** Each recipe to save, as it will be after the move, and as it was before (for undo). */
+  /** Each recipe to move, with where it was (for undo). */
   updates: RecipeChange[]
   /** Recipes whose regional kitchen belongs to the old cuisine, so it's cleared. */
   losesRegion: { title: string; region: string }[]
@@ -39,15 +45,15 @@ export function planMove(recipes: RecipeWithRatings[], target: Dish, regions: Re
       plan.unchanged.push(recipe.title)
       continue
     }
-    const { id, title, createdAt: _created, ratings: _ratings, ...input } = recipe
-    const region = regionById.get(recipe.regionId)
-    const keepsRegion = !recipe.regionId || region?.cuisineId === target.cuisineId
+    const { id, title, dishId, cuisineId, regionId } = recipe
+    const region = regionById.get(regionId)
+    const keepsRegion = !regionId || region?.cuisineId === target.cuisineId
     if (!keepsRegion) plan.losesRegion.push({ title, region: region?.name ?? 'its region' })
     plan.updates.push({
       id,
       title,
-      input: { ...input, title, dishId: target.id, cuisineId: target.cuisineId, regionId: keepsRegion ? recipe.regionId : '' },
-      previous: { ...input, title },
+      to: { dishId: target.id, cuisineId: target.cuisineId, regionId: keepsRegion ? regionId : '' },
+      from: { dishId, cuisineId, regionId },
     })
   }
   return plan
@@ -117,14 +123,14 @@ export const undoMerge = (plan: MergePlan, at: number): MergeUndo => ({
 
 export const canUndo = (undo: Undo, now: number) => now - undo.at < UNDO_WINDOW_MS
 
-/** Saving each recipe as it was: the reverse of a move. `dishId` replaces the old dish's id (a merged dish comes back with a new one). */
-export const restoreRecipes = (recipes: RecipeChange[], dishId?: string) =>
-  recipes.map(({ id, title, previous }) => ({ id, title, input: dishId ? { ...previous, dishId } : previous }))
+/** The reverse of a move: each recipe back where it was. `dishId` replaces the old dish's id (a merged dish comes back with a new one). */
+export const restoreRecipes = (recipes: RecipeChange[], dishId?: string): { id: string; title: string; to: RecipePlacement }[] =>
+  recipes.map(({ id, title, from }) => ({ id, title, to: dishId ? { ...from, dishId } : from }))
 
 /** What an undo brought back, for the message that replaces "Moved…". */
 export function undoneMessage(undo: Undo): string {
   const n = undo.recipes.length
-  if (undo.kind === 'merge') return `Undone: ${undo.source.name} is back${n > 0 ? `, with its ${n} ${n === 1 ? 'version' : 'versions'}` : ''}.`
+  if (undo.kind === 'merge') return `Undone: ${undo.source.name} is back${n > 0 ? `, with its ${countOf(n, 'version')}` : ''}.`
   return `Undone: ${n === 1 ? `${undo.recipes[0]!.title} is` : `${n} recipes are`} back where ${n === 1 ? 'it was' : 'they were'}.`
 }
 

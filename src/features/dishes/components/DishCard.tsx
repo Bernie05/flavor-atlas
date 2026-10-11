@@ -2,6 +2,7 @@ import { Link } from 'react-router'
 import { FoodEmoji } from '@/components/ui/FoodEmoji'
 import { cuisineTint } from '@/features/cuisines/utils'
 import type { Dish } from '../schema'
+import { countOf } from '@/lib/plural'
 
 interface DishCardProps {
   dish: Dish
@@ -22,7 +23,7 @@ export function DishCard({ dish, emoji, versions, regional }: DishCardProps) {
       <span className="min-w-0">
         <span className="block truncate font-display text-2xl leading-tight group-hover:underline">{dish.name}</span>
         <span className="label-mono block text-ink-subtle tabular-nums">
-          {versions} {versions === 1 ? 'version' : 'versions'}
+          {countOf(versions, 'version')}
           {regional > 0 && ` · ${regional} regional`}
         </span>
       </span>

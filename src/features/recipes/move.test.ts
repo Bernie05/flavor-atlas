@@ -22,22 +22,24 @@ const humba: Dish = { id: 'humba', cuisineId: 'filipino', name: 'Humba', descrip
 const ramen: Dish = { id: 'ramen', cuisineId: 'japanese', name: 'Ramen', description: '' }
 
 describe('planMove', () => {
-  it('gives each recipe the dish and its cuisine, keeping everything else', () => {
+  it('gives each recipe the dish and its cuisine, and remembers where it was', () => {
     const plan = planMove([recipe('1', 'Chicken Adobo', 'adobo', 'filipino')], humba, regions)
-    expect(plan.updates).toHaveLength(1)
-    const { input } = plan.updates[0]!
-    expect(input).toMatchObject({ title: 'Chicken Adobo', dishId: 'humba', cuisineId: 'filipino', servings: 4 })
-    // A recipe input, not a stored record: no id, date or ratings.
-    expect(input).not.toHaveProperty('id')
-    expect(input).not.toHaveProperty('createdAt')
-    expect(input).not.toHaveProperty('ratings')
+    expect(plan.updates).toEqual([
+      {
+        id: '1',
+        title: 'Chicken Adobo',
+        // Only the placement: the rest of the recipe isn't sent, so it can't be overwritten.
+        to: { dishId: 'humba', cuisineId: 'filipino', regionId: '' },
+        from: { dishId: 'adobo', cuisineId: 'filipino', regionId: '' },
+      },
+    ])
   })
 
   it('keeps a region of the same cuisine, and clears one that no longer fits, saying so', () => {
     const regional = recipe('2', 'Adobong Dilaw', 'adobo', 'filipino', 'batangas')
-    expect(planMove([regional], humba, regions).updates[0]!.input.regionId).toBe('batangas')
+    expect(planMove([regional], humba, regions).updates[0]!.to.regionId).toBe('batangas')
     const plan = planMove([regional], ramen, regions)
-    expect(plan.updates[0]!.input).toMatchObject({ regionId: '', cuisineId: 'japanese', variantNote: 'With turmeric' })
+    expect(plan.updates[0]!.to).toEqual({ dishId: 'ramen', cuisineId: 'japanese', regionId: '' })
     expect(plan.losesRegion).toEqual([{ title: 'Adobong Dilaw', region: 'Batangas' }])
   })
 
@@ -64,7 +66,7 @@ describe('planMerge', () => {
     const plan = planMerge(adobo, humba, recipes, regions)
     expect(plan.source).toBe(adobo)
     expect(plan.moves.updates.map((update) => update.id)).toEqual(['1', '2'])
-    expect(plan.moves.updates[1]!.input).toMatchObject({ dishId: 'humba', regionId: 'batangas' })
+    expect(plan.moves.updates[1]!.to).toMatchObject({ dishId: 'humba', regionId: 'batangas' })
     expect(plan.moves.losesRegion).toEqual([])
   })
 
@@ -93,12 +95,12 @@ describe('undo', () => {
   it('remembers each recipe as it was, so a move across cuisines comes back whole (region too)', () => {
     const plan = planMove([regional], ramen, regions)
     const [restored] = restoreRecipes(undoMove(plan, 0).recipes)
-    expect(restored).toMatchObject({ id: '2', input: { dishId: 'adobo', cuisineId: 'filipino', regionId: 'batangas' } })
+    expect(restored).toEqual({ id: '2', title: 'Adobong Dilaw', to: { dishId: 'adobo', cuisineId: 'filipino', regionId: 'batangas' } })
   })
 
   it('points restored recipes at a recreated dish when given its new id', () => {
     const plan = planMerge(adobo, humba, [regional], regions)
-    expect(restoreRecipes(plan.moves.updates, 'adobo-2')[0]!.input.dishId).toBe('adobo-2')
+    expect(restoreRecipes(plan.moves.updates, 'adobo-2')[0]!.to.dishId).toBe('adobo-2')
   })
 
   it('is offered only for a while', () => {

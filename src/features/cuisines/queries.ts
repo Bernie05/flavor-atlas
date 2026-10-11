@@ -1,7 +1,7 @@
 import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query'
 import { dataService } from '@/services/data'
 import { dishQueries, regionQueries } from '@/features/dishes/queries'
-import { activityMeta } from '@/features/activity/meta'
+import { activityMeta, type Named } from '@/features/activity/meta'
 import type { Cuisine, CuisineInput, CuisineUpdate } from './schema'
 
 // Query factory: one place that owns the cache keys and fetchers for cuisines.
@@ -46,8 +46,8 @@ export function useUpdateCuisine(id: string) {
 export function useDeleteCuisine() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({ id }: { id: string; name: string }) => dataService.deleteCuisine(id),
-    meta: activityMeta((_: void, { name }: { id: string; name: string }) => ({ kind: 'cuisine', summary: `Removed ${name} from the atlas` })),
+    mutationFn: ({ id }: Named) => dataService.deleteCuisine(id),
+    meta: activityMeta((_: void, { name }: Named) => ({ kind: 'cuisine', summary: `Removed ${name} from the atlas` })),
     onSuccess: () =>
       Promise.all(
         [cuisineQueries.all(), dishQueries.all(), regionQueries.all()].map((queryKey) =>
